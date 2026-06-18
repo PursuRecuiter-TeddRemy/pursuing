@@ -1225,29 +1225,6 @@
         }
     }
 
-    // Same as sendWeb3Form, but sends multipart/form-data so a real file
-    // (e.g. a resume) can be attached. Web3Forms emails the attachment
-    // directly — it is never stored in localStorage, since browser storage
-    // has no room for file-sized data.
-    async function sendWeb3FormWithFile(payload, file) {
-        try {
-            const formData = new FormData();
-            formData.append('access_key', WEB3FORMS_ACCESS_KEY);
-            Object.entries(payload).forEach(([key, value]) => formData.append(key, value));
-            if (file) formData.append('attachment', file, file.name);
-
-            const res = await fetch('https://api.web3forms.com/submit', {
-                method: 'POST',
-                headers: { 'Accept': 'application/json' },
-                body: formData
-            });
-            const data = await res.json();
-            return !!data.success;
-        } catch (err) {
-            return false;
-        }
-    }
-
     // Supabase — the real shared backend. Replaces the old localStorage
     // shim so that jobs, applications, and hire requests are visible to
     // every visitor everywhere, not just the browser/device that created
@@ -1354,6 +1331,7 @@
             email: row.email,
             phone: row.phone,
             resumeFileName: row.resume_file_name,
+            resumePath: row.resume_path,
             note: row.note,
             submittedAt: row.submitted_at
         };
@@ -1368,6 +1346,7 @@
             email: app.email,
             phone: app.phone,
             resume_file_name: app.resumeFileName,
+            resume_path: app.resumePath || null,
             note: app.note,
             submitted_at: app.submittedAt
         };
@@ -1558,14 +1537,16 @@
             return;
         }
 
+        const applicationId = 'app_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
         const application = {
-            id: 'app_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+            id: applicationId,
             jobId: jobId,
             jobTitle: job ? job.title : 'Unknown role',
             name: document.getElementById('apply-name').value.trim(),
             email: document.getElementById('apply-email').value.trim(),
             phone: document.getElementById('apply-phone').value.trim(),
             resumeFileName: resumeFile.name,
+            resumePath: null,
             note: document.getElementById('apply-note').value.trim(),
             submittedAt: new Date().toISOString()
         };
@@ -1573,17 +1554,37 @@
         const submitBtn = document.querySelector('#apply-form button[type="submit"]');
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
+        // Upload the resume to Supabase Storage first, so we have a path
+        // to save alongside the application record. The bucket is private
+        // — files aren't publicly guessable; viewing one always requires
+        // a signed (temporary, expiring) link generated on demand.
+        let resumeUrl = null;
+        try {
+            const fileExt = (resumeFile.name.split('.').pop() || 'pdf').toLowerCase();
+            const storagePath = `${applicationId}.${fileExt}`;
+            const { error: uploadError } = await db.storage.from('resumes').upload(storagePath, resumeFile);
+            if (uploadError) throw uploadError;
+            application.resumePath = storagePath;
+
+            const { data: signedData, error: signedError } = await db.storage.from('resumes').createSignedUrl(storagePath, 60 * 60 * 24 * 30);
+            if (!signedError && signedData) resumeUrl = signedData.signedUrl;
+        } catch (err) {
+            // Resume upload failing shouldn't block the application itself
+            // from being saved — the admin tab will just show "resume not
+            // available" for this entry, and the email won't include a link.
+        }
+
+        let savedToDatabase = false;
         try {
             const { error } = await db.from('applicants').insert(applicantToRow(application));
             if (error) throw error;
             applicants.push(application);
+            savedToDatabase = true;
         } catch (err) {
-            // Database save failing shouldn't block the email notification
-            // below; the admin tab just won't show this entry until it's
-            // retried, but you'll still get the email either way.
+            // Leave savedToDatabase false — handled below.
         }
 
-        const emailed = await sendWeb3FormWithFile({
+        await sendWeb3Form({
             subject: `New application: ${application.jobTitle}`,
             from_name: 'Pursu Applications',
             name: application.name,
@@ -1591,12 +1592,12 @@
             phone: application.phone || 'Not provided',
             role_applied_for: application.jobTitle,
             note: application.note || 'None',
-            message: `${application.name} applied for ${application.jobTitle}.\n\nEmail: ${application.email}\nPhone: ${application.phone || 'Not provided'}\nResume attached: ${resumeFile.name}\nNote: ${application.note || 'None'}`
-        }, resumeFile);
+            message: `${application.name} applied for ${application.jobTitle}.\n\nEmail: ${application.email}\nPhone: ${application.phone || 'Not provided'}\nResume: ${resumeUrl || 'Could not generate a link — check the admin tab on the site.'}\nNote: ${application.note || 'None'}`
+        });
 
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Application'; }
 
-        if (emailed) {
+        if (savedToDatabase) {
             document.getElementById('apply-form').reset();
             resetResumeDropZone();
             document.getElementById('applied-job-title').textContent = job
@@ -1926,7 +1927,7 @@
                 <div>
                     <div>${escapeHtml(a.name)} — <a href="mailto:${escapeHtml(a.email)}">${escapeHtml(a.email)}</a></div>
                     <div class="meta">Applied for ${escapeHtml(a.jobTitle)} ${a.phone ? '&bull; ' + escapeHtml(a.phone) : ''}</div>
-                    <div class="meta">Resume: ${a.resumeFileName ? escapeHtml(a.resumeFileName) + ' (sent via email)' : 'Not attached'}</div>
+                    <div class="meta">Resume: ${a.resumePath ? `<a href="javascript:void(0)" onclick="viewApplicantResume('${a.resumePath}')">${escapeHtml(a.resumeFileName || 'View resume')}</a>` : (a.resumeFileName ? escapeHtml(a.resumeFileName) + ' (not available)' : 'Not attached')}</div>
                     ${a.note ? `<div class="meta">Note: ${escapeHtml(a.note)}</div>` : ''}
                     <div class="meta">${new Date(a.submittedAt).toLocaleString()}</div>
                 </div>
@@ -1935,7 +1936,18 @@
         `).join('');
     }
 
+    async function viewApplicantResume(resumePath) {
+        try {
+            const { data, error } = await db.storage.from('resumes').createSignedUrl(resumePath, 60 * 5);
+            if (error || !data) throw error || new Error('No signed URL returned');
+            window.open(data.signedUrl, '_blank', 'noopener');
+        } catch (err) {
+            alert('Could not open this resume right now. Please try again.');
+        }
+    }
+
     async function deleteApplicant(appId) {
+        const applicant = applicants.find(a => a.id === appId);
         try {
             const { error } = await db.from('applicants').delete().eq('id', appId);
             if (error) throw error;
@@ -1943,6 +1955,9 @@
         } catch (e) {
             alert('Could not remove this applicant right now. Please try again.');
             return;
+        }
+        if (applicant && applicant.resumePath) {
+            try { await db.storage.from('resumes').remove([applicant.resumePath]); } catch (e) { /* best effort cleanup */ }
         }
         renderApplicants();
     }
