@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='8' y='72' font-family='Georgia,serif' font-weight='700' font-size='62' fill='%231e1a17'%3EP%3C/text%3E%3Ccircle cx='80' cy='72' r='9' fill='%23e8623f'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAArUlEQVR4nO2RIQ7CQBBF3zZokN1U9BjYKjQXwFCQWBwOrtEmGC6AwlHLMTZk05VwgSLYIprtwqaW5+ZP/s+fDPwRAGkS74B9Z/cArsBGaXPvC4gAlDYHYGu1ApgAF2AOHH0NIpeotHkCJztOgwPSJB4DCzveQgNWvO+fAWdg6QsYObRCabP2mb41CKLvjUZpI12GOs8aAFlW4hPwK625RZaVGHxCMHWeNd0mg3gBqtIrhEFjXwEAAAAASUVORK5CYII=">
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABHElEQVR4nO2WoW7CUBSGvy7TTLCkUFGNnFgyt2aPQMITwBNApibQGAzZ5Cb3ABPTmxtqbgnIK256CSQke4BiEJfmUugFWsH93PlzT8/f9vRPweFwlIynF2Hgz4Hqjp4E+AemwCfwIqSa2Rq40Ash1bWQygPGqXPDtV4HBkAFuAX6wF8Y+PdHMbALIVUspHoC3jW5CnyEgV87uQGNUaq+AjpFGpgYtJsiDZj6kiINNAzab5EGuql6CbzaXOgyz+H1pveAliYvgKZtFngmMQz8H+Auo08PoudDgmjfJzAUUj3aDsnCdgecAWcgF3E7SuJ2ZExKm/+BByHVV57hel17+96YacyBY7HtrnUT57EDpRlIv+9t2snJ+gocpbMC14FPz9AtOoMAAAAASUVORK5CYII=">
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,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">
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
+    <link rel="shortcut icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABHElEQVR4nO2WoW7CUBSGvy7TTLCkUFGNnFgyt2aPQMITwBNApibQGAzZ5Cb3ABPTmxtqbgnIK256CSQke4BiEJfmUugFWsH93PlzT8/f9vRPweFwlIynF2Hgz4Hqjp4E+AemwCfwIqSa2Rq40Ash1bWQygPGqXPDtV4HBkAFuAX6wF8Y+PdHMbALIVUspHoC3jW5CnyEgV87uQGNUaq+AjpFGpgYtJsiDZj6kiINNAzab5EGuql6CbzaXOgyz+H1pveAliYvgKZtFngmMQz8H+Auo08PoudDgmjfJzAUUj3aDsnCdgecAWcgF3E7SuJ2ZExKm/+BByHVV57hel17+96YacyBY7HtrnUT57EDpRlIv+9t2snJ+gocpbMC14FPz9AtOoMAAAAASUVORK5CYII=">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pursu. | Pursuing the Perfect Match</title>
@@ -426,6 +430,20 @@
             margin-top: 0.5rem; font-size: 0.75rem; color: var(--ink-soft); background: var(--sand);
             border-radius: 8px; padding: 0.5rem 0.7rem; line-height: 1.5;
         }
+        .job-link-row {
+            display: flex; align-items: center; gap: 0.6rem; margin-top: 0.4rem;
+        }
+        .job-link-text {
+            font-family: monospace; font-size: 0.72rem; color: var(--ink-faint);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;
+        }
+        .job-link-copy {
+            font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600; color: var(--teal-deep);
+            background: var(--teal-tint); border: none; border-radius: 100px; padding: 0.25rem 0.7rem;
+            cursor: pointer; flex-shrink: 0; transition: 0.2s;
+        }
+        .job-link-copy:hover { background: var(--teal); color: #fff; }
+        .job-link-copy.copied { background: var(--success); color: #fff; }
 
         /* --- FOOTER --- */
         .site-footer {
@@ -1279,6 +1297,8 @@
         { id: "job_seed_2", title: "Recruiting Specialist", pay: "$40,000 - $52,000", location: "Remote", category: "Talent", description: "Source, screen, and onboard candidates across multiple client accounts." }
     ];
 
+    let jobsLoadedPromise = null;
+
     async function loadJobs() {
         try {
             const { data, error } = await db.from('jobs').select('*').order('created_at', { ascending: true });
@@ -1492,6 +1512,8 @@
         `).join('');
     }
 
+    let currentDetailJobId = null;
+
     function goToJob(jobId) {
         viewJobDetail(jobId);
     }
@@ -1499,6 +1521,7 @@
     function viewJobDetail(jobId) {
         const job = jobs.find(j => j.id === jobId);
         if (!job) return;
+        currentDetailJobId = jobId;
         document.getElementById('detail-job-category').textContent = job.category;
         document.getElementById('detail-job-title').textContent = job.title;
         document.getElementById('detail-job-meta').innerHTML = `<b>${escapeHtml(job.pay)}</b> &nbsp; ${escapeHtml(job.location)}`;
@@ -1807,11 +1830,16 @@
         }
         list.innerHTML = jobs.map(j => {
             const isPaused = j.active === false;
+            const jobUrl = window.location.origin + window.location.pathname + '#job/' + j.id;
             return `
             <div class="admin-row${isPaused ? ' paused' : ''}">
                 <div>
                     <div>${escapeHtml(j.title)}<span class="status-pill ${isPaused ? 'paused' : 'live'}">${isPaused ? 'Paused' : 'Live'}</span></div>
                     <div class="meta">${escapeHtml(j.category)} &bull; ${escapeHtml(j.pay)} &bull; ${escapeHtml(j.location)}</div>
+                    <div class="meta job-link-row">
+                        <span class="job-link-text">${escapeHtml(jobUrl)}</span>
+                        <button type="button" class="job-link-copy" onclick="copyJobLink('${j.id}', this)">Copy link</button>
+                    </div>
                     ${j.notes ? `<div class="admin-note-box">Note: ${escapeHtml(j.notes)}</div>` : ''}
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -1822,6 +1850,31 @@
             </div>
         `;
         }).join('');
+    }
+
+    function copyJobLink(jobId, btn) {
+        const url = window.location.origin + window.location.pathname + '#job/' + jobId;
+        const restore = () => { if (btn) { btn.textContent = 'Copy link'; btn.classList.remove('copied'); } };
+        const onCopied = () => {
+            if (btn) { btn.textContent = 'Copied!'; btn.classList.add('copied'); setTimeout(restore, 1800); }
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(onCopied).catch(() => fallbackCopy(url, onCopied));
+        } else {
+            fallbackCopy(url, onCopied);
+        }
+    }
+
+    function fallbackCopy(text, onDone) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+        if (onDone) onDone();
     }
 
     function editJob(jobId) {
@@ -1957,7 +2010,12 @@
                 jobs.push(jobData);
             }
             lastJobsSnapshot = JSON.stringify(jobs);
-            msgEl.textContent = editId ? 'Role updated.' : 'Role posted.';
+            if (editId) {
+                msgEl.textContent = 'Role updated.';
+            } else {
+                const newUrl = window.location.origin + window.location.pathname + '#job/' + jobData.id;
+                msgEl.innerHTML = `Role posted. Direct link: <span style="font-family:monospace; font-size:0.78em;">${escapeHtml(newUrl)}</span> <button type="button" class="job-link-copy" onclick="copyJobLink('${jobData.id}', this)">Copy link</button>`;
+            }
             msgEl.className = 'form-msg success';
             document.getElementById('job-form').reset();
             editor.innerHTML = '';
@@ -2055,7 +2113,13 @@
         if (!skipScroll) window.scrollTo({ top: 0, behavior: 'instant' });
 
         if (target && target !== 'admin' && target !== 'admin-login') {
-            try { history.replaceState(null, '', '#' + target); } catch (e) {}
+            try {
+                if (target === 'job-detail') {
+                    history.replaceState(null, '', '#job/' + (currentDetailJobId || ''));
+                } else {
+                    history.replaceState(null, '', '#' + target);
+                }
+            } catch (e) {}
         }
 
         if (target === 'admin') {
@@ -2121,7 +2185,7 @@
     }
 
     window.addEventListener('load', () => {
-        loadJobs();
+        jobsLoadedPromise = loadJobs();
         startJobsPolling();
         initRteToolbar();
         const overlay = document.getElementById('intro-overlay');
@@ -2131,11 +2195,14 @@
             setTimeout(dismissIntro, 4200);
         }
         const hash = window.location.hash.replace('#', '');
-        const restorable = ['home', 'talent', 'employers', 'about', 'hours', 'contact'];
+        const allPages = ['home', 'talent', 'employers', 'about', 'hours', 'contact', 'hire', 'apply'];
         if (hash === 'admin' || hash === 'pursu-admin') {
             dismissIntro();
             showPage('admin');
-        } else if (restorable.includes(hash)) {
+        } else if (hash.startsWith('job/')) {
+            const jid = hash.slice(4);
+            jobsLoadedPromise.then(() => { if (jobs.find(j => j.id === jid)) viewJobDetail(jid); });
+        } else if (allPages.includes(hash)) {
             showPage(hash, true);
         }
     });
