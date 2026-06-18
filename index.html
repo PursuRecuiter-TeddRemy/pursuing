@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
@@ -177,11 +178,6 @@
         }
         .custom-select-option:hover { background: var(--sand); }
         .custom-select-option.active { color: var(--coral-deep); font-weight: 600; background: var(--coral-tint); }
-        .search-container button {
-            background: var(--ink); border: none; color: var(--cream); border-radius: 12px;
-            font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.85rem; transition: 0.25s;
-        }
-        .search-container button:hover { background: var(--coral); }
 
         .job-grid { display: flex; flex-direction: column; gap: 1rem; }
         .job-card {
@@ -330,6 +326,23 @@
         .form-group input::placeholder, .form-group textarea::placeholder { color: var(--ink-faint); }
         .form-group textarea { resize: vertical; min-height: 100px; }
         .form-hint { font-size: 0.75rem; color: var(--ink-faint); margin-top: 0.5rem; line-height: 1.6; }
+
+        .file-drop {
+            width: 100%; background: #fff; border: 1px dashed var(--ink-faint); border-radius: 12px;
+            padding: 1.1rem 1.1rem; cursor: pointer; transition: border-color 0.25s, background 0.25s;
+        }
+        .file-drop:hover { border-color: var(--coral); background: var(--coral-tint); }
+        .file-drop.has-file { border-style: solid; border-color: var(--teal); background: var(--teal-tint); }
+        .file-drop.has-error { border-style: solid; border-color: var(--danger); }
+        .file-drop-inner {
+            display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; color: var(--ink-soft);
+        }
+        .file-drop.has-file .file-drop-inner { color: var(--teal-deep); font-weight: 600; }
+        .file-drop-remove {
+            margin-left: auto; font-size: 0.75rem; color: var(--ink-faint); text-decoration: underline;
+            background: none; border: none; font-family: 'Inter', sans-serif; cursor: pointer;
+        }
+        .file-drop-remove:hover { color: var(--danger); }
         .submit-btn {
             font-family: 'Inter', sans-serif; font-weight: 600; background: var(--coral);
             color: #fff; padding: 0.95rem 2.4rem; border: none; border-radius: 100px;
@@ -468,7 +481,17 @@
             .pillars { grid-template-columns: 1fr; gap: 1.4rem; }
             .steps-grid { grid-template-columns: 1fr; gap: 2.5rem; }
             .cta-btns { flex-direction: column; align-items: center; }
-            .search-container { grid-template-columns: 1fr; gap: 0.7rem; }
+            .search-container { grid-template-columns: 1fr; gap: 0.8rem; }
+            .search-container .custom-select-trigger {
+                background: #fff; color: var(--ink); border: 1px solid var(--line);
+                padding: 1rem 1.1rem; font-size: 0.9rem;
+            }
+            .search-container .custom-select-trigger:hover { border-color: var(--coral); }
+            .search-container .custom-select-trigger i { color: var(--ink-faint); }
+            .search-container button:not(.custom-select-trigger) {
+                background: var(--coral); color: #fff; padding: 1rem 1.1rem; font-size: 0.9rem;
+            }
+            .search-container button:not(.custom-select-trigger):hover { background: var(--coral-deep); }
             .job-card { flex-direction: column; align-items: flex-start; }
             .job-title { font-size: 1.2rem; }
             .about-hero { grid-template-columns: 1fr; gap: 1.5rem; }
@@ -702,7 +725,7 @@
                                 <div style="width:36px; height:36px; border-radius:50%; background:var(--coral); color:#fff; font-family:Fraunces,serif; font-size:1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;">2</div>
                                 <div>
                                     <h4 style="font-family:Fraunces,serif; font-size:1.1rem; font-weight:500; margin-bottom:0.4rem;">Apply directly</h4>
-                                    <p style="font-size:0.85rem; color:var(--ink-soft); line-height:1.8;">Submit your info and resume link — no lengthy forms, no automated black holes. A real person reviews every application.</p>
+                                    <p style="font-size:0.85rem; color:var(--ink-soft); line-height:1.8;">Submit your info and attach your resume — no lengthy forms, no automated black holes. A real person reviews every application.</p>
                                 </div>
                             </div>
                             <div style="display:flex; gap:1.2rem; align-items:flex-start;">
@@ -988,7 +1011,8 @@
             </div>
             <span class="section-eyebrow teal" style="display:block; text-align:center;">Request received</span>
             <h2 class="section-title" style="text-align:center;">We're on <span class="italic-accent" style="color:var(--teal)">it</span></h2>
-            <p class="section-lede" style="margin:0 auto 2rem; text-align:center;">Thanks for reaching out. We've received your request and will follow up by email shortly.</p>
+            <p class="section-lede" style="margin:0 auto 0.8rem; text-align:center; font-weight:600; color:var(--ink);">Thank you for your interest. Your information has been shared with Pursu.</p>
+            <p class="section-lede" style="margin:0 auto 2rem; text-align:center;">We've received your request and will follow up by email shortly.</p>
             <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
                 <a href="javascript:void(0)" class="apply-btn teal-hover" style="background:var(--teal);" onclick="showPage('home')">Back to home</a>
             </div>
@@ -1031,9 +1055,15 @@
                         <input type="tel" id="apply-phone" placeholder="(555) 555-5555">
                     </div>
                     <div class="form-group">
-                        <label>Resume link</label>
-                        <input type="url" id="apply-resume" required placeholder="https://drive.google.com/...">
-                        <p class="form-hint">Paste a link to your resume — Google Drive, Dropbox, LinkedIn, or similar. File uploads aren't supported, so a shareable link works best.</p>
+                        <label>Resume</label>
+                        <div class="file-drop" id="apply-resume-drop" onclick="document.getElementById('apply-resume').click()">
+                            <input type="file" id="apply-resume" accept=".pdf,.doc,.docx" style="display:none;" onchange="handleResumeFileChange(event)">
+                            <div class="file-drop-inner" id="apply-resume-placeholder">
+                                <i class="ti ti-upload" aria-hidden="true" style="font-style:normal; font-size:1.1rem;">&#8593;</i>
+                                <span>Click to attach your resume</span>
+                            </div>
+                        </div>
+                        <p class="form-hint">PDF or Word document, up to 5MB.</p>
                     </div>
                     <div class="form-group">
                         <label>Note (optional)</label>
@@ -1054,6 +1084,7 @@
             </div>
             <span class="section-eyebrow" style="display:block; text-align:center;">Application received</span>
             <h2 class="section-title" style="text-align:center;">You're <span class="italic-accent">in</span></h2>
+            <p class="section-lede" style="margin:0 auto 0.8rem; text-align:center; font-weight:600; color:var(--ink);">Thank you for your interest. Your information has been shared with Pursu.</p>
             <p class="section-lede" style="margin:0 auto 2rem; text-align:center;" id="applied-job-title">Thanks for applying. A real person will review your application and follow up by email.</p>
             <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
                 <a href="javascript:void(0)" class="apply-btn" onclick="showPage('talent')">Browse more roles</a>
@@ -1194,28 +1225,38 @@
         }
     }
 
-    // Storage shim — this site runs as a real standalone page (not inside the
-    // Claude.ai artifact preview), so window.storage isn't available there.
-    // This mirrors the same get/set interface using the browser's
-    // localStorage, which persists on this device/browser between visits.
-    const siteStorage = {
-        async get(key) {
-            try {
-                const raw = localStorage.getItem('pursu:' + key);
-                return raw === null ? null : { value: raw };
-            } catch (e) {
-                return null;
-            }
-        },
-        async set(key, value) {
-            try {
-                localStorage.setItem('pursu:' + key, value);
-                return { key, value };
-            } catch (e) {
-                throw e;
-            }
+    // Same as sendWeb3Form, but sends multipart/form-data so a real file
+    // (e.g. a resume) can be attached. Web3Forms emails the attachment
+    // directly — it is never stored in localStorage, since browser storage
+    // has no room for file-sized data.
+    async function sendWeb3FormWithFile(payload, file) {
+        try {
+            const formData = new FormData();
+            formData.append('access_key', WEB3FORMS_ACCESS_KEY);
+            Object.entries(payload).forEach(([key, value]) => formData.append(key, value));
+            if (file) formData.append('attachment', file, file.name);
+
+            const res = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: formData
+            });
+            const data = await res.json();
+            return !!data.success;
+        } catch (err) {
+            return false;
         }
-    };
+    }
+
+    // Supabase — the real shared backend. Replaces the old localStorage
+    // shim so that jobs, applications, and hire requests are visible to
+    // every visitor everywhere, not just the browser/device that created
+    // them. The URL and key below are both meant to be public/embeddable —
+    // Row Level Security policies on the Supabase project (not secrecy of
+    // this key) are what protect the data.
+    const SUPABASE_URL = "https://zphrsvftplckiyuflkkg.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwaHJzdmZ0cGxja2l5dWZsa2tnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MzQ4NTcsImV4cCI6MjA5NzMxMDg1N30.sgG1zMUWPn0BRzzxmWrrlHHTaWu6XVavlvgTS1rJFOs";
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const fallbackJobs = [
         { id: "job_seed_1", title: "Operations Coordinator", pay: "$45,000 - $55,000", location: "Virginia / Hybrid", category: "Operations", description: "Support day-to-day staffing operations, scheduling, and client coordination." },
@@ -1224,16 +1265,49 @@
 
     async function loadJobs() {
         try {
-            const result = await siteStorage.get('jobs-list');
-            jobs = result ? JSON.parse(result.value) : fallbackJobs;
+            const { data, error } = await db.from('jobs').select('*').order('created_at', { ascending: true });
+            if (error) throw error;
+            jobs = data && data.length > 0 ? data : fallbackJobs;
         } catch (e) {
             jobs = fallbackJobs;
-            try { await siteStorage.set('jobs-list', JSON.stringify(jobs)); } catch (e2) {}
         }
+        lastJobsSnapshot = JSON.stringify(jobs);
         renderJobs();
         populateFilters();
         renderTicker();
         if (isAdmin) renderAdminJobs();
+    }
+
+    // Silently re-checks the jobs table every few seconds so that a Pause,
+    // Resume, edit, or new posting made by anyone, anywhere, shows up on
+    // this page without the visitor needing to manually refresh. Only
+    // re-renders when the underlying data actually changed, so the ticker
+    // animation and job feed don't restart or flicker on every poll.
+    let lastJobsSnapshot = '';
+    let jobsPollInterval = null;
+
+    async function pollJobsForChanges() {
+        try {
+            const { data, error } = await db.from('jobs').select('*').order('created_at', { ascending: true });
+            if (error) throw error;
+            const latestJobs = data && data.length > 0 ? data : fallbackJobs;
+            const latest = JSON.stringify(latestJobs);
+            if (latest === lastJobsSnapshot) return;
+
+            lastJobsSnapshot = latest;
+            jobs = latestJobs;
+            renderJobs();
+            populateFilters();
+            renderTicker();
+            if (isAdmin) renderAdminJobs();
+        } catch (e) {
+            // Silently ignore — next poll will retry.
+        }
+    }
+
+    function startJobsPolling() {
+        if (jobsPollInterval) clearInterval(jobsPollInterval);
+        jobsPollInterval = setInterval(pollJobsForChanges, 3000);
     }
 
     let tickerRAF = null;
@@ -1271,22 +1345,43 @@
         setTimeout(startTickerLoop, 50);
     }
 
-    async function saveJobsList() {
-        await siteStorage.set('jobs-list', JSON.stringify(jobs));
+    function applicantFromRow(row) {
+        return {
+            id: row.id,
+            jobId: row.job_id,
+            jobTitle: row.job_title,
+            name: row.name,
+            email: row.email,
+            phone: row.phone,
+            resumeFileName: row.resume_file_name,
+            note: row.note,
+            submittedAt: row.submitted_at
+        };
+    }
+
+    function applicantToRow(app) {
+        return {
+            id: app.id,
+            job_id: app.jobId,
+            job_title: app.jobTitle,
+            name: app.name,
+            email: app.email,
+            phone: app.phone,
+            resume_file_name: app.resumeFileName,
+            note: app.note,
+            submitted_at: app.submittedAt
+        };
     }
 
     async function loadApplicants() {
         try {
-            const result = await siteStorage.get('applicants-list');
-            applicants = result ? JSON.parse(result.value) : [];
+            const { data, error } = await db.from('applicants').select('*');
+            if (error) throw error;
+            applicants = (data || []).map(applicantFromRow);
         } catch (e) {
             applicants = [];
         }
         if (isAdmin) renderApplicants();
-    }
-
-    async function saveApplicantsList() {
-        await siteStorage.set('applicants-list', JSON.stringify(applicants));
     }
 
 
@@ -1394,6 +1489,42 @@
         showPage('job-detail');
     }
 
+    function resetResumeDropZone() {
+        const dropZone = document.getElementById('apply-resume-drop');
+        const placeholder = document.getElementById('apply-resume-placeholder');
+        if (!dropZone || !placeholder) return;
+        dropZone.classList.remove('has-file');
+        placeholder.innerHTML = '<i class="ti ti-upload" aria-hidden="true" style="font-style:normal; font-size:1.1rem;">&#8593;</i><span>Click to attach your resume</span>';
+    }
+
+    function handleResumeFileChange(e) {
+        const file = e.target.files[0];
+        const dropZone = document.getElementById('apply-resume-drop');
+        const placeholder = document.getElementById('apply-resume-placeholder');
+        if (!file) { resetResumeDropZone(); return; }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('That file is larger than 5MB. Please attach a smaller PDF or Word document.');
+            e.target.value = '';
+            resetResumeDropZone();
+            return;
+        }
+
+        dropZone.classList.remove('has-error');
+        dropZone.classList.add('has-file');
+        placeholder.innerHTML = `
+            <i class="ti ti-check" aria-hidden="true" style="font-style:normal; font-size:1.1rem;">&#10003;</i>
+            <span>${escapeHtml(file.name)}</span>
+            <button type="button" class="file-drop-remove" onclick="event.stopPropagation(); clearResumeFile();">Remove</button>
+        `;
+    }
+
+    function clearResumeFile() {
+        const input = document.getElementById('apply-resume');
+        if (input) input.value = '';
+        resetResumeDropZone();
+    }
+
     function openApply(jobId) {
         const job = jobs.find(j => j.id === jobId);
         if (!job) return;
@@ -1404,6 +1535,7 @@
         document.getElementById('apply-job-id').value = jobId;
         document.getElementById('apply-msg').className = 'form-msg';
         document.getElementById('apply-msg').style.display = 'none';
+        resetResumeDropZone();
         showPage('apply');
     }
 
@@ -1411,6 +1543,21 @@
         e.preventDefault();
         const jobId = document.getElementById('apply-job-id').value;
         const job = jobs.find(j => j.id === jobId);
+        const resumeInput = document.getElementById('apply-resume');
+        const resumeFile = resumeInput.files[0];
+        const msgEl = document.getElementById('apply-msg');
+
+        if (!resumeFile) {
+            msgEl.textContent = 'Please attach your resume before submitting.';
+            msgEl.className = 'form-msg error';
+            const dropZone = document.getElementById('apply-resume-drop');
+            if (dropZone) {
+                dropZone.classList.add('has-error');
+                dropZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
         const application = {
             id: 'app_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
             jobId: jobId,
@@ -1418,46 +1565,40 @@
             name: document.getElementById('apply-name').value.trim(),
             email: document.getElementById('apply-email').value.trim(),
             phone: document.getElementById('apply-phone').value.trim(),
-            resume: document.getElementById('apply-resume').value.trim(),
+            resumeFileName: resumeFile.name,
             note: document.getElementById('apply-note').value.trim(),
             submittedAt: new Date().toISOString()
         };
 
-        const msgEl = document.getElementById('apply-msg');
         const submitBtn = document.querySelector('#apply-form button[type="submit"]');
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
 
         try {
-            const result = await siteStorage.get('applicants-list');
-            applicants = result ? JSON.parse(result.value) : [];
-        } catch (e2) {
-            applicants = [];
-        }
-        applicants.push(application);
-
-        try {
-            await saveApplicantsList();
+            const { error } = await db.from('applicants').insert(applicantToRow(application));
+            if (error) throw error;
+            applicants.push(application);
         } catch (err) {
-            // Local save failing shouldn't block the email notification below;
-            // the admin tab on this device just won't show this entry.
+            // Database save failing shouldn't block the email notification
+            // below; the admin tab just won't show this entry until it's
+            // retried, but you'll still get the email either way.
         }
 
-        const emailed = await sendWeb3Form({
+        const emailed = await sendWeb3FormWithFile({
             subject: `New application: ${application.jobTitle}`,
             from_name: 'Pursu Applications',
             name: application.name,
             email: application.email,
             phone: application.phone || 'Not provided',
             role_applied_for: application.jobTitle,
-            resume_link: application.resume,
             note: application.note || 'None',
-            message: `${application.name} applied for ${application.jobTitle}.\n\nEmail: ${application.email}\nPhone: ${application.phone || 'Not provided'}\nResume: ${application.resume}\nNote: ${application.note || 'None'}`
-        });
+            message: `${application.name} applied for ${application.jobTitle}.\n\nEmail: ${application.email}\nPhone: ${application.phone || 'Not provided'}\nResume attached: ${resumeFile.name}\nNote: ${application.note || 'None'}`
+        }, resumeFile);
 
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Application'; }
 
         if (emailed) {
             document.getElementById('apply-form').reset();
+            resetResumeDropZone();
             document.getElementById('applied-job-title').textContent = job
                 ? `Thanks for applying to ${job.title}. A real person will review your application and follow up by email.`
                 : 'Thanks for applying. A real person will review your application and follow up by email.';
@@ -1470,18 +1611,37 @@
 
     let hireRequests = [];
 
+    function hireRequestFromRow(row) {
+        return {
+            id: row.id,
+            name: row.name,
+            email: row.email,
+            phone: row.phone,
+            message: row.message,
+            submittedAt: row.submitted_at
+        };
+    }
+
+    function hireRequestToRow(req) {
+        return {
+            id: req.id,
+            name: req.name,
+            email: req.email,
+            phone: req.phone,
+            message: req.message,
+            submitted_at: req.submittedAt
+        };
+    }
+
     async function loadHireRequests() {
         try {
-            const result = await siteStorage.get('hire-requests-list');
-            hireRequests = result ? JSON.parse(result.value) : [];
+            const { data, error } = await db.from('hire_requests').select('*');
+            if (error) throw error;
+            hireRequests = (data || []).map(hireRequestFromRow);
         } catch (e) {
             hireRequests = [];
         }
         if (isAdmin) renderHireRequests();
-    }
-
-    async function saveHireRequestsList() {
-        await siteStorage.set('hire-requests-list', JSON.stringify(hireRequests));
     }
 
     async function submitHireRequest(e) {
@@ -1500,18 +1660,13 @@
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
 
         try {
-            const result = await siteStorage.get('hire-requests-list');
-            hireRequests = result ? JSON.parse(result.value) : [];
-        } catch (e2) {
-            hireRequests = [];
-        }
-        hireRequests.push(request);
-
-        try {
-            await saveHireRequestsList();
+            const { error } = await db.from('hire_requests').insert(hireRequestToRow(request));
+            if (error) throw error;
+            hireRequests.push(request);
         } catch (err) {
-            // Local save failing shouldn't block the email notification below;
-            // the admin tab on this device just won't show this entry.
+            // Database save failing shouldn't block the email notification
+            // below; the admin tab just won't show this entry until it's
+            // retried, but you'll still get the email either way.
         }
 
         const emailed = await sendWeb3Form({
@@ -1555,8 +1710,14 @@
     }
 
     async function deleteHireRequest(reqId) {
-        hireRequests = hireRequests.filter(r => r.id !== reqId);
-        await saveHireRequestsList();
+        try {
+            const { error } = await db.from('hire_requests').delete().eq('id', reqId);
+            if (error) throw error;
+            hireRequests = hireRequests.filter(r => r.id !== reqId);
+        } catch (e) {
+            alert('Could not remove this request right now. Please try again.');
+            return;
+        }
         renderHireRequests();
     }
 
@@ -1623,8 +1784,17 @@
     async function togglePauseJob(jobId) {
         const idx = jobs.findIndex(j => j.id === jobId);
         if (idx === -1) return;
-        jobs[idx].active = jobs[idx].active === false ? true : false;
-        await saveJobsList();
+        const newActive = jobs[idx].active === false ? true : false;
+        try {
+            const merged = { ...jobs[idx], active: newActive };
+            const { error } = await db.from('jobs').upsert(merged);
+            if (error) throw error;
+            jobs[idx].active = newActive;
+            lastJobsSnapshot = JSON.stringify(jobs);
+        } catch (e) {
+            alert('Could not update this role right now. Please try again.');
+            return;
+        }
         renderAdminJobs();
         renderJobs();
         populateFilters();
@@ -1640,8 +1810,15 @@
     }
 
     async function deleteJob(jobId) {
-        jobs = jobs.filter(j => j.id !== jobId);
-        await saveJobsList();
+        try {
+            const { error } = await db.from('jobs').delete().eq('id', jobId);
+            if (error) throw error;
+            jobs = jobs.filter(j => j.id !== jobId);
+            lastJobsSnapshot = JSON.stringify(jobs);
+        } catch (e) {
+            alert('Could not remove this role right now. Please try again.');
+            return;
+        }
         renderAdminJobs();
         renderJobs();
         populateFilters();
@@ -1707,13 +1884,18 @@
         try {
             if (editId) {
                 const idx = jobs.findIndex(j => j.id === editId);
-                if (idx > -1) jobs[idx] = { ...jobs[idx], ...jobData };
+                const merged = idx > -1 ? { ...jobs[idx], ...jobData, id: editId } : { ...jobData, id: editId };
+                const { error } = await db.from('jobs').upsert(merged);
+                if (error) throw error;
+                if (idx > -1) jobs[idx] = merged; else jobs.push(merged);
             } else {
                 jobData.id = 'job_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
                 jobData.active = true;
+                const { error } = await db.from('jobs').insert(jobData);
+                if (error) throw error;
                 jobs.push(jobData);
             }
-            await saveJobsList();
+            lastJobsSnapshot = JSON.stringify(jobs);
             msgEl.textContent = editId ? 'Role updated.' : 'Role posted.';
             msgEl.className = 'form-msg success';
             document.getElementById('job-form').reset();
@@ -1744,7 +1926,7 @@
                 <div>
                     <div>${escapeHtml(a.name)} — <a href="mailto:${escapeHtml(a.email)}">${escapeHtml(a.email)}</a></div>
                     <div class="meta">Applied for ${escapeHtml(a.jobTitle)} ${a.phone ? '&bull; ' + escapeHtml(a.phone) : ''}</div>
-                    <div class="meta">Resume: <a href="${escapeHtml(a.resume)}" target="_blank" rel="noopener">${escapeHtml(a.resume)}</a></div>
+                    <div class="meta">Resume: ${a.resumeFileName ? escapeHtml(a.resumeFileName) + ' (sent via email)' : 'Not attached'}</div>
                     ${a.note ? `<div class="meta">Note: ${escapeHtml(a.note)}</div>` : ''}
                     <div class="meta">${new Date(a.submittedAt).toLocaleString()}</div>
                 </div>
@@ -1754,8 +1936,14 @@
     }
 
     async function deleteApplicant(appId) {
-        applicants = applicants.filter(a => a.id !== appId);
-        await saveApplicantsList();
+        try {
+            const { error } = await db.from('applicants').delete().eq('id', appId);
+            if (error) throw error;
+            applicants = applicants.filter(a => a.id !== appId);
+        } catch (e) {
+            alert('Could not remove this applicant right now. Please try again.');
+            return;
+        }
         renderApplicants();
     }
 
@@ -1855,6 +2043,7 @@
 
     window.addEventListener('load', () => {
         loadJobs();
+        startJobsPolling();
         initRteToolbar();
         const overlay = document.getElementById('intro-overlay');
         if (overlay) {
