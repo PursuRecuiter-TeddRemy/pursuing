@@ -235,6 +235,7 @@
         .nav-cta {
             background: var(--teal) !important; color: #fff !important;
             padding: 0.6rem 1.4rem; border-radius: 100px; font-weight: 600 !important;
+            white-space: nowrap; flex-shrink: 0;
             transition: background 0.2s, transform 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s ease !important;
         }
         .nav-cta:hover { background: var(--teal-deep) !important; color: #fff !important; transform: translateY(-2px) !important; box-shadow: 0 5px 16px rgba(31,92,86,0.35) !important; }
@@ -432,6 +433,9 @@
 
         @media (max-width: 1024px) {
             nav { padding: 1.5rem 5%; }
+            .nav-links { gap: 1.3rem; }
+            .nav-links a, .nav-links button { font-size: 0.8rem; }
+            .nav-cta { padding: 0.55rem 1.1rem; font-size: 0.78rem; }
             .hero { padding: 4rem 5% 3.5rem; }
             .path-grid { max-width: 100%; gap: 1.2rem; }
             .section-inner { max-width: 100%; }
@@ -448,8 +452,12 @@
                 background: var(--cream); padding: 1.2rem 5%; gap: 1rem;
                 border-bottom: 1px solid var(--line); z-index: 200;
             }
+            .nav-links.open { align-items: center; }
             .nav-links.open a, .nav-links.open button { font-size: 1rem; padding: 0.4rem 0; }
-            .nav-cta { text-align: center; }
+            .nav-links.open .nav-cta {
+                padding: 0.75rem 1.8rem; margin-top: 0.4rem; display: inline-block;
+                text-align: center; font-size: 0.95rem;
+            }
             .hero { padding: 3rem 5% 3rem; }
             .hero h1 { font-size: clamp(2rem, 8vw, 3rem); }
             .hero-sub { font-size: 0.95rem; margin-bottom: 2rem; }
@@ -612,7 +620,7 @@
         <button class="nav-toggle" onclick="toggleNav()"><i class="ti ti-menu-2" aria-hidden="true">&#9776;</i></button>
         <div class="nav-links" id="nav-links">
             <a href="#" onclick="showPage('about')">About</a>
-            <a href="#" onclick="showPage('talent')">Talent</a>
+            <a href="#" onclick="showPage('talent')">Roles</a>
             <a href="#" onclick="showPage('hours')">Consultant</a>
             <a href="#" onclick="showPage('contact')">Contact</a>
             <a href="javascript:void(0)" class="nav-cta" onclick="showPage('employers')">Hire with Pursu</a>
@@ -912,7 +920,7 @@
         <div class="section-inner">
             <span class="section-eyebrow">Consultants</span>
             <h2 class="section-title">Log your <span class="italic-accent">hours</span></h2>
-            <p class="section-lede">Pursu consultants record hours directly through our payroll provider, Gusto \u2014 this keeps your timesheet, pay, and tax information all in one secure place.</p>
+            <p class="section-lede">Pursu consultants record hours directly through our payroll provider, Gusto — this keeps your timesheet, pay, and tax information all in one secure place.</p>
 
             <div class="form-block" style="margin-top: 2.5rem;">
                 <div class="contact-card" style="max-width: 560px; margin-top: 0;">
@@ -972,6 +980,21 @@
         </div>
     </section>
 
+    <!-- HIRE REQUEST SUCCESS -->
+    <section class="page-section" id="page-hire-sent">
+        <div class="section-inner" style="text-align:center; max-width:560px;">
+            <div style="width:64px; height:64px; border-radius:50%; background:var(--teal-tint); display:flex; align-items:center; justify-content:center; margin:0 auto 1.6rem;">
+                <i class="ti ti-check" aria-hidden="true" style="font-size:1.8rem; color:var(--teal); font-style:normal;">&#10003;</i>
+            </div>
+            <span class="section-eyebrow teal" style="display:block; text-align:center;">Request received</span>
+            <h2 class="section-title" style="text-align:center;">We're on <span class="italic-accent" style="color:var(--teal)">it</span></h2>
+            <p class="section-lede" style="margin:0 auto 2rem; text-align:center;">Thanks for reaching out. We've received your request and will follow up by email shortly.</p>
+            <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+                <a href="javascript:void(0)" class="apply-btn teal-hover" style="background:var(--teal);" onclick="showPage('home')">Back to home</a>
+            </div>
+        </div>
+    </section>
+
     <!-- JOB DETAIL -->
     <section class="page-section" id="page-job-detail">
         <div class="section-inner">
@@ -1019,6 +1042,22 @@
                     <button type="submit" class="submit-btn">Submit Application</button>
                     <div class="form-msg" id="apply-msg"></div>
                 </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- APPLICATION SUCCESS -->
+    <section class="page-section" id="page-applied">
+        <div class="section-inner" style="text-align:center; max-width:560px;">
+            <div style="width:64px; height:64px; border-radius:50%; background:var(--coral-tint); display:flex; align-items:center; justify-content:center; margin:0 auto 1.6rem;">
+                <i class="ti ti-check" aria-hidden="true" style="font-size:1.8rem; color:var(--coral); font-style:normal;">&#10003;</i>
+            </div>
+            <span class="section-eyebrow" style="display:block; text-align:center;">Application received</span>
+            <h2 class="section-title" style="text-align:center;">You're <span class="italic-accent">in</span></h2>
+            <p class="section-lede" style="margin:0 auto 2rem; text-align:center;" id="applied-job-title">Thanks for applying. A real person will review your application and follow up by email.</p>
+            <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+                <a href="javascript:void(0)" class="apply-btn" onclick="showPage('talent')">Browse more roles</a>
+                <a href="javascript:void(0)" class="icon-btn" onclick="showPage('home')" style="padding:0.85rem 1.6rem;">Back to home</a>
             </div>
         </div>
     </section>
@@ -1137,6 +1176,47 @@
     let isAdmin = false;
     const ADMIN_PASSWORD = "pursu2026";
 
+    // Web3Forms — sends an email to tremy@wepursu.one for every application
+    // and hire request. Get/replace this key at https://web3forms.com/
+    const WEB3FORMS_ACCESS_KEY = "44f3ceab-1934-4b55-839b-adfce51365d0";
+
+    async function sendWeb3Form(payload) {
+        try {
+            const res = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ access_key: WEB3FORMS_ACCESS_KEY, ...payload })
+            });
+            const data = await res.json();
+            return !!data.success;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    // Storage shim — this site runs as a real standalone page (not inside the
+    // Claude.ai artifact preview), so window.storage isn't available there.
+    // This mirrors the same get/set interface using the browser's
+    // localStorage, which persists on this device/browser between visits.
+    const siteStorage = {
+        async get(key) {
+            try {
+                const raw = localStorage.getItem('pursu:' + key);
+                return raw === null ? null : { value: raw };
+            } catch (e) {
+                return null;
+            }
+        },
+        async set(key, value) {
+            try {
+                localStorage.setItem('pursu:' + key, value);
+                return { key, value };
+            } catch (e) {
+                throw e;
+            }
+        }
+    };
+
     const fallbackJobs = [
         { id: "job_seed_1", title: "Operations Coordinator", pay: "$45,000 - $55,000", location: "Virginia / Hybrid", category: "Operations", description: "Support day-to-day staffing operations, scheduling, and client coordination." },
         { id: "job_seed_2", title: "Recruiting Specialist", pay: "$40,000 - $52,000", location: "Remote", category: "Talent", description: "Source, screen, and onboard candidates across multiple client accounts." }
@@ -1144,11 +1224,11 @@
 
     async function loadJobs() {
         try {
-            const result = await window.storage.get('jobs-list', true);
+            const result = await siteStorage.get('jobs-list');
             jobs = result ? JSON.parse(result.value) : fallbackJobs;
         } catch (e) {
             jobs = fallbackJobs;
-            try { await window.storage.set('jobs-list', JSON.stringify(jobs), true); } catch (e2) {}
+            try { await siteStorage.set('jobs-list', JSON.stringify(jobs)); } catch (e2) {}
         }
         renderJobs();
         populateFilters();
@@ -1192,12 +1272,12 @@
     }
 
     async function saveJobsList() {
-        await window.storage.set('jobs-list', JSON.stringify(jobs), true);
+        await siteStorage.set('jobs-list', JSON.stringify(jobs));
     }
 
     async function loadApplicants() {
         try {
-            const result = await window.storage.get('applicants-list', true);
+            const result = await siteStorage.get('applicants-list');
             applicants = result ? JSON.parse(result.value) : [];
         } catch (e) {
             applicants = [];
@@ -1206,7 +1286,7 @@
     }
 
     async function saveApplicantsList() {
-        await window.storage.set('applicants-list', JSON.stringify(applicants), true);
+        await siteStorage.set('applicants-list', JSON.stringify(applicants));
     }
 
 
@@ -1344,8 +1424,11 @@
         };
 
         const msgEl = document.getElementById('apply-msg');
+        const submitBtn = document.querySelector('#apply-form button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+
         try {
-            const result = await window.storage.get('applicants-list', true);
+            const result = await siteStorage.get('applicants-list');
             applicants = result ? JSON.parse(result.value) : [];
         } catch (e2) {
             applicants = [];
@@ -1354,10 +1437,32 @@
 
         try {
             await saveApplicantsList();
-            msgEl.textContent = 'Application submitted. Thank you — we will be in touch.';
-            msgEl.className = 'form-msg success';
-            document.getElementById('apply-form').reset();
         } catch (err) {
+            // Local save failing shouldn't block the email notification below;
+            // the admin tab on this device just won't show this entry.
+        }
+
+        const emailed = await sendWeb3Form({
+            subject: `New application: ${application.jobTitle}`,
+            from_name: 'Pursu Applications',
+            name: application.name,
+            email: application.email,
+            phone: application.phone || 'Not provided',
+            role_applied_for: application.jobTitle,
+            resume_link: application.resume,
+            note: application.note || 'None',
+            message: `${application.name} applied for ${application.jobTitle}.\n\nEmail: ${application.email}\nPhone: ${application.phone || 'Not provided'}\nResume: ${application.resume}\nNote: ${application.note || 'None'}`
+        });
+
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Application'; }
+
+        if (emailed) {
+            document.getElementById('apply-form').reset();
+            document.getElementById('applied-job-title').textContent = job
+                ? `Thanks for applying to ${job.title}. A real person will review your application and follow up by email.`
+                : 'Thanks for applying. A real person will review your application and follow up by email.';
+            showPage('applied');
+        } else {
             msgEl.textContent = 'Something went wrong submitting your application. Please try again.';
             msgEl.className = 'form-msg error';
         }
@@ -1367,7 +1472,7 @@
 
     async function loadHireRequests() {
         try {
-            const result = await window.storage.get('hire-requests-list', true);
+            const result = await siteStorage.get('hire-requests-list');
             hireRequests = result ? JSON.parse(result.value) : [];
         } catch (e) {
             hireRequests = [];
@@ -1376,7 +1481,7 @@
     }
 
     async function saveHireRequestsList() {
-        await window.storage.set('hire-requests-list', JSON.stringify(hireRequests), true);
+        await siteStorage.set('hire-requests-list', JSON.stringify(hireRequests));
     }
 
     async function submitHireRequest(e) {
@@ -1391,8 +1496,11 @@
         };
 
         const msgEl = document.getElementById('hire-msg');
+        const submitBtn = document.querySelector('#hire-request-form button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
+
         try {
-            const result = await window.storage.get('hire-requests-list', true);
+            const result = await siteStorage.get('hire-requests-list');
             hireRequests = result ? JSON.parse(result.value) : [];
         } catch (e2) {
             hireRequests = [];
@@ -1401,10 +1509,26 @@
 
         try {
             await saveHireRequestsList();
-            msgEl.textContent = 'Request sent. Thank you — we will be in touch soon.';
-            msgEl.className = 'form-msg success';
-            document.getElementById('hire-request-form').reset();
         } catch (err) {
+            // Local save failing shouldn't block the email notification below;
+            // the admin tab on this device just won't show this entry.
+        }
+
+        const emailed = await sendWeb3Form({
+            subject: `New hire request from ${request.name}`,
+            from_name: 'Pursu Hire Requests',
+            name: request.name,
+            email: request.email,
+            phone: request.phone || 'Not provided',
+            message: `${request.name} submitted a hire request.\n\nEmail: ${request.email}\nPhone: ${request.phone || 'Not provided'}\n\nWhat they're hiring for:\n${request.message}`
+        });
+
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send Request'; }
+
+        if (emailed) {
+            document.getElementById('hire-request-form').reset();
+            showPage('hire-sent');
+        } else {
             msgEl.textContent = 'Something went wrong sending your request. Please try again.';
             msgEl.className = 'form-msg error';
         }
@@ -1647,7 +1771,7 @@
     }
 
     function showPage(pageName, skipScroll) {
-        const allSections = ['home', 'talent', 'employers', 'about', 'hours', 'contact', 'hire', 'apply', 'job-detail', 'admin-login', 'admin'];
+        const allSections = ['home', 'talent', 'employers', 'about', 'hours', 'contact', 'hire', 'hire-sent', 'apply', 'applied', 'job-detail', 'admin-login', 'admin'];
         let target = pageName;
         if (pageName === 'admin' && !isAdmin) target = 'admin-login';
 
