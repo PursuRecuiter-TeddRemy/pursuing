@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='8' y='72' font-family='Georgia,serif' font-weight='700' font-size='62' fill='%231e1a17'%3EP%3C/text%3E%3Ccircle cx='80' cy='72' r='9' fill='%23e8623f'/%3E%3C/svg%3E">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pursu. | Pursuing the Perfect Match</title>
@@ -1240,7 +1241,38 @@
     // this key) are what protect the data.
     const SUPABASE_URL = "https://zphrsvftplckiyuflkkg.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwaHJzdmZ0cGxja2l5dWZsa2tnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MzQ4NTcsImV4cCI6MjA5NzMxMDg1N30.sgG1zMUWPn0BRzzxmWrrlHHTaWu6XVavlvgTS1rJFOs";
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const unavailableError = { message: 'Supabase client unavailable' };
+    const dbStub = {
+        from: () => ({
+            select: () => Promise.resolve({ data: null, error: unavailableError }),
+            insert: () => Promise.resolve({ data: null, error: unavailableError }),
+            update: () => ({ eq: () => Promise.resolve({ data: null, error: unavailableError }) }),
+            upsert: () => Promise.resolve({ data: null, error: unavailableError }),
+            delete: () => ({ eq: () => Promise.resolve({ data: null, error: unavailableError }) })
+        }),
+        storage: {
+            from: () => ({
+                upload: () => Promise.resolve({ data: null, error: unavailableError }),
+                createSignedUrl: () => Promise.resolve({ data: null, error: unavailableError }),
+                remove: () => Promise.resolve({ data: null, error: unavailableError })
+            })
+        }
+    };
+    let db = dbStub;
+    try {
+        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (e) {
+        // If the Supabase library failed to load (e.g. a slow connection,
+        // an ad blocker, or a CDN hiccup), db falls back to the safe stub
+        // above instead of staying null or undefined. Every db.* call
+        // elsewhere in this file is already wrapped in try/catch and falls
+        // back gracefully on an error response — but without this guard,
+        // this single line throwing would silently stop the ENTIRE rest of
+        // this script from running at all, including the polling that
+        // keeps the ticker and Roles page live for every visitor. That
+        // single point of failure is exactly what this guard prevents.
+        console.error('Supabase client failed to initialize, falling back to offline stub:', e);
+    }
 
     const fallbackJobs = [
         { id: "job_seed_1", title: "Operations Coordinator", pay: "$45,000 - $55,000", location: "Virginia / Hybrid", category: "Operations", description: "Support day-to-day staffing operations, scheduling, and client coordination." },
@@ -1569,21 +1601,32 @@
         try {
             const fileExt = (resumeFile.name.split('.').pop() || 'pdf').toLowerCase();
             const storagePath = `${applicationId}.${fileExt}`;
-            const { error: uploadError } = await db.storage.from('resumes').upload(storagePath, resumeFile);
+            const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
+
+            const { error: uploadError } = await Promise.race([
+                db.storage.from('resumes').upload(storagePath, resumeFile),
+                timeout(8000)
+            ]);
             if (uploadError) throw uploadError;
             application.resumePath = storagePath;
 
-            const { data: signedData, error: signedError } = await db.storage.from('resumes').createSignedUrl(storagePath, 60 * 60 * 24 * 30);
+            const { data: signedData, error: signedError } = await Promise.race([
+                db.storage.from('resumes').createSignedUrl(storagePath, 60 * 60 * 24 * 30),
+                timeout(8000)
+            ]);
             if (!signedError && signedData) resumeUrl = signedData.signedUrl;
         } catch (err) {
-            // Resume upload failing shouldn't block the application itself
-            // from being saved — the admin tab will just show "resume not
-            // available" for this entry, and the email won't include a link.
+            // Resume upload failing or timing out shouldn't block the
+            // application itself from being saved.
         }
 
         let savedToDatabase = false;
         try {
-            const { error } = await db.from('applicants').insert(applicantToRow(application));
+            const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
+            const { error } = await Promise.race([
+                db.from('applicants').insert(applicantToRow(application)),
+                timeout(8000)
+            ]);
             if (error) throw error;
             applicants.push(application);
             savedToDatabase = true;
@@ -1672,7 +1715,11 @@
 
         let savedToDatabase = false;
         try {
-            const { error } = await db.from('hire_requests').insert(hireRequestToRow(request));
+            const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
+            const { error } = await Promise.race([
+                db.from('hire_requests').insert(hireRequestToRow(request)),
+                timeout(8000)
+            ]);
             if (error) throw error;
             hireRequests.push(request);
             savedToDatabase = true;
@@ -2007,6 +2054,10 @@
         document.getElementById('nav-links').classList.remove('open');
         if (!skipScroll) window.scrollTo({ top: 0, behavior: 'instant' });
 
+        if (target && target !== 'admin' && target !== 'admin-login') {
+            try { history.replaceState(null, '', '#' + target); } catch (e) {}
+        }
+
         if (target === 'admin') {
             loadApplicants();
             loadHireRequests();
@@ -2079,9 +2130,13 @@
             overlay.addEventListener('click', dismissIntro, { once: true });
             setTimeout(dismissIntro, 4200);
         }
-        if (window.location.hash === '#admin' || window.location.hash === '#pursu-admin') {
+        const hash = window.location.hash.replace('#', '');
+        const restorable = ['home', 'talent', 'employers', 'about', 'hours', 'contact'];
+        if (hash === 'admin' || hash === 'pursu-admin') {
             dismissIntro();
             showPage('admin');
+        } else if (restorable.includes(hash)) {
+            showPage(hash, true);
         }
     });
 
