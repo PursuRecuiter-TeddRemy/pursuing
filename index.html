@@ -350,6 +350,13 @@
         }
         .submit-btn.teal-btn { background: var(--teal); }
         .submit-btn.teal-btn:hover { background: var(--teal-deep); }
+        .submit-btn:disabled { opacity: 0.8; cursor: not-allowed; }
+        .btn-spinner {
+            display: inline-block; width: 14px; height: 14px; margin-right: 0.5rem;
+            border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%;
+            animation: btn-spin 0.7s linear infinite; vertical-align: -2px;
+        }
+        @keyframes btn-spin { to { transform: rotate(360deg); } }
         .form-msg {
             font-size: 0.8rem; margin-top: 1rem; padding: 0.8rem 1rem; border-radius: 10px; display: none;
         }
@@ -1552,7 +1559,7 @@
         };
 
         const submitBtn = document.querySelector('#apply-form button[type="submit"]');
-        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="btn-spinner"></span>Submitting...'; }
 
         // Upload the resume to Supabase Storage first, so we have a path
         // to save alongside the application record. The bucket is private
@@ -1584,17 +1591,6 @@
             // Leave savedToDatabase false — handled below.
         }
 
-        await sendWeb3Form({
-            subject: `New application: ${application.jobTitle}`,
-            from_name: 'Pursu Applications',
-            name: application.name,
-            email: application.email,
-            phone: application.phone || 'Not provided',
-            role_applied_for: application.jobTitle,
-            note: application.note || 'None',
-            message: `${application.name} applied for ${application.jobTitle}.\n\nEmail: ${application.email}\nPhone: ${application.phone || 'Not provided'}\nResume: ${resumeUrl || 'Could not generate a link — check the admin tab on the site.'}\nNote: ${application.note || 'None'}`
-        });
-
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Application'; }
 
         if (savedToDatabase) {
@@ -1608,6 +1604,20 @@
             msgEl.textContent = 'Something went wrong submitting your application. Please try again.';
             msgEl.className = 'form-msg error';
         }
+
+        // Send the email notification in the background — the visitor
+        // already saw their confirmation above and shouldn't have to wait
+        // on a third-party email service before knowing they're done.
+        sendWeb3Form({
+            subject: `New application: ${application.jobTitle}`,
+            from_name: 'Pursu Applications',
+            name: application.name,
+            email: application.email,
+            phone: application.phone || 'Not provided',
+            role_applied_for: application.jobTitle,
+            note: application.note || 'None',
+            message: `${application.name} applied for ${application.jobTitle}.\n\nEmail: ${application.email}\nPhone: ${application.phone || 'Not provided'}\nResume: ${resumeUrl || 'Could not generate a link — check the admin tab on the site.'}\nNote: ${application.note || 'None'}`
+        });
     }
 
     let hireRequests = [];
@@ -1658,19 +1668,32 @@
 
         const msgEl = document.getElementById('hire-msg');
         const submitBtn = document.querySelector('#hire-request-form button[type="submit"]');
-        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<span class="btn-spinner"></span>Sending...'; }
 
+        let savedToDatabase = false;
         try {
             const { error } = await db.from('hire_requests').insert(hireRequestToRow(request));
             if (error) throw error;
             hireRequests.push(request);
+            savedToDatabase = true;
         } catch (err) {
-            // Database save failing shouldn't block the email notification
-            // below; the admin tab just won't show this entry until it's
-            // retried, but you'll still get the email either way.
+            // Leave savedToDatabase false — handled below.
         }
 
-        const emailed = await sendWeb3Form({
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send Request'; }
+
+        if (savedToDatabase) {
+            document.getElementById('hire-request-form').reset();
+            showPage('hire-sent');
+        } else {
+            msgEl.textContent = 'Something went wrong sending your request. Please try again.';
+            msgEl.className = 'form-msg error';
+        }
+
+        // Send the email notification in the background — the visitor
+        // already saw their confirmation above and shouldn't have to wait
+        // on a third-party email service before knowing they're done.
+        sendWeb3Form({
             subject: `New hire request from ${request.name}`,
             from_name: 'Pursu Hire Requests',
             name: request.name,
@@ -1678,16 +1701,6 @@
             phone: request.phone || 'Not provided',
             message: `${request.name} submitted a hire request.\n\nEmail: ${request.email}\nPhone: ${request.phone || 'Not provided'}\n\nWhat they're hiring for:\n${request.message}`
         });
-
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send Request'; }
-
-        if (emailed) {
-            document.getElementById('hire-request-form').reset();
-            showPage('hire-sent');
-        } else {
-            msgEl.textContent = 'Something went wrong sending your request. Please try again.';
-            msgEl.className = 'form-msg error';
-        }
     }
 
     function renderHireRequests() {
