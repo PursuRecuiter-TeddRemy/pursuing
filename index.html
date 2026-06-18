@@ -527,6 +527,8 @@
             .search-container button:not(.custom-select-trigger):hover { background: var(--coral-deep); }
             .job-card { flex-direction: column; align-items: flex-start; }
             .job-title { font-size: 1.2rem; }
+            .job-desc { max-width: 100%; font-size: 0.82rem; line-height: 1.6; }
+            .job-card .apply-btn { width: 100%; text-align: center; }
             .about-hero { grid-template-columns: 1fr; gap: 1.5rem; }
             #page-about .section-inner > div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
             .about-stat-card { padding: 2rem 1.5rem; gap: 1.2rem; }
@@ -560,6 +562,7 @@
             .section-lede { font-size: 0.9rem; }
             .job-card { padding: 1.2rem 1.3rem; }
             .job-title { font-size: 1.1rem; }
+            .job-desc { font-size: 0.78rem; }
             .apply-btn { padding: 0.7rem 1.4rem; font-size: 0.8rem; }
             .submit-btn { padding: 0.85rem 1.8rem; font-size: 0.85rem; }
             .form-group input, .form-group textarea { padding: 0.8rem 0.9rem; font-size: 0.85rem; }
@@ -1063,6 +1066,7 @@
                 <p id="detail-job-description" style="font-size: 1rem;"></p>
             </div>
             <a href="javascript:void(0)" class="apply-btn" id="detail-apply-btn" style="display:inline-block; margin-top: 1rem;">Apply for this role</a>
+            <div id="detail-job-req" style="font-size: 0.78rem; color: var(--ink-faint); margin-top: 1.5rem; font-family: monospace;"></div>
         </div>
     </section>
 
@@ -1512,7 +1516,7 @@
                     <span class="job-tag">${escapeHtml(j.category)}</span>
                     <div class="job-title">${escapeHtml(j.title)}</div>
                     <div class="job-meta"><b>${escapeHtml(j.pay)}</b> <span>${escapeHtml(j.location)}</span></div>
-                    ${j.description ? `<div class="job-desc">${escapeHtml(snippetText(j.description, 140))}</div>` : ''}
+                    ${j.description ? `<div class="job-desc">${escapeHtml(snippetText(j.description, 9))}</div>` : ''}
                     <div class="job-view-more">View full role details &rarr;</div>
                 </div>
                 <a href="javascript:void(0)" class="apply-btn" onclick="event.stopPropagation(); openApply('${j.id}')">Apply</a>
@@ -1532,7 +1536,8 @@
         currentDetailJobId = jobId;
         document.getElementById('detail-job-category').textContent = job.category;
         document.getElementById('detail-job-title').textContent = job.title;
-        document.getElementById('detail-job-meta').innerHTML = `<b>${escapeHtml(job.pay)}</b> &nbsp; ${escapeHtml(job.location)}${job.req_number ? ` &nbsp; &bull; &nbsp; Req #${escapeHtml(job.req_number)}` : ''}`;
+        document.getElementById('detail-job-meta').innerHTML = `<b>${escapeHtml(job.pay)}</b> &nbsp; ${escapeHtml(job.location)}`;
+        document.getElementById('detail-job-req').textContent = job.req_number ? `Req #${job.req_number}` : '';
         document.getElementById('detail-job-description').innerHTML = job.description ? sanitizeRichHtml(job.description) : 'No additional description provided for this role yet — reach out and we can fill you in.';
         document.getElementById('detail-apply-btn').setAttribute('onclick', `openApply('${job.id}')`);
         showPage('job-detail');
@@ -1843,12 +1848,13 @@
             <div class="admin-row${isPaused ? ' paused' : ''}">
                 <div>
                     <div>${escapeHtml(j.title)}<span class="status-pill ${isPaused ? 'paused' : 'live'}">${isPaused ? 'Paused' : 'Live'}</span></div>
-                    <div class="meta">${j.req_number ? `Req #${escapeHtml(j.req_number)} &bull; ` : ''}${escapeHtml(j.category)} &bull; ${escapeHtml(j.pay)} &bull; ${escapeHtml(j.location)}</div>
+                    <div class="meta">${escapeHtml(j.category)} &bull; ${escapeHtml(j.pay)} &bull; ${escapeHtml(j.location)}</div>
                     <div class="meta job-link-row">
                         <span class="job-link-text">${escapeHtml(jobUrl)}</span>
                         <button type="button" class="job-link-copy" onclick="copyJobLink('${j.id}', this)">Copy link</button>
                     </div>
                     ${j.notes ? `<div class="admin-note-box">Note: ${escapeHtml(j.notes)}</div>` : ''}
+                    ${j.req_number ? `<div class="meta" style="margin-top:0.4rem; font-family:monospace;">Req #${escapeHtml(j.req_number)}</div>` : ''}
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     <button class="icon-btn edit" onclick="editJob('${j.id}')">Edit</button>
@@ -1989,10 +1995,11 @@
         return tmp.textContent || '';
     }
 
-    function snippetText(html, maxLen) {
+    function snippetText(html, maxWords) {
         const plain = stripHtml(html).replace(/\s+/g, ' ').trim();
-        if (plain.length <= maxLen) return plain;
-        return plain.slice(0, maxLen).replace(/\s+\S*$/, '') + '…';
+        const words = plain.split(' ');
+        if (words.length <= maxWords) return plain;
+        return words.slice(0, maxWords).join(' ') + '…';
     }
 
     function generateReqNumber() {
