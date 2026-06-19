@@ -488,11 +488,60 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 
 <div class="toast" id="toast"></div>
 
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Pursu<span>.</span></div>
+
+    <!-- STEP 1: Email + Password -->
+    <div class="login-step active" id="step-password">
+      <div class="login-sub">CRM — Sign in to continue</div>
+      <div class="login-error" id="login-error-1"></div>
+      <label class="login-label">Email</label>
+      <input class="login-input" type="email" id="login-email" placeholder="you@wepursu.one" autocomplete="email">
+      <label class="login-label">Password</label>
+      <input class="login-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Continue →</button>
+      <div class="login-footer">Pursu Solutions LLC · Secure access only</div>
+    </div>
+
+    <!-- STEP 2: TOTP Code -->
+    <div class="login-step" id="step-totp">
+      <span class="mfa-shield">🔐</span>
+      <div class="login-sub" style="margin-bottom:0.5rem;">Two-factor authentication</div>
+      <p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1.5rem;">Open your authenticator app and enter the 6-digit code for Pursu CRM.</p>
+      <div class="login-error" id="login-error-2"></div>
+      <label class="login-label">Authentication Code</label>
+      <input class="totp-input" type="text" id="totp-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" onkeydown="if(event.key==='Enter')doVerifyTotp()" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <button class="login-btn" id="totp-btn" onclick="doVerifyTotp()">Verify & Sign In</button>
+      <button class="login-back" onclick="goBackToPassword()">← Back</button>
+    </div>
+
+    <!-- STEP 3: First-time MFA Setup -->
+    <div class="login-step" id="step-setup">
+      <span class="mfa-shield">🔒</span>
+      <div class="login-sub" style="margin-bottom:0.5rem;">Set up two-factor authentication</div>
+      <p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1rem;">Scan this QR code with <strong>Google Authenticator</strong>, <strong>Authy</strong>, or any TOTP app. You only do this once.</p>
+      <div class="login-error" id="login-error-3"></div>
+      <div class="qr-wrap">
+        <img id="setup-qr" src="" width="180" height="180" alt="QR Code">
+        <div class="qr-note">Can't scan? Enter this code manually:</div>
+        <div class="secret-code" id="setup-secret"></div>
+      </div>
+      <label class="login-label" style="margin-top:1rem;">Enter the 6-digit code to confirm</label>
+      <input class="totp-input" type="text" id="setup-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" onkeydown="if(event.key==='Enter')doConfirmSetup()" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <button class="login-btn" id="setup-btn" onclick="doConfirmSetup()">Activate 2FA & Sign In</button>
+      <button class="login-back" onclick="skipMfaSetup()">Skip for now →</button>
+    </div>
+
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SURL='https://zphrsvftplckiyuflkkg.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwaHJzdmZ0cGxja2l5dWZsa2tnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MzQ4NTcsImV4cCI6MjA5NzMxMDg1N30.sgG1zMUWPn0BRzzxmWrrlHHTaWu6XVavlvgTS1rJFOs';
-let db;try{db=window.supabase.createClient(SURL,SKEY);}catch(e){db=null;}
+let db;try{db=window.supabase.createClient(SURL,SKEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}});}catch(e){db=null;}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const now=()=>new Date().toISOString();
 const fmt=iso=>{if(!iso)return'—';const d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});};
@@ -812,9 +861,9 @@ let sessionTimer = null;
 
 function startSessionTimer(){
   // Record session start time
-  const existing = sessionStorage.getItem(SESSION_KEY);
+  const existing = localStorage.getItem(SESSION_KEY);
   if(!existing){
-    sessionStorage.setItem(SESSION_KEY, Date.now().toString());
+    localStorage.setItem(SESSION_KEY, Date.now().toString());
   }
   // Check if already expired
   checkSessionExpiry();
@@ -823,12 +872,12 @@ function startSessionTimer(){
 }
 
 function checkSessionExpiry(){
-  const start = parseInt(sessionStorage.getItem(SESSION_KEY) || '0');
+  const start = parseInt(localStorage.getItem(SESSION_KEY) || '0');
   if(!start) return;
   const elapsed = Date.now() - start;
   if(elapsed >= SESSION_DURATION){
     clearInterval(sessionTimer);
-    sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(SESSION_KEY);
     doLogout();
     toast('Session expired after 8 hours. Please sign in again.', 'error');
   }
@@ -836,7 +885,7 @@ function checkSessionExpiry(){
 
 function stopSessionTimer(){
   if(sessionTimer) clearInterval(sessionTimer);
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);
 }
 
 function showLoginStep(id){
@@ -875,10 +924,19 @@ async function checkMfaAndProceed(){
   }
   const {currentLevel,nextLevel}=data;
   if(currentLevel==='aal2'){
+    // Fully verified including MFA — straight in
     document.getElementById('login-screen').classList.add('hidden');
     startSessionTimer(); loadAll();
   } else if(nextLevel==='aal2'){
-    await startMfaChallenge();
+    // MFA is enrolled but this browser session hasn't verified it yet.
+    // If we already verified once in this tab session (8hr window), trust it instead of re-challenging.
+    const verifiedAt = localStorage.getItem(SESSION_KEY);
+    if(verifiedAt && (Date.now() - parseInt(verifiedAt)) < SESSION_DURATION){
+      document.getElementById('login-screen').classList.add('hidden');
+      startSessionTimer(); loadAll();
+    } else {
+      await startMfaChallenge();
+    }
   } else {
     document.getElementById('login-screen').classList.add('hidden');
     startSessionTimer(); loadAll();
@@ -1006,55 +1064,6 @@ async function doLogout(){
 
 checkSession();
 </script>
-
-<!-- LOGIN SCREEN -->
-<div class="login-screen" id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">Pursu<span>.</span></div>
-
-    <!-- STEP 1: Email + Password -->
-    <div class="login-step active" id="step-password">
-      <div class="login-sub">CRM — Sign in to continue</div>
-      <div class="login-error" id="login-error-1"></div>
-      <label class="login-label">Email</label>
-      <input class="login-input" type="email" id="login-email" placeholder="you@wepursu.one" autocomplete="email">
-      <label class="login-label">Password</label>
-      <input class="login-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="login-btn" id="login-btn" onclick="doLogin()">Continue →</button>
-      <div class="login-footer">Pursu Solutions LLC · Secure access only</div>
-    </div>
-
-    <!-- STEP 2: TOTP Code -->
-    <div class="login-step" id="step-totp">
-      <span class="mfa-shield">🔐</span>
-      <div class="login-sub" style="margin-bottom:0.5rem;">Two-factor authentication</div>
-      <p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1.5rem;">Open your authenticator app and enter the 6-digit code for Pursu CRM.</p>
-      <div class="login-error" id="login-error-2"></div>
-      <label class="login-label">Authentication Code</label>
-      <input class="totp-input" type="text" id="totp-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" onkeydown="if(event.key==='Enter')doVerifyTotp()" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      <button class="login-btn" id="totp-btn" onclick="doVerifyTotp()">Verify & Sign In</button>
-      <button class="login-back" onclick="goBackToPassword()">← Back</button>
-    </div>
-
-    <!-- STEP 3: First-time MFA Setup -->
-    <div class="login-step" id="step-setup">
-      <span class="mfa-shield">🔒</span>
-      <div class="login-sub" style="margin-bottom:0.5rem;">Set up two-factor authentication</div>
-      <p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1rem;">Scan this QR code with <strong>Google Authenticator</strong>, <strong>Authy</strong>, or any TOTP app. You only do this once.</p>
-      <div class="login-error" id="login-error-3"></div>
-      <div class="qr-wrap">
-        <img id="setup-qr" src="" width="180" height="180" alt="QR Code">
-        <div class="qr-note">Can't scan? Enter this code manually:</div>
-        <div class="secret-code" id="setup-secret"></div>
-      </div>
-      <label class="login-label" style="margin-top:1rem;">Enter the 6-digit code to confirm</label>
-      <input class="totp-input" type="text" id="setup-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" onkeydown="if(event.key==='Enter')doConfirmSetup()" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      <button class="login-btn" id="setup-btn" onclick="doConfirmSetup()">Activate 2FA & Sign In</button>
-      <button class="login-back" onclick="skipMfaSetup()">Skip for now →</button>
-    </div>
-
-  </div>
-</div>
 
 </body>
 </html>
