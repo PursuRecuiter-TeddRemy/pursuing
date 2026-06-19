@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pursu CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F7F3EC;--sand:#EDE4D6;--ink:#1E1A17;--ink-soft:#5a5450;--ink-faint:#9c948e;--line:#E2D8CC;--coral:#E8603C;--coral-deep:#C44A29;--coral-tint:#FBE4DB;--teal:#1F5C56;--teal-deep:#15413D;--teal-tint:#DCEAE8;--success:#2F7A55;--warning:#C47A1A;--danger:#C44A29;--sb:#1C1917;--sidebar-w:240px;--topbar-h:52px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;display:flex;font-size:13px;overflow:hidden;}
+h1,h2,h3,h4{font-family:'Fraunces',serif;font-weight:500;}
+a{color:var(--coral);text-decoration:none;}
+.sidebar{width:var(--sidebar-w);background:var(--sb);color:#fff;display:flex;flex-direction:column;height:100vh;position:fixed;top:0;left:0;z-index:200;transition:width 0.2s;flex-shrink:0;}
+.sidebar.collapsed{width:52px;}
+.sidebar-top{padding:0 0.8rem;height:var(--topbar-h);display:flex;align-items:center;gap:0.6rem;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;}
+.sidebar-logo{font-family:'Fraunces',serif;font-size:1.25rem;color:#fff;white-space:nowrap;overflow:hidden;}
+.sidebar-logo span{color:var(--coral);}
+.sidebar-toggle{margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:14px;padding:4px;flex-shrink:0;line-height:1;}
+.sidebar-toggle:hover{color:#fff;}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0.5rem 0;}
+.nav-group-label{font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.25);padding:0.8rem 1rem 0.3rem;white-space:nowrap;overflow:hidden;}
+.nav-item{display:flex;align-items:center;gap:0.65rem;padding:0.52rem 1rem;cursor:pointer;color:rgba(255,255,255,0.6);font-size:0.8rem;font-weight:500;border-left:2px solid transparent;transition:0.12s;user-select:none;white-space:nowrap;overflow:hidden;}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,0.07);}
+.nav-item.active{color:#fff;border-left-color:var(--coral);background:rgba(232,96,60,0.15);}
+.nav-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.nav-label{overflow:hidden;text-overflow:ellipsis;}
+.nav-badge{margin-left:auto;background:var(--coral);color:#fff;font-size:0.58rem;font-weight:700;padding:0.1rem 0.38rem;border-radius:100px;min-width:16px;text-align:center;flex-shrink:0;}
+.sidebar-footer{padding:0.8rem 1rem;border-top:1px solid rgba(255,255,255,0.07);font-size:0.72rem;color:rgba(255,255,255,0.25);white-space:nowrap;overflow:hidden;flex-shrink:0;}
+.sidebar.collapsed .nav-group-label,.sidebar.collapsed .nav-label,.sidebar.collapsed .nav-badge,.sidebar.collapsed .sidebar-logo{display:none;}
+.sidebar.collapsed .nav-item{padding:0.52rem;justify-content:center;}
+.sidebar.collapsed .sidebar-top{justify-content:center;}
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;transition:margin-left 0.2s;}
+.main.expanded{margin-left:52px;}
+.topbar{height:var(--topbar-h);background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 1.2rem;gap:0.8rem;flex-shrink:0;z-index:100;}
+.breadcrumb{display:flex;align-items:center;gap:0.35rem;font-size:0.72rem;color:var(--ink-faint);}
+.breadcrumb .sep{opacity:0.4;}
+.breadcrumb .current{color:var(--ink);font-weight:600;}
+.topbar-search{flex:1;max-width:360px;position:relative;}
+.topbar-search input{width:100%;padding:0.42rem 0.7rem 0.42rem 1.8rem;border:1px solid var(--line);border-radius:6px;font-family:'Inter',sans-serif;font-size:0.78rem;background:var(--cream);color:var(--ink);outline:none;}
+.topbar-search input:focus{border-color:var(--coral);box-shadow:0 0 0 2px var(--coral-tint);}
+.topbar-search .si{position:absolute;left:0.55rem;top:50%;transform:translateY(-50%);color:var(--ink-faint);font-size:11px;}
+.topbar-actions{display:flex;align-items:center;gap:0.5rem;margin-left:auto;}
+.content-area{flex:1;overflow-y:auto;padding:1.2rem 1.4rem;}
+.page{display:none;}
+.page.active{display:block;}
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0.8rem;margin-bottom:1.2rem;}
+.stat-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;cursor:pointer;transition:box-shadow 0.15s;}
+.stat-card:hover{box-shadow:0 4px 12px rgba(30,26,23,0.07);}
+.stat-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);margin-bottom:0.4rem;}
+.stat-val{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:500;line-height:1;}
+.stat-sub{font-size:0.68rem;color:var(--ink-faint);margin-top:0.3rem;}
+.stat-delta{font-size:0.68rem;font-weight:700;margin-top:0.3rem;}
+.stat-delta.up{color:var(--success);}
+.stat-delta.neutral{color:var(--ink-faint);}
+.coral-val{color:var(--coral);}
+.teal-val{color:var(--teal);}
+.dash-row{display:grid;grid-template-columns:1fr 340px;gap:1rem;margin-bottom:1rem;}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.panel-header{padding:0.7rem 1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.panel-title{font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);}
+.btn{display:inline-flex;align-items:center;gap:0.35rem;padding:0.42rem 0.9rem;border-radius:6px;font-family:'Inter',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;border:none;transition:0.15s;white-space:nowrap;}
+.btn-primary{background:var(--coral);color:#fff;}
+.btn-primary:hover{background:var(--coral-deep);}
+.btn-secondary{background:#fff;color:var(--ink);border:1px solid var(--line);}
+.btn-secondary:hover{border-color:var(--coral);color:var(--coral);}
+.btn-teal{background:var(--teal);color:#fff;}
+.btn-teal:hover{background:var(--teal-deep);}
+.btn-ghost{background:none;color:var(--ink-soft);border:1px solid transparent;padding:0.35rem 0.7rem;}
+.btn-ghost:hover{background:var(--sand);color:var(--ink);}
+.btn-sm{padding:0.28rem 0.6rem;font-size:0.7rem;}
+.btn-xs{padding:0.18rem 0.45rem;font-size:0.65rem;}
+.tbl-wrap{overflow-x:auto;}
+table.crm{width:100%;border-collapse:collapse;}
+table.crm th{padding:0.55rem 0.9rem;text-align:left;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);background:var(--cream);border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;}
+table.crm td{padding:0.72rem 0.9rem;font-size:0.78rem;border-bottom:1px solid var(--line);vertical-align:middle;}
+table.crm tr:last-child td{border-bottom:none;}
+table.crm tbody tr{cursor:pointer;transition:background 0.1s;}
+table.crm tbody tr:hover{background:#faf7f2;}
+table.crm tbody tr.selected{background:var(--coral-tint);}
+.cell-name{font-weight:600;}
+.cell-link{color:var(--coral);font-weight:600;}
+.cell-soft{color:var(--ink-soft);}
+.cb-cell{width:32px;}
+input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:pointer;}
+.pill{display:inline-block;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;padding:0.18rem 0.55rem;border-radius:100px;white-space:nowrap;}
+.pill-applied{background:#e8f0fb;color:#1a56c4;}
+.pill-screening{background:#fef3e2;color:var(--warning);}
+.pill-interview{background:var(--coral-tint);color:var(--coral-deep);}
+.pill-placed{background:#d4f0e3;color:var(--success);}
+.pill-archived{background:var(--sand);color:var(--ink-faint);}
+.pill-prospect{background:var(--teal-tint);color:var(--teal-deep);}
+.pill-active{background:#d4f0e3;color:var(--success);}
+.pill-closed{background:var(--sand);color:var(--ink-faint);}
+.pill-hot{background:#ffe4e4;color:#c42a2a;}
+.pill-warm{background:#fef3e2;color:var(--warning);}
+.pill-cold{background:#e8f0fb;color:#1a56c4;}
+.pill-open{background:var(--teal-tint);color:var(--teal);}
+.pill-paused{background:var(--sand);color:var(--ink-faint);}
+.record-hero{background:#fff;border:1px solid var(--line);border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:0.9rem;}
+.record-hero-top{display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.9rem;}
+.r-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:1.3rem;font-weight:500;flex-shrink:0;}
+.r-avatar.coral{background:var(--coral-tint);color:var(--coral);}
+.r-avatar.teal{background:var(--teal-tint);color:var(--teal);}
+.r-meta{flex:1;}
+.r-name{font-size:1.35rem;margin-bottom:0.25rem;}
+.r-sub{font-size:0.78rem;color:var(--ink-soft);display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;}
+.r-sub .dot{color:var(--line);}
+.r-actions{display:flex;gap:0.45rem;flex-wrap:wrap;align-items:flex-start;}
+.record-quick-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-top:1px solid var(--line);padding-top:0.9rem;}
+.qs-item{text-align:center;padding:0 0.5rem;border-right:1px solid var(--line);}
+.qs-item:last-child{border-right:none;}
+.qs-label{font-size:0.62rem;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.25rem;}
+.qs-val{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:500;}
+.record-layout{display:grid;grid-template-columns:1fr 300px;gap:0.9rem;}
+.record-main,.record-side{display:flex;flex-direction:column;gap:0.9rem;}
+.det-panel{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.det-panel-header{padding:0.65rem 1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.det-panel-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0.1rem 0;}
+.det-field{padding:0.6rem 1rem;border-bottom:1px solid var(--line);}
+.det-field:nth-last-child(-n+2):not(.full){border-bottom:none;}
+.det-field.full{grid-column:1/-1;}
+.det-field.full:last-child{border-bottom:none;}
+.det-label{font-size:0.65rem;color:var(--ink-faint);margin-bottom:0.2rem;text-transform:uppercase;letter-spacing:0.05em;}
+.det-val{font-size:0.8rem;color:var(--ink);font-weight:500;word-break:break-word;}
+.det-val.empty{color:var(--ink-faint);font-weight:400;}
+.activity-wrap{padding:0 0.5rem;}
+.act-item{display:flex;gap:0.7rem;padding:0.75rem 0.5rem;border-bottom:1px solid var(--line);position:relative;}
+.act-item:last-child{border-bottom:none;}
+.act-dot{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;z-index:1;margin-top:1px;}
+.act-dot.coral{background:var(--coral-tint);color:var(--coral);}
+.act-dot.teal{background:var(--teal-tint);color:var(--teal);}
+.act-body{flex:1;}
+.act-text{font-size:0.78rem;line-height:1.5;}
+.act-time{font-size:0.65rem;color:var(--ink-faint);margin-top:0.2rem;}
+.note-row{display:flex;gap:0.5rem;padding:0.8rem 1rem;border-bottom:1px solid var(--line);}
+.note-row textarea{flex:1;border:1px solid var(--line);border-radius:6px;padding:0.5rem 0.7rem;font-family:'Inter',sans-serif;font-size:0.78rem;resize:none;height:56px;outline:none;}
+.note-row textarea:focus{border-color:var(--coral);}
+.pipeline-bar{display:flex;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:0.9rem;}
+.pb-step{flex:1;padding:0.6rem 0.5rem;text-align:center;font-size:0.68rem;font-weight:600;cursor:pointer;border-right:1px solid var(--line);transition:0.15s;color:var(--ink-soft);}
+.pb-step:last-child{border-right:none;}
+.pb-step:hover{background:var(--cream);}
+.pb-step.active{background:var(--coral);color:#fff;}
+.pb-step.done{background:var(--coral-tint);color:var(--coral-deep);}
+.kanban{display:flex;gap:0.8rem;overflow-x:auto;padding-bottom:0.5rem;}
+.kb-col{flex-shrink:0;width:230px;}
+.kb-col-header{padding:0.5rem 0.2rem 0.6rem;display:flex;align-items:center;justify-content:space-between;}
+.kb-col-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);}
+.kb-count{background:var(--sand);color:var(--ink-soft);font-size:0.62rem;padding:0.08rem 0.38rem;border-radius:100px;font-weight:700;}
+.kb-card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:0.8rem;margin-bottom:0.5rem;cursor:pointer;transition:0.15s;}
+.kb-card:hover{border-color:var(--coral);box-shadow:0 3px 10px rgba(30,26,23,0.07);transform:translateY(-1px);}
+.kb-card-name{font-size:0.8rem;font-weight:600;margin-bottom:0.25rem;}
+.kb-card-sub{font-size:0.7rem;color:var(--ink-soft);}
+.kb-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;}
+.kb-add{width:100%;padding:0.5rem;border:1px dashed var(--line);border-radius:8px;background:none;font-family:'Inter',sans-serif;font-size:0.72rem;color:var(--ink-faint);cursor:pointer;text-align:center;transition:0.15s;}
+.kb-add:hover{border-color:var(--coral);color:var(--coral);}
+.modal-overlay{position:fixed;inset:0;background:rgba(30,26,23,0.4);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(30,26,23,0.2);}
+.modal-header{padding:1.1rem 1.4rem 0.9rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
+.modal-header h3{font-size:0.95rem;}
+.modal-close{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--ink-faint);line-height:1;padding:0.2rem;}
+.modal-body{padding:1.1rem 1.4rem;}
+.modal-footer{padding:0.9rem 1.4rem;border-top:1px solid var(--line);display:flex;gap:0.5rem;justify-content:flex-end;position:sticky;bottom:0;background:#fff;}
+.form-row{margin-bottom:0.85rem;}
+.form-row label{display:block;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);margin-bottom:0.3rem;}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:0.52rem 0.75rem;border:1px solid var(--line);border-radius:6px;font-family:'Inter',sans-serif;font-size:0.8rem;color:var(--ink);background:#fff;outline:none;transition:border-color 0.15s;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--coral);box-shadow:0 0 0 2px var(--coral-tint);}
+.form-row textarea{resize:vertical;min-height:72px;}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;}
+.report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem;margin-bottom:1.2rem;}
+.funnel-bar{display:flex;flex-direction:column;gap:0.35rem;}
+.funnel-item{display:flex;align-items:center;gap:0.7rem;}
+.funnel-label{font-size:0.72rem;color:var(--ink-soft);width:75px;flex-shrink:0;}
+.funnel-track{flex:1;background:var(--sand);border-radius:100px;height:8px;overflow:hidden;}
+.funnel-fill{height:100%;border-radius:100px;transition:width 0.4s;}
+.funnel-count{font-size:0.72rem;font-weight:700;color:var(--ink);width:24px;text-align:right;}
+.settings-grid{display:grid;grid-template-columns:200px 1fr;gap:1.2rem;}
+.settings-nav{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.settings-nav-item{padding:0.65rem 1rem;font-size:0.78rem;cursor:pointer;border-left:2px solid transparent;color:var(--ink-soft);transition:0.12s;}
+.settings-nav-item:hover{background:var(--cream);color:var(--ink);}
+.settings-nav-item.active{color:var(--coral);border-left-color:var(--coral);background:var(--coral-tint);}
+.settings-body{background:#fff;border:1px solid var(--line);border-radius:10px;padding:1.4rem;}
+.settings-section{margin-bottom:1.8rem;}
+.settings-section h3{font-size:0.85rem;margin-bottom:0.2rem;}
+.settings-section p{font-size:0.78rem;color:var(--ink-soft);margin-bottom:1rem;}
+.quick-actions{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;}
+.qa-btn{background:#fff;border:1px solid var(--line);border-radius:8px;padding:0.6rem 1rem;display:flex;align-items:center;gap:0.5rem;font-size:0.75rem;font-weight:600;color:var(--ink);cursor:pointer;transition:0.15s;}
+.qa-btn:hover{border-color:var(--coral);color:var(--coral);}
+.toast{position:fixed;bottom:1.2rem;right:1.2rem;background:var(--ink);color:#fff;padding:0.7rem 1.1rem;border-radius:8px;font-size:0.78rem;z-index:999;transform:translateY(8px);opacity:0;transition:0.22s;pointer-events:none;max-width:260px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--danger);}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--ink-faint);}
+.empty-icon{font-size:2rem;margin-bottom:0.6rem;}
+.empty-state p{font-size:0.82rem;}
+.empty-state .ea{margin-top:0.8rem;}
+.toolbar{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.9rem;flex-wrap:wrap;}
+.toolbar-right{margin-left:auto;display:flex;gap:0.5rem;}
+.filter-chips{display:flex;gap:0.4rem;flex-wrap:wrap;}
+.chip{padding:0.28rem 0.75rem;border:1px solid var(--line);border-radius:100px;background:#fff;font-size:0.7rem;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:0.12s;}
+.chip:hover,.chip.active{border-color:var(--coral);color:var(--coral);background:var(--coral-tint);}
+.mini-list-item{display:flex;align-items:center;justify-content:space-between;padding:0.55rem 1rem;border-bottom:1px solid var(--line);font-size:0.78rem;cursor:pointer;transition:background 0.1s;}
+.mini-list-item:last-child{border-bottom:none;}
+.mini-list-item:hover{background:var(--cream);}
+.bulk-bar{background:var(--coral);color:#fff;padding:0.5rem 1rem;display:none;align-items:center;gap:0.8rem;font-size:0.78rem;font-weight:600;}
+.bulk-bar.show{display:flex;}
+.badge-new{display:inline-block;background:var(--coral);color:#fff;font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:100px;margin-left:0.3rem;vertical-align:middle;}
+@media(max-width:1024px){:root{--sidebar-w:52px;}.sidebar .nav-group-label,.sidebar .nav-label,.sidebar .nav-badge,.sidebar-logo{display:none;}.sidebar .nav-item{padding:0.52rem;justify-content:center;}.sidebar-top{justify-content:center;}.dash-grid{grid-template-columns:repeat(2,1fr);}.dash-row{grid-template-columns:1fr;}.record-layout{grid-template-columns:1fr;}.report-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:640px){.dash-grid{grid-template-columns:1fr 1fr;}.fg2{grid-template-columns:1fr;}.report-grid{grid-template-columns:1fr;}.record-quick-stats{grid-template-columns:repeat(3,1fr);}.settings-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <div class="sidebar-logo">Pursu<span>.</span></div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">◀</button>
+  </div>
+  <div class="sidebar-scroll">
+    <div class="nav-group-label">Overview</div>
+    <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')"><span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span></div>
+    <div class="nav-group-label">Talent</div>
+    <div class="nav-item" data-page="candidates" onclick="goTo('candidates')"><span class="nav-icon">👤</span><span class="nav-label">Candidates</span><span class="nav-badge" id="badge-cands" style="display:none">0</span></div>
+    <div class="nav-item" data-page="placements" onclick="goTo('placements')"><span class="nav-icon">✓</span><span class="nav-label">Placements</span></div>
+    <div class="nav-group-label">Business</div>
+    <div class="nav-item" data-page="clients" onclick="goTo('clients')"><span class="nav-icon">🏢</span><span class="nav-label">Clients</span></div>
+    <div class="nav-item" data-page="pipeline" onclick="goTo('pipeline')"><span class="nav-icon">⬡</span><span class="nav-label">Pipeline</span></div>
+    <div class="nav-item" data-page="jobs" onclick="goTo('jobs')"><span class="nav-icon">📋</span><span class="nav-label">Open Roles</span></div>
+    <div class="nav-group-label">Insights</div>
+    <div class="nav-item" data-page="reports" onclick="goTo('reports')"><span class="nav-icon">◈</span><span class="nav-label">Reports</span></div>
+    <div class="nav-item" data-page="activity" onclick="goTo('activity')"><span class="nav-icon">◎</span><span class="nav-label">Activity Feed</span></div>
+    <div class="nav-group-label">System</div>
+    <div class="nav-item" data-page="settings" onclick="goTo('settings')"><span class="nav-icon">⚙</span><span class="nav-label">Settings</span></div>
+  </div>
+  <div class="sidebar-footer">Pursu Solutions LLC</div>
+</aside>
+<div class="main" id="main-area">
+  <header class="topbar">
+    <div class="breadcrumb" id="breadcrumb"><span class="current">Dashboard</span></div>
+    <div class="topbar-search" style="margin-left:1.5rem;">
+      <span class="si">🔍</span>
+      <input type="text" placeholder="Search candidates, clients, roles…" id="gsearch" oninput="handleSearch(this.value)">
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-secondary btn-sm" onclick="syncFromSite()">⟳ Sync</button>
+      <button class="btn btn-primary btn-sm" onclick="handleAdd()">+ New</button>
+    </div>
+  </header>
+  <div class="content-area" id="content-area">
+
+    <div class="page active" id="page-dashboard">
+      <div class="quick-actions">
+        <div class="qa-btn" onclick="openCandidateModal()">👤 Add Candidate</div>
+        <div class="qa-btn" onclick="openClientModal()">🏢 Add Client</div>
+        <div class="qa-btn" onclick="syncFromSite()">⟳ Sync Site</div>
+        <div class="qa-btn" onclick="goTo('reports')">◈ Reports</div>
+        <div class="qa-btn" onclick="goTo('pipeline')">⬡ Pipeline</div>
+      </div>
+      <div class="dash-grid">
+        <div class="stat-card" onclick="goTo('candidates')"><div class="stat-label">Total Candidates</div><div class="stat-val coral-val" id="st-cands">0</div><div class="stat-delta neutral" id="st-cands-new"></div></div>
+        <div class="stat-card" onclick="goTo('placements')"><div class="stat-label">Placed</div><div class="stat-val teal-val" id="st-placed">0</div><div class="stat-sub">successful placements</div></div>
+        <div class="stat-card" onclick="goTo('clients')"><div class="stat-label">Clients</div><div class="stat-val" id="st-clients">0</div><div class="stat-sub">in pipeline</div></div>
+        <div class="stat-card" onclick="goTo('jobs')"><div class="stat-label">Open Roles</div><div class="stat-val" id="st-jobs">0</div><div class="stat-sub">from wepursu.one</div></div>
+      </div>
+      <div class="dash-row">
+        <div>
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Recent Candidates</span><button class="btn btn-ghost btn-xs" onclick="goTo('candidates')">View all →</button></div>
+            <div class="tbl-wrap"><table class="crm"><thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Source</th><th>Added</th></tr></thead><tbody id="dash-cands-table"></tbody></table></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.9rem;">
+          <div class="panel"><div class="panel-header"><span class="panel-title">Pipeline</span></div><div style="padding:0.8rem 1rem;" id="dash-pipeline-summary"></div></div>
+          <div class="panel"><div class="panel-header"><span class="panel-title">New This Week</span></div><div id="dash-new-week" style="padding:0.5rem 0;"></div></div>
+        </div>
+      </div>
+      <div class="panel"><div class="panel-header"><span class="panel-title">Recent Activity</span><button class="btn btn-ghost btn-xs" onclick="goTo('activity')">View all →</button></div><div class="activity-wrap" id="dash-activity" style="max-height:220px;overflow-y:auto;"></div></div>
+    </div>
+
+    <div class="page" id="page-candidates">
+      <div class="toolbar">
+        <div class="filter-chips" id="cand-chips">
+          <div class="chip active" onclick="setCandFilter('all',this)">All</div>
+          <div class="chip" onclick="setCandFilter('applied',this)">Applied</div>
+          <div class="chip" onclick="setCandFilter('screening',this)">Screening</div>
+          <div class="chip" onclick="setCandFilter('interview',this)">Interview</div>
+          <div class="chip" onclick="setCandFilter('placed',this)">Placed</div>
+          <div class="chip" onclick="setCandFilter('archived',this)">Archived</div>
+        </div>
+        <div class="toolbar-right"><button class="btn btn-secondary btn-sm" onclick="syncFromSite()">⟳ Sync</button><button class="btn btn-primary btn-sm" onclick="openCandidateModal()">+ Add Candidate</button></div>
+      </div>
+      <div class="bulk-bar" id="cand-bulk-bar">
+        <span id="cand-sel-count">0 selected</span>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border:none;" onclick="openModal('modal-status')">Update Status</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;border:none;" onclick="clearSel()">Clear</button>
+      </div>
+      <div class="panel tbl-wrap"><table class="crm">
+        <thead><tr><th class="cb-cell"><input type="checkbox" id="ca" onchange="toggleAll(this)"></th><th onclick="sortC('name')">Name</th><th>Email</th><th>Phone</th><th onclick="sortC('role')">Role</th><th onclick="sortC('status')">Status</th><th>Source</th><th onclick="sortC('createdAt')">Added</th><th></th></tr></thead>
+        <tbody id="cand-tbody"></tbody>
+      </table></div>
+    </div>
+
+    <div class="page" id="page-candidate-detail">
+      <div id="cdet-pbar"></div>
+      <div class="record-hero" id="cdet-hero"></div>
+      <div class="record-layout">
+        <div class="record-main">
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Details</span><button class="btn btn-ghost btn-xs" onclick="openCandidateModal(currentCandidateId)">Edit</button></div><div class="det-grid" id="cdet-fields"></div></div>
+          <div class="det-panel">
+            <div class="det-panel-header"><span class="det-panel-title">Communication History</span></div>
+            <div class="note-row">
+              <textarea id="cdet-note-in" placeholder="Log a call, email, meeting, or note…"></textarea>
+              <div style="display:flex;flex-direction:column;gap:0.3rem;">
+                <select id="cdet-note-type" style="padding:0.3rem;border:1px solid var(--line);border-radius:5px;font-size:0.72rem;outline:none;"><option value="📞 Call">Call</option><option value="✉️ Email">Email</option><option value="🤝 Meeting">Meeting</option><option value="💬 Text">Text</option><option value="📝 Note">Note</option></select>
+                <button class="btn btn-primary btn-sm" onclick="addCandNote()">Log</button>
+              </div>
+            </div>
+            <div class="activity-wrap" id="cdet-activity"></div>
+          </div>
+        </div>
+        <div class="record-side">
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Actions</span></div><div style="padding:0.8rem;display:flex;flex-direction:column;gap:0.4rem;"><button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="document.getElementById('cdet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openCandidateModal(currentCandidateId)">Edit Record</button></div></div>
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Related Client</span></div><div id="cdet-rel-client" style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No linked client</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-placements">
+      <div class="toolbar"><span style="font-size:0.78rem;color:var(--ink-soft);">Candidates marked as Placed</span><div class="toolbar-right"><button class="btn btn-primary btn-sm" onclick="openCandidateModal()">+ Add</button></div></div>
+      <div class="panel tbl-wrap"><table class="crm"><thead><tr><th>Name</th><th>Role Placed</th><th>Email</th><th>Date Placed</th><th></th></tr></thead><tbody id="placements-tbody"></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-clients">
+      <div class="toolbar">
+        <div class="filter-chips">
+          <div class="chip active" onclick="setClFilter('all',this)">All</div>
+          <div class="chip" onclick="setClFilter('prospect',this)">Prospect</div>
+          <div class="chip" onclick="setClFilter('active',this)">Active</div>
+          <div class="chip" onclick="setClFilter('closed',this)">Closed</div>
+        </div>
+        <div class="toolbar-right"><button class="btn btn-teal btn-sm" onclick="openClientModal()">+ Add Client</button></div>
+      </div>
+      <div class="panel tbl-wrap"><table class="crm"><thead><tr><th>Company</th><th>Contact</th><th>Email</th><th>Phone</th><th>Industry</th><th>Status</th><th>Open Roles</th><th>Value</th><th>Added</th><th></th></tr></thead><tbody id="client-tbody"></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-client-detail">
+      <div class="record-hero" id="cldet-hero"></div>
+      <div class="record-layout">
+        <div class="record-main">
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Details</span><button class="btn btn-ghost btn-xs" onclick="openClientModal(currentClientId)">Edit</button></div><div class="det-grid" id="cldet-fields"></div></div>
+          <div class="det-panel">
+            <div class="det-panel-header"><span class="det-panel-title">Communication History</span></div>
+            <div class="note-row">
+              <textarea id="cldet-note-in" placeholder="Log a note or interaction…"></textarea>
+              <div style="display:flex;flex-direction:column;gap:0.3rem;">
+                <select id="cldet-note-type" style="padding:0.3rem;border:1px solid var(--line);border-radius:5px;font-size:0.72rem;outline:none;"><option value="📞 Call">Call</option><option value="✉️ Email">Email</option><option value="🤝 Meeting">Meeting</option><option value="💬 Text">Text</option><option value="📝 Note">Note</option></select>
+                <button class="btn btn-teal btn-sm" onclick="addClNote()">Log</button>
+              </div>
+            </div>
+            <div class="activity-wrap" id="cldet-activity"></div>
+          </div>
+        </div>
+        <div class="record-side">
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Pipeline Stage</span></div><div style="padding:0.8rem;display:flex;flex-direction:column;gap:0.4rem;"><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="updateClStatus('prospect')">⬡ Prospect</button><button class="btn btn-teal" style="width:100%;justify-content:center;" onclick="updateClStatus('active')">✓ Active</button><button class="btn btn-ghost" style="width:100%;justify-content:center;" onclick="updateClStatus('closed')">✕ Closed</button></div></div>
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Related Candidates</span></div><div id="cldet-rel-cands" style="padding:0.5rem 0;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-pipeline">
+      <div class="toolbar"><span style="font-size:0.78rem;color:var(--ink-soft);">Click a card to open the client record</span><div class="toolbar-right"><button class="btn btn-teal btn-sm" onclick="openClientModal()">+ Add Client</button></div></div>
+      <div class="kanban" id="kanban-board"></div>
+    </div>
+
+    <div class="page" id="page-jobs">
+      <div class="toolbar"><span style="font-size:0.78rem;color:var(--ink-soft);">Live roles from wepursu.one</span><div class="toolbar-right"><button class="btn btn-secondary btn-sm" onclick="syncFromSite()">⟳ Refresh</button><a class="btn btn-teal btn-sm" href="https://wepursu.one" target="_blank">Open Site ↗</a></div></div>
+      <div class="panel tbl-wrap"><table class="crm"><thead><tr><th>Title</th><th>Req #</th><th>Category</th><th>Pay</th><th>Location</th><th>Status</th><th>Link</th></tr></thead><tbody id="jobs-tbody"></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-reports"><div class="report-grid" id="reports-content"></div></div>
+
+    <div class="page" id="page-activity"><div class="panel" style="max-width:700px;"><div class="panel-header"><span class="panel-title">All Activity</span></div><div class="activity-wrap" id="activity-full"></div></div></div>
+
+    <div class="page" id="page-settings">
+      <div class="settings-grid">
+        <div class="settings-nav">
+          <div class="settings-nav-item active" onclick="showSettings('general',this)">General</div>
+          <div class="settings-nav-item" onclick="showSettings('integrations',this)">Integrations</div>
+          <div class="settings-nav-item" onclick="showSettings('data',this)">Data & Export</div>
+        </div>
+        <div class="settings-body" id="settings-body"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CANDIDATE MODAL -->
+<div class="modal-overlay" id="modal-cand">
+  <div class="modal"><div class="modal-header"><h3 id="cand-mtitle">Add Candidate</h3><button class="modal-close" onclick="closeModal('modal-cand')">✕</button></div>
+  <div class="modal-body"><input type="hidden" id="cand-id">
+    <div class="fg2">
+      <div class="form-row"><label>Full Name *</label><input id="cand-name" placeholder="Jane Smith"></div>
+      <div class="form-row"><label>Email *</label><input type="email" id="cand-email" placeholder="jane@email.com"></div>
+      <div class="form-row"><label>Phone</label><input id="cand-phone" placeholder="(555) 555-5555"></div>
+      <div class="form-row"><label>Status</label><select id="cand-status"><option value="applied">Applied</option><option value="screening">Screening</option><option value="interview">Interview</option><option value="placed">Placed</option><option value="archived">Archived</option></select></div>
+      <div class="form-row"><label>Role Applied For</label><input id="cand-role" placeholder="Housekeeping"></div>
+      <div class="form-row"><label>Source</label><select id="cand-source"><option value="website">Website (wepursu.one)</option><option value="referral">Referral</option><option value="linkedin">LinkedIn</option><option value="indeed">Indeed</option><option value="direct">Direct outreach</option><option value="other">Other</option></select></div>
+      <div class="form-row"><label>Temperature</label><select id="cand-temp"><option value="">—</option><option value="hot">Hot 🔥</option><option value="warm">Warm</option><option value="cold">Cold</option></select></div>
+      <div class="form-row"><label>Follow-up Date</label><input type="date" id="cand-followup"></div>
+    </div>
+    <div class="form-row"><label>Notes</label><textarea id="cand-notes" placeholder="Background, impressions, next steps…"></textarea></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-cand')">Cancel</button><button class="btn btn-primary" onclick="saveCandidate()">Save</button></div></div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="modal-overlay" id="modal-client">
+  <div class="modal"><div class="modal-header"><h3 id="client-mtitle">Add Client</h3><button class="modal-close" onclick="closeModal('modal-client')">✕</button></div>
+  <div class="modal-body"><input type="hidden" id="client-id">
+    <div class="fg2">
+      <div class="form-row"><label>Company Name *</label><input id="client-company" placeholder="CORE Clean LLC"></div>
+      <div class="form-row"><label>Primary Contact</label><input id="client-contact" placeholder="Kevin Smith"></div>
+      <div class="form-row"><label>Email</label><input type="email" id="client-email" placeholder="kevin@coreclean.com"></div>
+      <div class="form-row"><label>Phone</label><input id="client-phone" placeholder="(555) 555-5555"></div>
+      <div class="form-row"><label>Industry</label><input id="client-industry" placeholder="Healthcare / Janitorial"></div>
+      <div class="form-row"><label>Pipeline Status</label><select id="client-status"><option value="prospect">Prospect</option><option value="active">Active</option><option value="closed">Closed</option></select></div>
+      <div class="form-row"><label>Open Roles</label><input type="number" id="client-openroles" placeholder="0" min="0"></div>
+      <div class="form-row"><label>Contract Value ($)</label><input type="number" id="client-value" placeholder="0" min="0"></div>
+    </div>
+    <div class="form-row"><label>Notes</label><textarea id="client-notes" placeholder="Contract details, billing notes, key contacts…"></textarea></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-client')">Cancel</button><button class="btn btn-teal" onclick="saveClient()">Save</button></div></div>
+</div>
+
+<!-- BULK STATUS MODAL -->
+<div class="modal-overlay" id="modal-status">
+  <div class="modal" style="max-width:360px;"><div class="modal-header"><h3>Update Status</h3><button class="modal-close" onclick="closeModal('modal-status')">✕</button></div>
+  <div class="modal-body"><div class="form-row"><label>New Status</label><select id="bulk-status-sel"><option value="applied">Applied</option><option value="screening">Screening</option><option value="interview">Interview</option><option value="placed">Placed</option><option value="archived">Archived</option></select></div></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-status')">Cancel</button><button class="btn btn-primary" onclick="applyBulkStatus()">Apply</button></div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SURL='https://zphrsvftplckiyuflkkg.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwaHJzdmZ0cGxja2l5dWZsa2tnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MzQ4NTcsImV4cCI6MjA5NzMxMDg1N30.sgG1zMUWPn0BRzzxmWrrlHHTaWu6XVavlvgTS1rJFOs';
+let db;try{db=window.supabase.createClient(SURL,SKEY);}catch(e){db=null;}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const now=()=>new Date().toISOString();
+const fmt=iso=>{if(!iso)return'—';const d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});};
+const fmtT=iso=>{if(!iso)return'';const d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});};
+const inits=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const esc=s=>{const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;};
+const pill=(s)=>{const m={applied:'pill-applied',screening:'pill-screening',interview:'pill-interview',placed:'pill-placed',archived:'pill-archived',prospect:'pill-prospect',active:'pill-active',closed:'pill-closed',hot:'pill-hot',warm:'pill-warm',cold:'pill-cold',open:'pill-open',paused:'pill-paused'};return`<span class="pill ${m[s]||''}">${s}</span>`;};
+const toast=(msg,type='')=>{const el=document.getElementById('toast');el.textContent=msg;el.className='toast'+(type?' '+type:'');el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2800);};
+const openModal=id=>document.getElementById(id).classList.add('open');
+const closeModal=id=>document.getElementById(id).classList.remove('open');
+let lb=null;
+function setLoading(on){if(!lb){lb=document.createElement('div');lb.style.cssText='position:fixed;top:0;left:0;right:0;height:2px;background:var(--coral);z-index:9999;display:none;';document.body.appendChild(lb);}lb.style.display=on?'block':'none';}
+
+let currentPage='dashboard',currentCandidateId=null,currentClientId=null;
+let allCandidates=[],allClients=[],allActivity=[],siteJobs=[];
+let candFilter='all',clientFilter='all',candSort={field:'createdAt',dir:-1};
+let selectedCands=new Set();
+
+async function dbQ(fn){if(!db)return null;try{setLoading(true);const r=await fn();setLoading(false);return r;}catch(e){setLoading(false);console.error(e);return null;}}
+
+const rowToC=r=>({id:r.id,siteId:r.site_id,name:r.name,email:r.email,phone:r.phone,status:r.status,role:r.role,source:r.source,notes:r.notes,resumeFileName:r.resume_file_name,resumePath:r.resume_path,reqNumber:r.req_number,temp:r.temp,followUp:r.follow_up,activity:r.activity||[],createdAt:r.created_at,updatedAt:r.updated_at});
+const rowToCl=r=>({id:r.id,company:r.company,contact:r.contact,email:r.email,phone:r.phone,industry:r.industry,status:r.status,openRoles:r.open_roles||0,value:r.value||0,notes:r.notes,activity:r.activity||[],createdAt:r.created_at,updatedAt:r.updated_at});
+
+async function loadAll(){
+  setLoading(true);
+  const [rc,rcl,ra,rj]=await Promise.all([
+    dbQ(()=>db.from('crm_candidates').select('*').order('created_at',{ascending:false})),
+    dbQ(()=>db.from('crm_clients').select('*').order('created_at',{ascending:false})),
+    dbQ(()=>db.from('crm_activity').select('*').order('created_at',{ascending:false}).limit(300)),
+    dbQ(()=>db.from('jobs').select('*').order('created_at',{ascending:false}))
+  ]);
+  if(rc&&!rc.error)allCandidates=(rc.data||[]).map(rowToC);
+  if(rcl&&!rcl.error)allClients=(rcl.data||[]).map(rowToCl);
+  if(ra&&!ra.error)allActivity=(ra.data||[]).map(r=>({id:r.id,type:r.type,refId:r.ref_id,refName:r.ref_name,action:r.action,detail:r.detail,at:r.created_at}));
+  if(rj&&!rj.error)siteJobs=rj.data||[];
+  setLoading(false);updateBadges();renderDashboard();
+}
+
+async function upsertC(rec){
+  const row={id:rec.id,site_id:rec.siteId||null,name:rec.name,email:rec.email,phone:rec.phone||null,status:rec.status,role:rec.role||null,source:rec.source||null,notes:rec.notes||null,resume_file_name:rec.resumeFileName||null,resume_path:rec.resumePath||null,req_number:rec.reqNumber||null,temp:rec.temp||null,follow_up:rec.followUp||null,activity:rec.activity||[],created_at:rec.createdAt||now(),updated_at:now()};
+  const r=await dbQ(()=>db.from('crm_candidates').upsert(row));if(r&&r.error)throw r.error;
+}
+async function upsertCl(rec){
+  const row={id:rec.id,company:rec.company,contact:rec.contact||null,email:rec.email||null,phone:rec.phone||null,industry:rec.industry||null,status:rec.status,open_roles:rec.openRoles||0,value:rec.value||0,notes:rec.notes||null,activity:rec.activity||[],created_at:rec.createdAt||now(),updated_at:now()};
+  const r=await dbQ(()=>db.from('crm_clients').upsert(row));if(r&&r.error)throw r.error;
+}
+async function addAct(entry){
+  const r=await dbQ(()=>db.from('crm_activity').insert({id:uid(),type:entry.type,ref_id:entry.refId,ref_name:entry.refName,action:entry.action,detail:entry.detail,created_at:now()}));
+  if(r&&!r.error)allActivity.unshift({...entry,at:now(),id:uid()});
+}
+
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el=document.getElementById('page-'+page);if(el)el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page||(page.includes('candidate')&&n.dataset.page==='candidates')||(page.includes('client')&&n.dataset.page==='clients')));
+  const titles={dashboard:'Dashboard',candidates:'Candidates','candidate-detail':'Candidate',placements:'Placements',clients:'Clients','client-detail':'Client',pipeline:'Pipeline',jobs:'Open Roles',reports:'Reports',activity:'Activity Feed',settings:'Settings'};
+  const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span class="current">${titles[page]||page}</span>`;
+  currentPage=page;
+  if(page==='dashboard')renderDashboard();
+  if(page==='candidates')renderCandidates();
+  if(page==='placements')renderPlacements();
+  if(page==='clients')renderClients();
+  if(page==='pipeline')renderPipeline();
+  if(page==='jobs')renderJobs();
+  if(page==='reports')renderReports();
+  if(page==='activity')renderActivity();
+  if(page==='settings')renderSettings('general');
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');document.getElementById('main-area').classList.toggle('expanded');}
+function handleAdd(){if(currentPage==='clients'||currentPage==='pipeline')openClientModal();else openCandidateModal();}
+function updateBadges(){const n=allCandidates.filter(c=>c.status==='applied').length;const el=document.getElementById('badge-cands');el.textContent=n||'';el.style.display=n?'':'none';}
+
+function renderDashboard(){
+  document.getElementById('st-cands').textContent=allCandidates.length;
+  document.getElementById('st-placed').textContent=allCandidates.filter(c=>c.status==='placed').length;
+  document.getElementById('st-clients').textContent=allClients.length;
+  document.getElementById('st-jobs').textContent=siteJobs.filter(j=>j.active!==false).length;
+  const wk=allCandidates.filter(c=>new Date(c.createdAt)>new Date(Date.now()-7*864e5));
+  document.getElementById('st-cands-new').textContent=wk.length?`+${wk.length} this week`:'';
+  document.getElementById('st-cands-new').className='stat-delta '+(wk.length?'up':'neutral');
+  const tbody=document.getElementById('dash-cands-table');
+  tbody.innerHTML=allCandidates.slice(0,6).map(c=>`<tr onclick="openCandDet('${c.id}')"><td class="cell-link">${esc(c.name)}</td><td>${esc(c.role||'—')}</td><td>${pill(c.status)}</td><td>${esc(c.source||'—')}</td><td>${fmt(c.createdAt)}</td></tr>`).join('')||`<tr><td colspan="5"><div class="empty-state" style="padding:1rem;"><p>No candidates. <a onclick="openCandidateModal()">Add one</a> or sync.</p></div></td></tr>`;
+  const total=Math.max(allClients.length,1);
+  document.getElementById('dash-pipeline-summary').innerHTML='<div class="funnel-bar">'+[{k:'prospect',l:'Prospect',c:'#1a56c4'},{k:'active',l:'Active',c:'var(--success)'},{k:'closed',l:'Closed',c:'var(--ink-faint)'}].map(s=>{const n=allClients.filter(c=>c.status===s.k).length;return`<div class="funnel-item"><div class="funnel-label">${s.l}</div><div class="funnel-track"><div class="funnel-fill" style="width:${Math.round(n/total*100)}%;background:${s.c}44;border:1px solid ${s.c};"></div></div><div class="funnel-count">${n}</div></div>`;}).join('')+'</div>';
+  document.getElementById('dash-new-week').innerHTML=wk.length?wk.map(c=>`<div class="mini-list-item" onclick="openCandDet('${c.id}')"><span class="cell-link">${esc(c.name)}</span>${pill(c.status)}</div>`).join(''):`<div style="padding:0.8rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No new candidates this week</div>`;
+  renderActList(document.getElementById('dash-activity'),allActivity.slice(0,10));
+}
+
+function renderCandidates(){
+  selectedCands.clear();document.getElementById('cand-bulk-bar').classList.remove('show');
+  let list=allCandidates.filter(c=>candFilter==='all'||c.status===candFilter);
+  list=[...list].sort((a,b)=>{const va=a[candSort.field]||'',vb=b[candSort.field]||'';return va<vb?-candSort.dir:va>vb?candSort.dir:0;});
+  const tbody=document.getElementById('cand-tbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">👤</div><p>No candidates.</p><div class="ea"><button class="btn btn-primary btn-sm" onclick="openCandidateModal()">+ Add</button></div></div></td></tr>`;return;}
+  tbody.innerHTML=list.map(c=>`<tr onclick="openCandDet('${c.id}')" class="${selectedCands.has(c.id)?'selected':''}">
+    <td class="cb-cell" onclick="event.stopPropagation()"><input type="checkbox" ${selectedCands.has(c.id)?'checked':''} onchange="togSel('${c.id}',this)"></td>
+    <td class="cell-link">${esc(c.name)}${c.temp?pill(c.temp):''}${c.followUp&&new Date(c.followUp)<=new Date()?'<span class="badge-new">Follow up</span>':''}</td>
+    <td class="cell-soft">${esc(c.email)}</td><td class="cell-soft">${esc(c.phone||'—')}</td>
+    <td>${esc(c.role||'—')}</td><td>${pill(c.status)}</td><td>${esc(c.source||'—')}</td><td>${fmt(c.createdAt)}</td>
+    <td onclick="event.stopPropagation()"><button class="btn btn-ghost btn-xs" onclick="openCandidateModal('${c.id}')">Edit</button></td>
+  </tr>`).join('');
+}
+function setCandFilter(f,btn){candFilter=f;document.querySelectorAll('#cand-chips .chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');renderCandidates();}
+function sortC(f){if(candSort.field===f)candSort.dir*=-1;else candSort={field:f,dir:1};renderCandidates();}
+function togSel(id,cb){if(cb.checked)selectedCands.add(id);else selectedCands.delete(id);const bar=document.getElementById('cand-bulk-bar');bar.classList.toggle('show',selectedCands.size>0);document.getElementById('cand-sel-count').textContent=`${selectedCands.size} selected`;}
+function toggleAll(cb){allCandidates.filter(c=>candFilter==='all'||c.status===candFilter).forEach(c=>{if(cb.checked)selectedCands.add(c.id);else selectedCands.delete(c.id);});renderCandidates();document.getElementById('cand-bulk-bar').classList.toggle('show',cb.checked&&selectedCands.size>0);}
+function clearSel(){selectedCands.clear();document.getElementById('ca').checked=false;document.getElementById('cand-bulk-bar').classList.remove('show');renderCandidates();}
+async function applyBulkStatus(){
+  const s=document.getElementById('bulk-status-sel').value;
+  const saves=[];selectedCands.forEach(id=>{const i=allCandidates.findIndex(c=>c.id===id);if(i>-1){allCandidates[i].status=s;saves.push(upsertC(allCandidates[i]));}});
+  await Promise.all(saves);closeModal('modal-status');clearSel();toast(`${saves.length} updated`,'success');
+}
+
+function openCandDet(id){
+  currentCandidateId=id;const c=allCandidates.find(x=>x.id===id);if(!c)return;
+  const steps=['applied','screening','interview','placed'];const si=steps.indexOf(c.status);
+  document.getElementById('cdet-pbar').innerHTML=`<div class="pipeline-bar">${steps.map((s,i)=>`<div class="pb-step ${i===si?'active':i<si?'done':''}" onclick="updateCStatus('${s}')">${s}</div>`).join('')}</div>`;
+  document.getElementById('cdet-hero').innerHTML=`<div class="record-hero-top"><div class="r-avatar coral">${inits(c.name)}</div><div class="r-meta"><div class="r-name">${esc(c.name)}</div><div class="r-sub"><span>${esc(c.email)}</span>${c.phone?`<span class="dot">·</span><span>${esc(c.phone)}</span>`:''}<span class="dot">·</span>${pill(c.status)}${c.temp?pill(c.temp):''}</div></div><div class="r-actions"><button class="btn btn-primary btn-sm" onclick="document.getElementById('cdet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary btn-sm" onclick="openCandidateModal('${c.id}')">Edit</button></div></div><div class="record-quick-stats"><div class="qs-item"><div class="qs-label">Status</div><div class="qs-val" style="font-size:0.85rem;">${c.status}</div></div><div class="qs-item"><div class="qs-label">Source</div><div class="qs-val" style="font-size:0.85rem;">${esc(c.source||'—')}</div></div><div class="qs-item"><div class="qs-label">Role</div><div class="qs-val" style="font-size:0.85rem;">${esc(c.role||'—')}</div></div><div class="qs-item"><div class="qs-label">Added</div><div class="qs-val" style="font-size:0.85rem;">${fmt(c.createdAt)}</div></div><div class="qs-item"><div class="qs-label">Activity</div><div class="qs-val" style="font-size:0.85rem;">${(c.activity||[]).length}</div></div></div>`;
+  document.getElementById('cdet-fields').innerHTML=`<div class="det-field"><div class="det-label">Email</div><div class="det-val">${esc(c.email)}</div></div><div class="det-field"><div class="det-label">Phone</div><div class="det-val ${!c.phone?'empty':''}">${esc(c.phone||'Not provided')}</div></div><div class="det-field"><div class="det-label">Role</div><div class="det-val ${!c.role?'empty':''}">${esc(c.role||'—')}</div></div><div class="det-field"><div class="det-label">Req #</div><div class="det-val ${!c.reqNumber?'empty':''}">${esc(c.reqNumber||'—')}</div></div><div class="det-field"><div class="det-label">Source</div><div class="det-val">${esc(c.source||'—')}</div></div><div class="det-field"><div class="det-label">Temperature</div><div class="det-val">${c.temp?pill(c.temp):'—'}</div></div><div class="det-field"><div class="det-label">Follow-up</div><div class="det-val ${!c.followUp?'empty':''}">${c.followUp?fmt(c.followUp):'Not set'}</div></div><div class="det-field"><div class="det-label">Resume</div><div class="det-val">${c.resumePath?`<a href="#" onclick="viewRes('${c.resumePath}')">View resume ↗</a>`:(c.resumeFileName?esc(c.resumeFileName):'Not attached')}</div></div><div class="det-field full"><div class="det-label">Notes</div><div class="det-val ${!c.notes?'empty':''}">${esc(c.notes||'No notes')}</div></div>`;
+  const linked=allClients.find(cl=>(c.role||'').toLowerCase().includes(cl.company.toLowerCase().slice(0,4)));
+  document.getElementById('cdet-rel-client').innerHTML=linked?`<div class="mini-list-item" onclick="openClDet('${linked.id}')"><span class="cell-link">${esc(linked.company)}</span>${pill(linked.status)}</div>`:`<div style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No linked client</div>`;
+  renderCActEl(c);
+  const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span onclick="goTo('candidates')" style="cursor:pointer;color:var(--coral);">Candidates</span><span class="sep">›</span><span class="current">${esc(c.name)}</span>`;
+  currentPage='candidate-detail';document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-candidate-detail').classList.add('active');
+}
+function renderCActEl(c){
+  const el=document.getElementById('cdet-activity');const acts=(c.activity||[]).slice().reverse();
+  if(!acts.length){el.innerHTML=`<div class="empty-state" style="padding:1.5rem;"><p>No activity yet.</p></div>`;return;}
+  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot coral">◎</div><div class="act-body"><div class="act-text">${esc(a.text)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
+}
+async function updateCStatus(status){
+  const i=allCandidates.findIndex(c=>c.id===currentCandidateId);if(i===-1)return;
+  allCandidates[i].status=status;allCandidates[i].activity=allCandidates[i].activity||[];allCandidates[i].activity.push({text:`Status → ${status}`,at:now()});
+  await upsertC(allCandidates[i]);await addAct({type:'candidate',refId:allCandidates[i].id,refName:allCandidates[i].name,action:'status',detail:`Status → ${status}`});
+  openCandDet(currentCandidateId);toast('Status updated','success');
+}
+async function addCandNote(){
+  const text=document.getElementById('cdet-note-in').value.trim();if(!text)return;
+  const type=document.getElementById('cdet-note-type').value;
+  const i=allCandidates.findIndex(c=>c.id===currentCandidateId);if(i===-1)return;
+  allCandidates[i].activity=allCandidates[i].activity||[];allCandidates[i].activity.push({text:`${type}: ${text}`,at:now()});
+  await upsertC(allCandidates[i]);await addAct({type:'candidate',refId:allCandidates[i].id,refName:allCandidates[i].name,action:'note',detail:text.slice(0,80)});
+  document.getElementById('cdet-note-in').value='';renderCActEl(allCandidates[i]);toast('Logged','success');
+}
+async function viewRes(path){if(!db){toast('Supabase unavailable','error');return;}const{data,error}=await db.storage.from('resumes').createSignedUrl(path,300);if(!error&&data)window.open(data.signedUrl,'_blank','noopener');else toast('Could not open resume','error');}
+
+function openCandidateModal(id=null){
+  const c=id?allCandidates.find(x=>x.id===id):null;
+  document.getElementById('cand-mtitle').textContent=c?'Edit Candidate':'Add Candidate';
+  document.getElementById('cand-id').value=c?c.id:'';document.getElementById('cand-name').value=c?c.name:'';document.getElementById('cand-email').value=c?c.email||'':'';document.getElementById('cand-phone').value=c?c.phone||'':'';document.getElementById('cand-status').value=c?c.status:'applied';document.getElementById('cand-role').value=c?c.role||'':'';document.getElementById('cand-source').value=c?c.source||'website':'website';document.getElementById('cand-temp').value=c?c.temp||'':'';document.getElementById('cand-followup').value=c&&c.followUp?c.followUp.slice(0,10):'';document.getElementById('cand-notes').value=c?c.notes||'':'';
+  openModal('modal-cand');
+}
+async function saveCandidate(){
+  const name=document.getElementById('cand-name').value.trim();const email=document.getElementById('cand-email').value.trim();
+  if(!name||!email){toast('Name and email required','error');return;}
+  const id=document.getElementById('cand-id').value;const existing=id?allCandidates.find(c=>c.id===id):null;
+  const rec={id:id||uid(),name,email,phone:document.getElementById('cand-phone').value.trim(),status:document.getElementById('cand-status').value,role:document.getElementById('cand-role').value.trim(),source:document.getElementById('cand-source').value,temp:document.getElementById('cand-temp').value,followUp:document.getElementById('cand-followup').value||null,notes:document.getElementById('cand-notes').value.trim(),createdAt:existing?existing.createdAt:now(),activity:existing?existing.activity:[]};
+  try{await upsertC(rec);if(!id){allCandidates.unshift(rec);await addAct({type:'candidate',refId:rec.id,refName:rec.name,action:'added',detail:`Added · ${rec.status}`});}else{const i=allCandidates.findIndex(c=>c.id===id);if(i>-1)allCandidates[i]=rec;}closeModal('modal-cand');toast(id?'Updated':'Candidate added','success');if(currentPage==='candidates')renderCandidates();if(currentPage==='dashboard')renderDashboard();if(currentPage==='candidate-detail'&&currentCandidateId===rec.id)openCandDet(rec.id);updateBadges();}
+  catch(e){toast('Save failed: '+e.message,'error');}
+}
+
+function renderPlacements(){
+  const list=allCandidates.filter(c=>c.status==='placed');
+  const tbody=document.getElementById('placements-tbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">✓</div><p>No placements yet. Mark a candidate as Placed.</p></div></td></tr>`;return;}
+  tbody.innerHTML=list.map(c=>`<tr onclick="openCandDet('${c.id}')"><td class="cell-link">${esc(c.name)}</td><td>${esc(c.role||'—')}</td><td class="cell-soft">${esc(c.email)}</td><td>${fmt(c.updatedAt||c.createdAt)}</td><td><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();openCandidateModal('${c.id}')">Edit</button></td></tr>`).join('');
+}
+
+function renderClients(){
+  const list=allClients.filter(c=>clientFilter==='all'||c.status===clientFilter);
+  const tbody=document.getElementById('client-tbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🏢</div><p>No clients yet.</p><div class="ea"><button class="btn btn-teal btn-sm" onclick="openClientModal()">+ Add Client</button></div></div></td></tr>`;return;}
+  tbody.innerHTML=list.map(c=>`<tr onclick="openClDet('${c.id}')"><td class="cell-link">${esc(c.company)}</td><td>${esc(c.contact||'—')}</td><td class="cell-soft">${esc(c.email||'—')}</td><td class="cell-soft">${esc(c.phone||'—')}</td><td>${esc(c.industry||'—')}</td><td>${pill(c.status)}</td><td>${c.openRoles||0}</td><td>${c.value?'$'+Number(c.value).toLocaleString():'—'}</td><td>${fmt(c.createdAt)}</td><td onclick="event.stopPropagation()"><button class="btn btn-ghost btn-xs" onclick="openClientModal('${c.id}')">Edit</button></td></tr>`).join('');
+}
+function setClFilter(f,btn){clientFilter=f;document.querySelectorAll('#page-clients .chip').forEach(c=>c.classList.remove('active'));btn.classList.add('active');renderClients();}
+
+function openClDet(id){
+  currentClientId=id;const c=allClients.find(x=>x.id===id);if(!c)return;
+  document.getElementById('cldet-hero').innerHTML=`<div class="record-hero-top"><div class="r-avatar teal">${inits(c.company)}</div><div class="r-meta"><div class="r-name">${esc(c.company)}</div><div class="r-sub"><span>${esc(c.contact||'')}</span>${c.email?`<span class="dot">·</span><span>${esc(c.email)}</span>`:''}<span class="dot">·</span>${pill(c.status)}</div></div><div class="r-actions"><button class="btn btn-teal btn-sm" onclick="document.getElementById('cldet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary btn-sm" onclick="openClientModal('${c.id}')">Edit</button></div></div><div class="record-quick-stats"><div class="qs-item"><div class="qs-label">Status</div><div class="qs-val" style="font-size:0.85rem;">${c.status}</div></div><div class="qs-item"><div class="qs-label">Open Roles</div><div class="qs-val">${c.openRoles||0}</div></div><div class="qs-item"><div class="qs-label">Industry</div><div class="qs-val" style="font-size:0.85rem;">${esc(c.industry||'—')}</div></div><div class="qs-item"><div class="qs-label">Value</div><div class="qs-val" style="font-size:0.85rem;">${c.value?'$'+Number(c.value).toLocaleString():'—'}</div></div><div class="qs-item"><div class="qs-label">Activity</div><div class="qs-val" style="font-size:0.85rem;">${(c.activity||[]).length}</div></div></div>`;
+  document.getElementById('cldet-fields').innerHTML=`<div class="det-field"><div class="det-label">Contact</div><div class="det-val ${!c.contact?'empty':''}">${esc(c.contact||'—')}</div></div><div class="det-field"><div class="det-label">Email</div><div class="det-val ${!c.email?'empty':''}">${esc(c.email||'—')}</div></div><div class="det-field"><div class="det-label">Phone</div><div class="det-val ${!c.phone?'empty':''}">${esc(c.phone||'—')}</div></div><div class="det-field"><div class="det-label">Industry</div><div class="det-val ${!c.industry?'empty':''}">${esc(c.industry||'—')}</div></div><div class="det-field"><div class="det-label">Open Roles</div><div class="det-val">${c.openRoles||0}</div></div><div class="det-field"><div class="det-label">Contract Value</div><div class="det-val">${c.value?'$'+Number(c.value).toLocaleString():'—'}</div></div><div class="det-field"><div class="det-label">Added</div><div class="det-val">${fmt(c.createdAt)}</div></div><div class="det-field"><div class="det-label">Status</div><div class="det-val">${pill(c.status)}</div></div><div class="det-field full"><div class="det-label">Notes</div><div class="det-val ${!c.notes?'empty':''}">${esc(c.notes||'No notes')}</div></div>`;
+  const relCands=allCandidates.filter(cand=>(cand.role||'').toLowerCase().includes(c.company.toLowerCase().slice(0,4)));
+  document.getElementById('cldet-rel-cands').innerHTML=relCands.length?relCands.map(cand=>`<div class="mini-list-item" onclick="openCandDet('${cand.id}')"><span class="cell-link">${esc(cand.name)}</span>${pill(cand.status)}</div>`).join(''):`<div style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No related candidates</div>`;
+  renderClActEl(c);
+  const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span onclick="goTo('clients')" style="cursor:pointer;color:var(--coral);">Clients</span><span class="sep">›</span><span class="current">${esc(c.company)}</span>`;
+  currentPage='client-detail';document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-client-detail').classList.add('active');
+}
+function renderClActEl(c){
+  const el=document.getElementById('cldet-activity');const acts=(c.activity||[]).slice().reverse();
+  if(!acts.length){el.innerHTML=`<div class="empty-state" style="padding:1.5rem;"><p>No activity yet.</p></div>`;return;}
+  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot teal">◎</div><div class="act-body"><div class="act-text">${esc(a.text)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
+}
+async function updateClStatus(status){
+  const i=allClients.findIndex(c=>c.id===currentClientId);if(i===-1)return;
+  allClients[i].status=status;allClients[i].activity=allClients[i].activity||[];allClients[i].activity.push({text:`Pipeline → ${status}`,at:now()});
+  await upsertCl(allClients[i]);await addAct({type:'client',refId:allClients[i].id,refName:allClients[i].company,action:'status',detail:`Pipeline → ${status}`});
+  openClDet(currentClientId);toast('Status updated','success');
+}
+async function addClNote(){
+  const text=document.getElementById('cldet-note-in').value.trim();if(!text)return;
+  const type=document.getElementById('cldet-note-type').value;
+  const i=allClients.findIndex(c=>c.id===currentClientId);if(i===-1)return;
+  allClients[i].activity=allClients[i].activity||[];allClients[i].activity.push({text:`${type}: ${text}`,at:now()});
+  await upsertCl(allClients[i]);await addAct({type:'client',refId:allClients[i].id,refName:allClients[i].company,action:'note',detail:text.slice(0,80)});
+  document.getElementById('cldet-note-in').value='';renderClActEl(allClients[i]);toast('Logged','success');
+}
+
+function openClientModal(id=null){
+  const c=id?allClients.find(x=>x.id===id):null;
+  document.getElementById('client-mtitle').textContent=c?'Edit Client':'Add Client';
+  document.getElementById('client-id').value=c?c.id:'';document.getElementById('client-company').value=c?c.company:'';document.getElementById('client-contact').value=c?c.contact||'':'';document.getElementById('client-email').value=c?c.email||'':'';document.getElementById('client-phone').value=c?c.phone||'':'';document.getElementById('client-industry').value=c?c.industry||'':'';document.getElementById('client-status').value=c?c.status:'prospect';document.getElementById('client-openroles').value=c?c.openRoles||0:0;document.getElementById('client-value').value=c?c.value||0:0;document.getElementById('client-notes').value=c?c.notes||'':'';
+  openModal('modal-client');
+}
+async function saveClient(){
+  const company=document.getElementById('client-company').value.trim();if(!company){toast('Company name required','error');return;}
+  const id=document.getElementById('client-id').value;const existing=id?allClients.find(c=>c.id===id):null;
+  const rec={id:id||uid(),company,contact:document.getElementById('client-contact').value.trim(),email:document.getElementById('client-email').value.trim(),phone:document.getElementById('client-phone').value.trim(),industry:document.getElementById('client-industry').value.trim(),status:document.getElementById('client-status').value,openRoles:parseInt(document.getElementById('client-openroles').value)||0,value:parseInt(document.getElementById('client-value').value)||0,notes:document.getElementById('client-notes').value.trim(),createdAt:existing?existing.createdAt:now(),activity:existing?existing.activity:[]};
+  try{await upsertCl(rec);if(!id){allClients.unshift(rec);await addAct({type:'client',refId:rec.id,refName:rec.company,action:'added',detail:`Added · ${rec.status}`});}else{const i=allClients.findIndex(c=>c.id===id);if(i>-1)allClients[i]=rec;}closeModal('modal-client');toast(id?'Updated':'Client added','success');if(currentPage==='clients')renderClients();if(currentPage==='pipeline')renderPipeline();if(currentPage==='client-detail'&&currentClientId===rec.id)openClDet(rec.id);}
+  catch(e){toast('Save failed: '+e.message,'error');}
+}
+
+function renderPipeline(){
+  document.getElementById('kanban-board').innerHTML=[{k:'prospect',l:'Prospect',c:'var(--coral)'},{k:'active',l:'Active',c:'var(--teal)'},{k:'closed',l:'Closed',c:'var(--ink-faint)'}].map(stage=>{
+    const cols=allClients.filter(c=>c.status===stage.k);
+    return`<div class="kb-col"><div class="kb-col-header"><span class="kb-col-label" style="color:${stage.c}">${stage.l}</span><span class="kb-count">${cols.length}</span></div>${cols.map(c=>`<div class="kb-card" onclick="openClDet('${c.id}')"><div class="kb-card-name">${esc(c.company)}</div><div class="kb-card-sub">${esc(c.contact||'')}${c.industry?' · '+esc(c.industry):''}${c.email?'<br>'+esc(c.email):''}</div><div class="kb-card-footer">${c.openRoles?`<span style="font-size:0.68rem;color:var(--teal);">${c.openRoles} open role${c.openRoles!==1?'s':''}</span>`:'<span></span>'}${c.value?`<span style="font-size:0.68rem;font-weight:700;">$${Number(c.value).toLocaleString()}</span>`:''}</div></div>`).join('')}<button class="kb-add" onclick="openClientModal()">+ Add to ${stage.l}</button></div>`;
+  }).join('');
+}
+
+function renderJobs(){
+  const tbody=document.getElementById('jobs-tbody');
+  if(!siteJobs.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div><p>No roles. Click Sync to load from wepursu.one.</p></div></td></tr>`;return;}
+  tbody.innerHTML=siteJobs.map(j=>`<tr><td class="cell-name">${esc(j.title)}</td><td>${esc(j.req_number||'—')}</td><td>${esc(j.category||'—')}</td><td>${esc(j.pay||'—')}</td><td>${esc(j.location||'—')}</td><td>${pill(j.active===false?'paused':'open')}</td><td><a href="https://wepursu.one/#job/${j.id}" target="_blank" style="font-size:0.72rem;">View ↗</a></td></tr>`).join('');
+}
+
+function renderReports(){
+  const total=Math.max(allCandidates.length,1);const totalCl=Math.max(allClients.length,1);
+  document.getElementById('reports-content').innerHTML=`
+    <div class="panel"><div class="panel-header"><span class="panel-title">Candidate Funnel</span></div><div style="padding:1rem;"><div class="funnel-bar">${[{k:'applied',l:'Applied',c:'#1a56c4'},{k:'screening',l:'Screening',c:'var(--warning)'},{k:'interview',l:'Interview',c:'var(--coral)'},{k:'placed',l:'Placed',c:'var(--success)'}].map(s=>{const n=allCandidates.filter(c=>c.status===s.k).length;return`<div class="funnel-item"><div class="funnel-label">${s.l}</div><div class="funnel-track"><div class="funnel-fill" style="width:${Math.round(n/total*100)}%;background:${s.c}44;border:1px solid ${s.c};"></div></div><div class="funnel-count">${n}</div></div>`;}).join('')}</div></div></div>
+    <div class="panel"><div class="panel-header"><span class="panel-title">Client Pipeline</span></div><div style="padding:1rem;"><div class="funnel-bar">${[{k:'prospect',l:'Prospect',c:'#1a56c4'},{k:'active',l:'Active',c:'var(--success)'},{k:'closed',l:'Closed',c:'var(--ink-faint)'}].map(s=>{const n=allClients.filter(c=>c.status===s.k).length;return`<div class="funnel-item"><div class="funnel-label">${s.l}</div><div class="funnel-track"><div class="funnel-fill" style="width:${Math.round(n/totalCl*100)}%;background:${s.c}44;border:1px solid ${s.c};"></div></div><div class="funnel-count">${n}</div></div>`;}).join('')}</div></div></div>
+    <div class="panel"><div class="panel-header"><span class="panel-title">Source Breakdown</span></div><div style="padding:1rem;"><div class="funnel-bar">${['website','linkedin','referral','indeed','direct','other'].map(src=>{const n=allCandidates.filter(c=>c.source===src).length;const pct=Math.round(n/total*100);return n?`<div class="funnel-item"><div class="funnel-label">${src}</div><div class="funnel-track"><div class="funnel-fill" style="width:${pct}%;background:var(--coral-tint);border:1px solid var(--coral);"></div></div><div class="funnel-count">${n}</div></div>`:''}).join('')||'<div style="color:var(--ink-faint);font-size:0.78rem;">No data yet</div>'}</div></div></div>
+    <div class="panel"><div class="panel-header"><span class="panel-title">Key Metrics</span></div><div style="padding:0;">${[['Total Candidates',allCandidates.length],['Total Clients',allClients.length],['Active Placements',allCandidates.filter(c=>c.status==='placed').length],['Open Roles (site)',siteJobs.filter(j=>j.active!==false).length],['Active Clients',allClients.filter(c=>c.status==='active').length],['Conversion Rate',allCandidates.length>0?Math.round(allCandidates.filter(c=>c.status==='placed').length/allCandidates.length*100)+'%':'—']].map(([l,v])=>`<div class="mini-list-item" style="cursor:default;"><span>${l}</span><strong>${v}</strong></div>`).join('')}</div></div>
+    <div class="panel"><div class="panel-header"><span class="panel-title">Recent Placements</span></div><div style="padding:0;">${allCandidates.filter(c=>c.status==='placed').slice(0,5).map(c=>`<div class="mini-list-item" onclick="openCandDet('${c.id}')"><span class="cell-link">${esc(c.name)}</span><span class="cell-soft" style="font-size:0.72rem;">${esc(c.role||'')}</span></div>`).join('')||`<div style="padding:0.8rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No placements yet</div>`}</div></div>
+    <div class="panel"><div class="panel-header"><span class="panel-title">Follow-ups Due</span></div><div style="padding:0;">${allCandidates.filter(c=>c.followUp&&new Date(c.followUp)<=new Date()).slice(0,6).map(c=>`<div class="mini-list-item" onclick="openCandDet('${c.id}')"><span class="cell-link">${esc(c.name)}</span><span class="cell-soft" style="font-size:0.72rem;">${fmt(c.followUp)}</span></div>`).join('')||`<div style="padding:0.8rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No follow-ups due</div>`}</div></div>`;
+}
+
+function renderActList(el,list){
+  if(!list.length){el.innerHTML=`<div class="empty-state" style="padding:1.5rem;"><p>No activity yet</p></div>`;return;}
+  el.innerHTML=list.map(a=>`<div class="act-item"><div class="act-dot ${a.type==='candidate'?'coral':'teal'}">◎</div><div class="act-body"><div class="act-text"><strong>${esc(a.refName)}</strong> — ${esc(a.detail)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
+}
+function renderActivity(){renderActList(document.getElementById('activity-full'),allActivity);}
+
+function renderSettings(section){
+  document.querySelectorAll('.settings-nav-item').forEach(n=>n.classList.toggle('active',n.textContent.toLowerCase().includes(section)));
+  const body=document.getElementById('settings-body');
+  if(section==='general'){body.innerHTML=`<div style="margin-bottom:1.8rem;"><h3 style="font-size:0.85rem;margin-bottom:0.2rem;">Business Info</h3><p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1rem;">Pursu Solutions LLC details</p><div class="fg2"><div class="form-row"><label>Business Name</label><input value="Pursu Solutions LLC" disabled></div><div class="form-row"><label>Website</label><input value="wepursu.one" disabled></div></div></div><div><h3 style="font-size:0.85rem;margin-bottom:0.2rem;">Database</h3><p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1rem;">CRM data syncs to your Supabase project shared with wepursu.one — accessible from any device.</p><div class="form-row"><label>Project URL</label><input value="${SURL}" disabled></div></div>`;}
+  else if(section==='integrations'){body.innerHTML=`<div style="margin-bottom:1.8rem;"><h3 style="font-size:0.85rem;margin-bottom:0.2rem;">wepursu.one Sync</h3><p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1rem;">Pull new applicants from your website directly into Candidates with one click.</p><button class="btn btn-primary" onclick="syncFromSite()">⟳ Sync Now</button></div><div><h3 style="font-size:0.85rem;margin-bottom:0.2rem;">Resume Storage</h3><p style="font-size:0.78rem;color:var(--ink-soft);">Resumes uploaded on wepursu.one live in your private Supabase Storage bucket and are viewable directly from candidate records.</p></div>`;}
+  else{body.innerHTML=`<div style="margin-bottom:1.8rem;"><h3 style="font-size:0.85rem;margin-bottom:0.2rem;">Export Data</h3><p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1rem;">Download all candidate data as a CSV file.</p><button class="btn btn-secondary" onclick="exportData()">Download Candidates CSV</button></div>`;}
+}
+function showSettings(s,el){document.querySelectorAll('.settings-nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');renderSettings(s);}
+function exportData(){
+  const rows=[['Name','Email','Phone','Role','Status','Source','Req#','Added'],...allCandidates.map(c=>[c.name,c.email,c.phone||'',c.role||'',c.status,c.source||'',c.reqNumber||'',fmt(c.createdAt)])];
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='pursu-candidates.csv';a.click();toast('Exported','success');
+}
+
+async function syncFromSite(){
+  if(!db){toast('Supabase not connected','error');return;}
+  setLoading(true);
+  try{
+    const {data,error}=await db.from('applicants').select('*').order('submitted_at',{ascending:false});
+    if(error)throw error;
+    let added=0;const saves=[];
+    (data||[]).forEach(row=>{if(!allCandidates.find(c=>c.siteId===row.id)){const rec={id:uid(),siteId:row.id,name:row.name||'Unknown',email:row.email||'',phone:row.phone||'',status:'applied',role:row.job_title||'',source:'website',notes:row.note||'',resumeFileName:row.resume_file_name||'',resumePath:row.resume_path||'',reqNumber:row.req_number||'',createdAt:row.submitted_at||now(),activity:[{text:'Synced from wepursu.one',at:now()}]};allCandidates.unshift(rec);saves.push(upsertC(rec));added++;}});
+    await Promise.all(saves);
+    const rj=await dbQ(()=>db.from('jobs').select('*').order('created_at',{ascending:false}));if(rj&&!rj.error)siteJobs=rj.data||[];
+    if(added>0){await addAct({type:'candidate',refId:'sync',refName:'Site Sync',action:'sync',detail:`${added} new applicant${added!==1?'s':''} from wepursu.one`});toast(`${added} synced`,'success');}else toast('Already up to date');
+    if(currentPage==='candidates')renderCandidates();if(currentPage==='dashboard')renderDashboard();if(currentPage==='jobs')renderJobs();updateBadges();
+  }catch(e){toast('Sync failed: '+e.message,'error');}
+  setLoading(false);
+}
+
+function handleSearch(q){
+  if(!q.trim())return;const qL=q.toLowerCase();
+  const c=allCandidates.find(x=>x.name.toLowerCase().includes(qL)||x.email.toLowerCase().includes(qL));if(c){openCandDet(c.id);return;}
+  const cl=allClients.find(x=>x.company.toLowerCase().includes(qL));if(cl){openClDet(cl.id);return;}
+}
+
+loadAll();
+</script>
+</body>
+</html>
