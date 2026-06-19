@@ -209,6 +209,40 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 .badge-new{display:inline-block;background:var(--coral);color:#fff;font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:100px;margin-left:0.3rem;vertical-align:middle;}
 @media(max-width:1024px){:root{--sidebar-w:52px;}.sidebar .nav-group-label,.sidebar .nav-label,.sidebar .nav-badge,.sidebar-logo{display:none;}.sidebar .nav-item{padding:0.52rem;justify-content:center;}.sidebar-top{justify-content:center;}.dash-grid{grid-template-columns:repeat(2,1fr);}.dash-row{grid-template-columns:1fr;}.record-layout{grid-template-columns:1fr;}.report-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:640px){.dash-grid{grid-template-columns:1fr 1fr;}.fg2{grid-template-columns:1fr;}.report-grid{grid-template-columns:1fr;}.record-quick-stats{grid-template-columns:repeat(3,1fr);}.settings-grid{grid-template-columns:1fr;}}
+
+/* ── LOGIN SCREEN ── */
+.login-screen{position:fixed;inset:0;background:var(--ink);z-index:9000;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.login-screen.hidden{display:none;}
+.login-box{background:#fff;border-radius:16px;padding:2.5rem 2.2rem;width:100%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,0.4);}
+.login-logo{font-family:'Fraunces',serif;font-size:2rem;color:var(--ink);margin-bottom:0.2rem;}
+.login-logo span{color:var(--coral);}
+.login-sub{font-size:0.78rem;color:var(--ink-faint);margin-bottom:2rem;}
+.login-step{display:none;}
+.login-step.active{display:block;}
+.login-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);display:block;margin-bottom:0.35rem;}
+.login-input{width:100%;padding:0.7rem 0.9rem;border:1px solid var(--line);border-radius:8px;font-family:'Inter',sans-serif;font-size:0.9rem;color:var(--ink);outline:none;margin-bottom:1rem;transition:border-color 0.15s;}
+.login-input:focus{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-tint);}
+.totp-input{width:100%;padding:0.9rem;border:1px solid var(--line);border-radius:8px;font-family:'Inter',sans-serif;font-size:1.6rem;font-weight:700;letter-spacing:0.3em;text-align:center;color:var(--ink);outline:none;margin-bottom:1rem;transition:border-color 0.15s;}
+.totp-input:focus{border-color:var(--coral);box-shadow:0 0 0 3px var(--coral-tint);}
+.login-btn{width:100%;padding:0.78rem;background:var(--coral);color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;transition:background 0.15s;margin-top:0.3rem;}
+.login-btn:hover{background:var(--coral-deep);}
+.login-btn:disabled{opacity:0.6;cursor:not-allowed;}
+.login-error{background:#fff0f0;border:1px solid #fcc;color:var(--danger);font-size:0.78rem;padding:0.6rem 0.8rem;border-radius:7px;margin-bottom:1rem;display:none;}
+.login-error.show{display:block;}
+.login-success{background:#f0faf5;border:1px solid #b3dfc8;color:var(--success);font-size:0.78rem;padding:0.6rem 0.8rem;border-radius:7px;margin-bottom:1rem;display:none;}
+.login-success.show{display:block;}
+.login-footer{font-size:0.7rem;color:var(--ink-faint);text-align:center;margin-top:1.2rem;}
+.login-back{background:none;border:none;color:var(--coral);font-size:0.75rem;font-weight:600;cursor:pointer;padding:0;font-family:'Inter',sans-serif;margin-top:0.8rem;display:block;text-align:center;}
+.login-back:hover{text-decoration:underline;}
+.step-badge{display:inline-flex;align-items:center;gap:0.5rem;background:var(--cream);border:1px solid var(--line);border-radius:100px;padding:0.3rem 0.8rem;font-size:0.68rem;font-weight:700;color:var(--ink-soft);margin-bottom:1.2rem;}
+.step-dot{width:6px;height:6px;border-radius:50%;background:var(--coral);}
+.qr-wrap{text-align:center;margin:1rem 0;}
+.qr-wrap img{border-radius:8px;border:2px solid var(--line);}
+.qr-note{font-size:0.72rem;color:var(--ink-soft);margin-top:0.6rem;line-height:1.5;}
+.secret-code{font-family:monospace;font-size:0.78rem;background:var(--cream);padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--line);display:inline-block;letter-spacing:0.12em;margin-top:0.4rem;word-break:break-all;}
+.mfa-shield{font-size:2rem;margin-bottom:0.5rem;display:block;}
+.logout-btn{background:none;border:none;color:rgba(255,255,255,0.35);font-size:0.72rem;cursor:pointer;padding:0.3rem 0.5rem;font-family:'Inter',sans-serif;transition:color 0.15s;}
+.logout-btn:hover{color:rgba(255,255,255,0.8);}
 </style>
 </head>
 <body>
@@ -233,7 +267,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
     <div class="nav-group-label">System</div>
     <div class="nav-item" data-page="settings" onclick="goTo('settings')"><span class="nav-icon">⚙</span><span class="nav-label">Settings</span></div>
   </div>
-  <div class="sidebar-footer">Pursu Solutions LLC</div>
+  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;">Pursu Solutions LLC<button class="logout-btn" onclick="doLogout()">Sign out</button></div>
 </aside>
 <div class="main" id="main-area">
   <header class="topbar">
@@ -734,7 +768,227 @@ function handleSearch(q){
   const cl=allClients.find(x=>x.company.toLowerCase().includes(qL));if(cl){openClDet(cl.id);return;}
 }
 
-loadAll();
+
+// ── AUTH ──
+// ── AUTH STATE ──
+let mfaFactorId = null;
+let mfaChallengeId = null;
+
+function showLoginStep(id){
+  document.querySelectorAll('.login-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function setLoginError(n, msg){ const el=document.getElementById('login-error-'+n); el.textContent=msg; el.classList.toggle('show',!!msg); }
+
+async function checkSession(){
+  if(!db){
+    document.getElementById('login-screen').classList.remove('hidden');
+    return;
+  }
+  const {data:{session}}=await db.auth.getSession();
+  if(session){
+    await checkMfaAndProceed();
+  } else {
+    document.getElementById('login-screen').classList.remove('hidden');
+    showLoginStep('step-password');
+  }
+  db.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session){ await checkMfaAndProceed(); }
+    if(event==='SIGNED_OUT'){
+      document.getElementById('login-screen').classList.remove('hidden');
+      showLoginStep('step-password');
+      allCandidates=[];allClients=[];allActivity=[];siteJobs=[];
+    }
+  });
+}
+
+async function checkMfaAndProceed(){
+  const {data,error}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(error){
+    document.getElementById('login-screen').classList.add('hidden');
+    loadAll(); return;
+  }
+  const {currentLevel,nextLevel}=data;
+  if(currentLevel==='aal2'){
+    document.getElementById('login-screen').classList.add('hidden');
+    loadAll();
+  } else if(nextLevel==='aal2'){
+    await startMfaChallenge();
+  } else {
+    document.getElementById('login-screen').classList.add('hidden');
+    loadAll();
+  }
+}
+
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!email||!pass){setLoginError(1,'Please enter your email and password.');return;}
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true; btn.textContent='Checking…'; setLoginError(1,'');
+  const {data,error}=await db.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false; btn.textContent='Continue →';
+  if(error){setLoginError(1,error.message==='Invalid login credentials'?'Incorrect email or password.':error.message);return;}
+  // Check MFA status after successful password
+  const {data:aalData,error:aalErr}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(aalErr||!aalData){
+    // Can't check MFA — let in
+    document.getElementById('login-screen').classList.add('hidden');
+    loadAll(); return;
+  }
+  if(aalData.nextLevel==='aal2'){
+    // MFA already enrolled — go to verify step
+    await startMfaChallenge();
+  } else if(aalData.currentLevel==='aal1'&&aalData.nextLevel==='aal1'){
+    // No MFA enrolled yet — offer setup
+    await startMfaSetup();
+  } else {
+    // Already fully authenticated
+    document.getElementById('login-screen').classList.add('hidden');
+    loadAll();
+  }
+}
+
+async function startMfaChallenge(){
+  // List enrolled factors
+  const {data:{totp},error}=await db.auth.mfa.listFactors();
+  if(error||!totp||totp.length===0){setLoginError(1,'MFA not set up. Please contact support.');return;}
+  mfaFactorId=totp[0].id;
+  const {data,error:ce}=await db.auth.mfa.challenge({factorId:mfaFactorId});
+  if(ce){setLoginError(1,'Could not start 2FA challenge: '+ce.message);return;}
+  mfaChallengeId=data.id;
+  document.getElementById('totp-code').value='';
+  setLoginError(2,'');
+  showLoginStep('step-totp');
+  setTimeout(()=>document.getElementById('totp-code').focus(),100);
+}
+
+async function doVerifyTotp(){
+  const code=document.getElementById('totp-code').value.trim();
+  if(code.length!==6){setLoginError(2,'Please enter the 6-digit code.');return;}
+  const btn=document.getElementById('totp-btn');
+  btn.disabled=true; btn.textContent='Verifying…'; setLoginError(2,'');
+  const {error}=await db.auth.mfa.verify({factorId:mfaFactorId,challengeId:mfaChallengeId,code});
+  btn.disabled=false; btn.textContent='Verify & Sign In';
+  if(error){setLoginError(2,'Incorrect code. Please try again.');document.getElementById('totp-code').value='';document.getElementById('totp-code').focus();return;}
+  // Success
+  document.getElementById('login-screen').classList.add('hidden');
+  loadAll();
+}
+
+async function startMfaSetup(){
+  const {data,error}=await db.auth.mfa.enroll({factorType:'totp',issuer:'Pursu CRM',friendlyName:'Pursu CRM'});
+  if(error){
+    // Can't enroll — just let them in without MFA for now
+    document.getElementById('login-screen').classList.add('hidden');
+    loadAll(); return;
+  }
+  mfaFactorId=data.id;
+  document.getElementById('setup-qr').src=data.totp.qr_code;
+  document.getElementById('setup-secret').textContent=data.totp.secret;
+  document.getElementById('setup-code').value='';
+  setLoginError(3,'');
+  showLoginStep('step-setup');
+  setTimeout(()=>document.getElementById('setup-code').focus(),100);
+}
+
+async function skipMfaSetup(){
+  // Unenroll the pending factor and go straight in
+  if(mfaFactorId){await db.auth.mfa.unenroll({factorId:mfaFactorId}).catch(()=>{});}
+  mfaFactorId=null;
+  document.getElementById('login-screen').classList.add('hidden');
+  loadAll();
+  toast('Tip: Enable 2FA next time in Settings for extra security.');
+}
+
+async function doConfirmSetup(){
+  const code=document.getElementById('setup-code').value.trim();
+  if(code.length!==6){setLoginError(3,'Please enter the 6-digit code from your app.');return;}
+  const btn=document.getElementById('setup-btn');
+  btn.disabled=true; btn.textContent='Activating…'; setLoginError(3,'');
+  // Challenge then verify to complete enrollment
+  const {data:ch,error:ce}=await db.auth.mfa.challenge({factorId:mfaFactorId});
+  if(ce){btn.disabled=false;btn.textContent='Activate 2FA & Sign In';setLoginError(3,'Challenge failed: '+ce.message);return;}
+  const {error:ve}=await db.auth.mfa.verify({factorId:mfaFactorId,challengeId:ch.id,code});
+  btn.disabled=false; btn.textContent='Activate 2FA & Sign In';
+  if(ve){setLoginError(3,'Incorrect code — try again.');document.getElementById('setup-code').value='';document.getElementById('setup-code').focus();return;}
+  // MFA enrolled and verified
+  document.getElementById('login-screen').classList.add('hidden');
+  loadAll();
+  toast('Two-factor authentication activated 🔐','success');
+}
+
+function goBackToPassword(){
+  // Unenroll pending factor if still in setup
+  if(mfaFactorId){db.auth.mfa.unenroll({factorId:mfaFactorId}).catch(()=>{});}
+  mfaFactorId=null; mfaChallengeId=null;
+  setLoginError(1,''); setLoginError(2,''); setLoginError(3,'');
+  showLoginStep('step-password');
+}
+
+async function doLogout(){
+  if(!db)return;
+  await db.auth.signOut();
+  mfaFactorId=null; mfaChallengeId=null;
+  allCandidates=[];allClients=[];allActivity=[];siteJobs=[];
+  document.getElementById('login-screen').classList.remove('hidden');
+  showLoginStep('step-password');
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pass').value='';
+  toast('Signed out');
+}
+
+checkSession();
 </script>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Pursu<span>.</span></div>
+
+    <!-- STEP 1: Email + Password -->
+    <div class="login-step active" id="step-password">
+      <div class="login-sub">CRM — Sign in to continue</div>
+      <div class="login-error" id="login-error-1"></div>
+      <label class="login-label">Email</label>
+      <input class="login-input" type="email" id="login-email" placeholder="you@wepursu.one" autocomplete="email">
+      <label class="login-label">Password</label>
+      <input class="login-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Continue →</button>
+      <div class="login-footer">Pursu Solutions LLC · Secure access only</div>
+    </div>
+
+    <!-- STEP 2: TOTP Code -->
+    <div class="login-step" id="step-totp">
+      <span class="mfa-shield">🔐</span>
+      <div class="login-sub" style="margin-bottom:0.5rem;">Two-factor authentication</div>
+      <p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1.5rem;">Open your authenticator app and enter the 6-digit code for Pursu CRM.</p>
+      <div class="login-error" id="login-error-2"></div>
+      <label class="login-label">Authentication Code</label>
+      <input class="totp-input" type="text" id="totp-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" onkeydown="if(event.key==='Enter')doVerifyTotp()" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <button class="login-btn" id="totp-btn" onclick="doVerifyTotp()">Verify & Sign In</button>
+      <button class="login-back" onclick="goBackToPassword()">← Back</button>
+    </div>
+
+    <!-- STEP 3: First-time MFA Setup -->
+    <div class="login-step" id="step-setup">
+      <span class="mfa-shield">🔒</span>
+      <div class="login-sub" style="margin-bottom:0.5rem;">Set up two-factor authentication</div>
+      <p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1rem;">Scan this QR code with <strong>Google Authenticator</strong>, <strong>Authy</strong>, or any TOTP app. You only do this once.</p>
+      <div class="login-error" id="login-error-3"></div>
+      <div class="qr-wrap">
+        <img id="setup-qr" src="" width="180" height="180" alt="QR Code">
+        <div class="qr-note">Can't scan? Enter this code manually:</div>
+        <div class="secret-code" id="setup-secret"></div>
+      </div>
+      <label class="login-label" style="margin-top:1rem;">Enter the 6-digit code to confirm</label>
+      <input class="totp-input" type="text" id="setup-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" onkeydown="if(event.key==='Enter')doConfirmSetup()" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <button class="login-btn" id="setup-btn" onclick="doConfirmSetup()">Activate 2FA & Sign In</button>
+      <button class="login-back" onclick="skipMfaSetup()">Skip for now →</button>
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>
