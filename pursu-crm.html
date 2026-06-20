@@ -218,8 +218,121 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 .bulk-bar{background:var(--coral);color:#fff;padding:0.5rem 1rem;display:none;align-items:center;gap:0.8rem;font-size:0.78rem;font-weight:600;}
 .bulk-bar.show{display:flex;}
 .badge-new{display:inline-block;background:var(--coral);color:#fff;font-size:0.58rem;font-weight:700;padding:0.1rem 0.35rem;border-radius:100px;margin-left:0.3rem;vertical-align:middle;}
-@media(max-width:1024px){:root{--sidebar-w:52px;}.sidebar .nav-group-label,.sidebar .nav-label,.sidebar .nav-badge,.sidebar-logo{display:none;}.sidebar .nav-item{padding:0.52rem;justify-content:center;}.sidebar-top{justify-content:center;}.dash-grid{grid-template-columns:repeat(2,1fr);}.dash-row{grid-template-columns:1fr;}.record-layout{grid-template-columns:1fr;}.report-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:640px){.dash-grid{grid-template-columns:1fr 1fr;}.fg2{grid-template-columns:1fr;}.report-grid{grid-template-columns:1fr;}.record-quick-stats{grid-template-columns:repeat(3,1fr);}.settings-grid{grid-template-columns:1fr;}}
+.hamburger-btn{display:none;background:none;border:none;font-size:1.2rem;color:var(--ink);cursor:pointer;padding:0.3rem 0.5rem;margin-right:0.3rem;flex-shrink:0;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:199;}
+.sidebar-overlay.show{display:block;}
+.bottom-tabs{display:none;}
+
+@media(max-width:1024px){
+  :root{--sidebar-w:52px;}
+  .sidebar .nav-group-label,.sidebar .nav-label,.sidebar .nav-badge,.sidebar-logo{display:none;}
+  .sidebar .nav-item{padding:0.52rem;justify-content:center;}
+  .sidebar-top{justify-content:center;}
+  .dash-grid{grid-template-columns:repeat(2,1fr);}
+  .dash-row{grid-template-columns:1fr;}
+  .record-layout{grid-template-columns:1fr;}
+  .report-grid{grid-template-columns:repeat(2,1fr);}
+}
+
+@media(max-width:768px){
+  body{font-size:14px;}
+  /* Sidebar becomes off-canvas drawer */
+  :root{--sidebar-w:240px;}
+  .sidebar{transform:translateX(-100%);transition:transform 0.25s ease;width:260px;z-index:300;}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .sidebar.collapsed{width:260px;}
+  .sidebar .nav-group-label,.sidebar .nav-label,.sidebar .nav-badge,.sidebar-logo{display:block;}
+  .sidebar.collapsed .nav-group-label,.sidebar.collapsed .nav-label,.sidebar.collapsed .nav-badge,.sidebar.collapsed .sidebar-logo{display:none;}
+  .sidebar.mobile-open .nav-group-label,.sidebar.mobile-open .nav-label,.sidebar.mobile-open .nav-badge,.sidebar.mobile-open .sidebar-logo{display:block;}
+  .sidebar .nav-item{padding:0.7rem 1rem;justify-content:flex-start;}
+  .sidebar-top{justify-content:space-between;padding:0 1rem;}
+  .sidebar-toggle{display:none;}
+  .main,.main.expanded{margin-left:0;}
+
+  /* Hamburger + bottom tabs */
+  .hamburger-btn{display:block;}
+  .bottom-tabs{
+    display:flex;position:fixed;bottom:0;left:0;right:0;height:60px;background:#fff;
+    border-top:1px solid var(--line);z-index:150;box-shadow:0 -2px 12px rgba(0,0,0,0.05);
+  }
+  .bt-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.15rem;cursor:pointer;color:var(--ink-faint);transition:0.15s;}
+  .bt-item.active{color:var(--coral);}
+  .bt-icon{font-size:1.1rem;}
+  .bt-label{font-size:0.6rem;font-weight:600;}
+  .content-area{padding-bottom:76px;}
+
+  /* Topbar */
+  .topbar{padding:0 0.8rem;gap:0.5rem;}
+  .breadcrumb{font-size:0.68rem;}
+  .topbar-search{display:none;}
+  .topbar-actions{gap:0.35rem;}
+  #sync-btn-top{display:none;}
+  .topbar-actions .btn{padding:0.38rem 0.7rem;font-size:0.7rem;}
+
+  /* Dashboard */
+  .quick-actions{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:0.3rem;}
+  .qa-btn{flex-shrink:0;}
+  .dash-grid{grid-template-columns:1fr 1fr;gap:0.6rem;}
+  .stat-val{font-size:1.4rem;}
+  .dash-row{grid-template-columns:1fr;}
+
+  /* Tables → stacked cards */
+  table.crm thead{display:none;}
+  table.crm, table.crm tbody, table.crm tr, table.crm td{display:block;width:100%;}
+  table.crm tr{border-bottom:1px solid var(--line);padding:0.7rem 0.9rem;}
+  table.crm tr:last-child{border-bottom:none;}
+  table.crm td{padding:0.15rem 0;border-bottom:none;font-size:0.8rem;}
+  table.crm td.cb-cell{display:none;}
+  table.crm td.cell-name,table.crm td.cell-link{font-size:0.88rem;font-weight:700;margin-bottom:0.2rem;}
+  table.crm td:empty{display:none;}
+  table.crm td:last-child{margin-top:0.4rem;}
+
+  /* Record pages */
+  .record-layout{grid-template-columns:1fr;gap:0.7rem;}
+  .record-hero-top{flex-wrap:wrap;}
+  .r-actions{width:100%;}
+  .r-actions .btn{flex:1;justify-content:center;}
+  .record-quick-stats{grid-template-columns:repeat(3,1fr);row-gap:0.6rem;}
+  .qs-item:nth-child(n+4){border-top:1px solid var(--line);padding-top:0.6rem;}
+  .det-grid{grid-template-columns:1fr;}
+  .det-field:nth-last-child(-n+2):not(.full){border-bottom:1px solid var(--line);}
+  .det-field:last-child{border-bottom:none;}
+
+  /* Pipeline / Kanban */
+  .kanban{gap:0.6rem;}
+  .kb-col{width:78vw;}
+
+  /* Modals */
+  .modal{max-width:100%;width:100%;border-radius:14px 14px 0 0;position:fixed;bottom:0;left:0;max-height:88vh;}
+  .modal-overlay{align-items:flex-end;padding:0;}
+  .fg2{grid-template-columns:1fr;}
+
+  /* Reports */
+  .report-grid{grid-template-columns:1fr;}
+
+  /* Settings */
+  .settings-grid{grid-template-columns:1fr;}
+  .settings-nav{display:flex;overflow-x:auto;}
+  .settings-nav-item{flex-shrink:0;border-left:none;border-bottom:2px solid transparent;}
+  .settings-nav-item.active{border-left:none;border-bottom-color:var(--coral);}
+
+  /* Toolbar */
+  .toolbar{gap:0.5rem;}
+  .filter-chips{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:0.2rem;}
+  .chip{flex-shrink:0;}
+  .toolbar-right{width:100%;justify-content:flex-start;}
+
+  /* Toast above bottom tabs */
+  .toast{bottom:76px;left:1rem;right:1rem;max-width:none;}
+}
+
+@media(max-width:480px){
+  .dash-grid{grid-template-columns:1fr 1fr;}
+  .record-quick-stats{grid-template-columns:repeat(2,1fr);}
+  .qs-item:nth-child(n+3){border-top:1px solid var(--line);padding-top:0.6rem;}
+  .qs-item:nth-child(2n+1){border-right:1px solid var(--line);}
+  .login-box{padding:2rem 1.5rem;}
+}
 
 /* ── LOGIN SCREEN ── */
 .login-screen{position:fixed;inset:0;background:var(--ink);z-index:9000;display:flex;align-items:center;justify-content:center;padding:1rem;}
@@ -257,6 +370,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 </style>
 </head>
 <body>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileNav()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-top">
     <div class="sidebar-logo">Pursu<span>.</span></div>
@@ -280,15 +394,23 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
   </div>
   <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;">Pursu Solutions LLC<button class="logout-btn" onclick="doLogout()">Sign out</button></div>
 </aside>
+<nav class="bottom-tabs" id="bottom-tabs">
+  <div class="bt-item active" data-page="dashboard" onclick="goTo('dashboard');closeMobileNav();"><span class="bt-icon">⊞</span><span class="bt-label">Home</span></div>
+  <div class="bt-item" data-page="candidates" onclick="goTo('candidates');closeMobileNav();"><span class="bt-icon">👤</span><span class="bt-label">Candidates</span></div>
+  <div class="bt-item" data-page="clients" onclick="goTo('clients');closeMobileNav();"><span class="bt-icon">🏢</span><span class="bt-label">Clients</span></div>
+  <div class="bt-item" data-page="pipeline" onclick="goTo('pipeline');closeMobileNav();"><span class="bt-icon">⬡</span><span class="bt-label">Pipeline</span></div>
+  <div class="bt-item" onclick="toggleMobileNav()"><span class="bt-icon">☰</span><span class="bt-label">More</span></div>
+</nav>
 <div class="main" id="main-area">
   <header class="topbar">
+    <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileNav()" aria-label="Menu">☰</button>
     <div class="breadcrumb" id="breadcrumb"><span class="current">Dashboard</span></div>
     <div class="topbar-search" style="margin-left:1.5rem;">
       <span class="si">🔍</span>
       <input type="text" placeholder="Search candidates, clients, roles…" id="gsearch" oninput="handleSearch(this.value)">
     </div>
     <div class="topbar-actions">
-      <button class="btn btn-secondary btn-sm" onclick="syncFromSite()">⟳ Sync</button>
+      <button class="btn btn-secondary btn-sm" id="sync-btn-top" onclick="syncFromSite()">⟳ Sync</button>
       <button class="btn btn-primary btn-sm" onclick="handleAdd()">+ New</button>
     </div>
   </header>
@@ -613,6 +735,7 @@ function goTo(page){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const el=document.getElementById('page-'+page);if(el)el.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page||(page.includes('candidate')&&n.dataset.page==='candidates')||(page.includes('client')&&n.dataset.page==='clients')));
+  document.querySelectorAll('.bt-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page||(page.includes('candidate')&&n.dataset.page==='candidates')||(page.includes('client')&&n.dataset.page==='clients')));
   const titles={dashboard:'Dashboard',candidates:'Candidates','candidate-detail':'Candidate',placements:'Placements',clients:'Clients','client-detail':'Client',pipeline:'Pipeline',jobs:'Open Roles',reports:'Reports',activity:'Activity Feed',settings:'Settings'};
   const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span class="current">${titles[page]||page}</span>`;
   currentPage=page;
@@ -629,6 +752,15 @@ function goTo(page){
   if(page==='settings')renderSettings('general');
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');document.getElementById('main-area').classList.toggle('expanded');}
+
+function toggleMobileNav(){
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+function closeMobileNav(){
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
 function handleAdd(){if(currentPage==='clients'||currentPage==='pipeline')openClientModal();else openCandidateModal();}
 function updateBadges(){const n=allCandidates.filter(c=>c.status==='applied').length;const el=document.getElementById('badge-cands');el.textContent=n||'';el.style.display=n?'':'none';}
 
