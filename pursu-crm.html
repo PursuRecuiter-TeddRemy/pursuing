@@ -127,6 +127,13 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 .record-layout{display:grid;grid-template-columns:1fr 300px;gap:0.9rem;}
 .record-main,.record-side{display:flex;flex-direction:column;gap:0.9rem;}
 .det-panel{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.record-tabs{display:flex;background:#fff;border:1px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;overflow:hidden;}
+.record-tab{padding:0.62rem 1.1rem;font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-faint);cursor:pointer;border-bottom:2px solid transparent;transition:0.12s;user-select:none;}
+.record-tab:hover{color:var(--ink);background:var(--cream);}
+.record-tab.active{color:var(--coral);border-bottom-color:var(--coral);}
+.record-tab-panel{border-radius:0 0 10px 10px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
 .det-panel-header{padding:0.65rem 1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
 .det-panel-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);}
 .det-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0.1rem 0;}
@@ -177,6 +184,10 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 .modal-footer{padding:0.9rem 1.4rem;border-top:1px solid var(--line);display:flex;gap:0.5rem;justify-content:flex-end;position:sticky;bottom:0;background:#fff;}
 .form-row{margin-bottom:0.85rem;}
 .form-row label{display:block;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);margin-bottom:0.3rem;}
+.required-mark{color:var(--danger);margin-left:0.15rem;}
+.field-error{display:none;color:var(--danger);font-size:0.7rem;font-weight:600;margin-top:0.3rem;}
+.form-row.has-error input,.form-row.has-error select,.form-row.has-error textarea{border-color:var(--danger);box-shadow:0 0 0 2px #fbe2de;}
+.form-row.has-error .field-error{display:block;}
 .form-row input,.form-row select,.form-row textarea{width:100%;padding:0.52rem 0.75rem;border:1px solid var(--line);border-radius:6px;font-family:'Inter',sans-serif;font-size:0.8rem;color:var(--ink);background:#fff;outline:none;transition:border-color 0.15s;}
 .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--coral);box-shadow:0 0 0 2px var(--coral-tint);}
 .form-row textarea{resize:vertical;min-height:72px;}
@@ -435,12 +446,19 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
   <div class="content-area" id="content-area">
 
     <div class="page active" id="page-dashboard">
-      <div class="quick-actions">
-        <div class="qa-btn" onclick="openCandidateModal()">👤 Add Candidate</div>
-        <div class="qa-btn" onclick="openClientModal()">🏢 Add Client</div>
-        <div class="qa-btn" onclick="syncFromSite()">⟳ Sync Site</div>
-        <div class="qa-btn" onclick="goTo('reports')">◈ Reports</div>
-        <div class="qa-btn" onclick="goTo('pipeline')">⬡ Pipeline</div>
+      <div class="record-hero">
+        <div class="record-hero-top">
+          <div class="r-avatar coral">PU</div>
+          <div class="r-meta">
+            <div class="r-name">Dashboard</div>
+            <div class="r-sub"><span>Pursu Solutions LLC</span><span class="dot">·</span><span>CRM Overview</span></div>
+          </div>
+          <div class="r-actions">
+            <button class="btn btn-primary btn-sm" onclick="openCandidateModal()">👤 Add Candidate</button>
+            <button class="btn btn-teal btn-sm" onclick="openClientModal()">🏢 Add Client</button>
+            <button class="btn btn-secondary btn-sm" onclick="syncFromSite()">⟳ Sync Site</button>
+          </div>
+        </div>
       </div>
       <div class="dash-grid">
         <div class="stat-card" onclick="goTo('candidates')"><div class="stat-label">Total Candidates</div><div class="stat-val coral-val" id="st-cands">0</div><div class="stat-delta neutral" id="st-cands-new"></div></div>
@@ -448,19 +466,34 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
         <div class="stat-card" onclick="goTo('clients')"><div class="stat-label">Clients</div><div class="stat-val" id="st-clients">0</div><div class="stat-sub">in pipeline</div></div>
         <div class="stat-card" onclick="goTo('jobs')"><div class="stat-label">Open Roles</div><div class="stat-val" id="st-jobs">0</div><div class="stat-sub">from wepursu.one</div></div>
       </div>
-      <div class="dash-row">
-        <div>
-          <div class="panel">
-            <div class="panel-header"><span class="panel-title">Recent Candidates</span><button class="btn btn-ghost btn-xs" onclick="goTo('candidates')">View all →</button></div>
-            <div class="tbl-wrap"><table class="crm"><thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Source</th><th>Added</th></tr></thead><tbody id="dash-cands-table"></tbody></table></div>
+      <div class="record-tabs" id="dash-tabs">
+        <div class="record-tab active" data-tab="candidates" onclick="switchDashTab('candidates')">Recent Candidates</div>
+        <div class="record-tab" data-tab="pipeline" onclick="switchDashTab('pipeline')">Pipeline &amp; New This Week</div>
+        <div class="record-tab" data-tab="activity" onclick="switchDashTab('activity')">Recent Activity</div>
+      </div>
+      <div class="det-panel record-tab-panel">
+        <div class="tab-content active" id="dash-tab-candidates">
+          <div class="det-panel-header"><span class="det-panel-title">Recent Candidates</span><button class="btn btn-ghost btn-xs" onclick="goTo('candidates')">View all →</button></div>
+          <div class="tbl-wrap"><table class="crm"><thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Source</th><th>Added</th></tr></thead><tbody id="dash-cands-table"></tbody></table></div>
+        </div>
+        <div class="tab-content" id="dash-tab-pipeline">
+          <div class="det-panel-header"><span class="det-panel-title">Pipeline &amp; New This Week</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;">
+            <div style="border-right:1px solid var(--line);">
+              <div style="padding:0.7rem 1rem 0;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);">Pipeline</div>
+              <div style="padding:0.5rem 1rem 0.8rem;" id="dash-pipeline-summary"></div>
+            </div>
+            <div>
+              <div style="padding:0.7rem 1rem 0;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);">New This Week</div>
+              <div id="dash-new-week" style="padding:0.3rem 0 0.5rem;"></div>
+            </div>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:0.9rem;">
-          <div class="panel"><div class="panel-header"><span class="panel-title">Pipeline</span></div><div style="padding:0.8rem 1rem;" id="dash-pipeline-summary"></div></div>
-          <div class="panel"><div class="panel-header"><span class="panel-title">New This Week</span></div><div id="dash-new-week" style="padding:0.5rem 0;"></div></div>
+        <div class="tab-content" id="dash-tab-activity">
+          <div class="det-panel-header"><span class="det-panel-title">Recent Activity</span><button class="btn btn-ghost btn-xs" onclick="goTo('activity')">View all →</button></div>
+          <div class="activity-wrap" id="dash-activity" style="max-height:320px;overflow-y:auto;"></div>
         </div>
       </div>
-      <div class="panel"><div class="panel-header"><span class="panel-title">Recent Activity</span><button class="btn btn-ghost btn-xs" onclick="goTo('activity')">View all →</button></div><div class="activity-wrap" id="dash-activity" style="max-height:220px;overflow-y:auto;"></div></div>
     </div>
 
     <div class="page" id="page-candidates">
@@ -491,33 +524,48 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
       <div class="record-hero" id="cdet-hero"></div>
       <div class="record-layout">
         <div class="record-main">
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Details</span><button class="btn btn-ghost btn-xs" onclick="openCandidateModal(currentCandidateId)">Edit</button></div><div class="det-grid" id="cdet-fields"></div></div>
-          <div class="det-panel">
-            <div class="det-panel-header"><span class="det-panel-title">Communication History</span></div>
-            <div class="note-row">
-              <textarea id="cdet-note-in" placeholder="Log a call, email, meeting, or note…"></textarea>
-              <div style="display:flex;flex-direction:column;gap:0.3rem;">
-                <select id="cdet-note-type" style="padding:0.3rem;border:1px solid var(--line);border-radius:5px;font-size:0.72rem;outline:none;"><option value="📞 Call">Call</option><option value="✉️ Email">Email</option><option value="🤝 Meeting">Meeting</option><option value="💬 Text">Text</option><option value="📝 Note">Note</option></select>
-                <button class="btn btn-primary btn-sm" onclick="addCandNote()">Log</button>
-              </div>
+          <div class="record-tabs" id="cdet-tabs">
+            <div class="record-tab active" data-tab="details" onclick="switchRecordTab('candidate','details')">Details</div>
+            <div class="record-tab" data-tab="activity" onclick="switchRecordTab('candidate','activity')">Activity</div>
+            <div class="record-tab" data-tab="chatter" onclick="switchRecordTab('candidate','chatter')">Chatter</div>
+            <div class="record-tab" data-tab="related" onclick="switchRecordTab('candidate','related')">Related</div>
+          </div>
+          <div class="det-panel record-tab-panel">
+            <div class="tab-content active" id="cdet-tab-details">
+              <div class="det-panel-header"><span class="det-panel-title">Details</span><button class="btn btn-ghost btn-xs" onclick="openCandidateModal(currentCandidateId)">Edit</button></div>
+              <div class="det-grid" id="cdet-fields"></div>
             </div>
-            <div class="activity-wrap" id="cdet-activity"></div>
+            <div class="tab-content" id="cdet-tab-activity">
+              <div class="det-panel-header"><span class="det-panel-title">Communication History</span></div>
+              <div class="note-row">
+                <textarea id="cdet-note-in" placeholder="Log a call, email, meeting, or note…"></textarea>
+                <div style="display:flex;flex-direction:column;gap:0.3rem;">
+                  <select id="cdet-note-type" style="padding:0.3rem;border:1px solid var(--line);border-radius:5px;font-size:0.72rem;outline:none;"><option value="📞 Call">Call</option><option value="✉️ Email">Email</option><option value="🤝 Meeting">Meeting</option><option value="💬 Text">Text</option><option value="📝 Note">Note</option></select>
+                  <button class="btn btn-primary btn-sm" onclick="addCandNote()">Log</button>
+                </div>
+              </div>
+              <div class="activity-wrap" id="cdet-activity"></div>
+            </div>
+            <div class="tab-content" id="cdet-tab-chatter">
+              <div class="det-panel-header"><span class="det-panel-title">Chatter</span></div>
+              <div class="chatter-post-box">
+                <div class="chatter-input-row">
+                  <div class="chatter-avatar">PU</div>
+                  <textarea class="chatter-input" id="cdet-chatter-in" placeholder="Write a quick note…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();postChatter('candidate');}"></textarea>
+                </div>
+                <button class="btn btn-primary btn-xs chatter-post-btn" onclick="postChatter('candidate')">Post</button>
+                <div style="clear:both;"></div>
+              </div>
+              <div class="chatter-feed" id="cdet-chatter-feed"></div>
+            </div>
+            <div class="tab-content" id="cdet-tab-related">
+              <div class="det-panel-header"><span class="det-panel-title">Related Client</span></div>
+              <div id="cdet-rel-client" style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No linked client</div>
+            </div>
           </div>
         </div>
         <div class="record-side">
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Actions</span></div><div style="padding:0.8rem;display:flex;flex-direction:column;gap:0.4rem;"><button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="document.getElementById('cdet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openCandidateModal(currentCandidateId)">Edit Record</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openSendEmailModal('candidate')">✉️ Send Email</button></div></div>
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Chatter</span></div>
-            <div class="chatter-post-box">
-              <div class="chatter-input-row">
-                <div class="chatter-avatar">PU</div>
-                <textarea class="chatter-input" id="cdet-chatter-in" placeholder="Write a quick note…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();postChatter('candidate');}"></textarea>
-              </div>
-              <button class="btn btn-primary btn-xs chatter-post-btn" onclick="postChatter('candidate')">Post</button>
-              <div style="clear:both;"></div>
-            </div>
-            <div class="chatter-feed" id="cdet-chatter-feed"></div>
-          </div>
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Related Client</span></div><div id="cdet-rel-client" style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No linked client</div></div>
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Actions</span></div><div style="padding:0.8rem;display:flex;flex-direction:column;gap:0.4rem;"><button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="switchRecordTab('candidate','activity');document.getElementById('cdet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openCandidateModal(currentCandidateId)">Edit Record</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openSendEmailModal('candidate')">✉️ Send Email</button></div></div>
         </div>
       </div>
     </div>
@@ -544,40 +592,76 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
       <div class="record-hero" id="cldet-hero"></div>
       <div class="record-layout">
         <div class="record-main">
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Details</span><button class="btn btn-ghost btn-xs" onclick="openClientModal(currentClientId)">Edit</button></div><div class="det-grid" id="cldet-fields"></div></div>
-          <div class="det-panel">
-            <div class="det-panel-header"><span class="det-panel-title">Communication History</span></div>
-            <div class="note-row">
-              <textarea id="cldet-note-in" placeholder="Log a note or interaction…"></textarea>
-              <div style="display:flex;flex-direction:column;gap:0.3rem;">
-                <select id="cldet-note-type" style="padding:0.3rem;border:1px solid var(--line);border-radius:5px;font-size:0.72rem;outline:none;"><option value="📞 Call">Call</option><option value="✉️ Email">Email</option><option value="🤝 Meeting">Meeting</option><option value="💬 Text">Text</option><option value="📝 Note">Note</option></select>
-                <button class="btn btn-teal btn-sm" onclick="addClNote()">Log</button>
-              </div>
+          <div class="record-tabs" id="cldet-tabs">
+            <div class="record-tab active" data-tab="details" onclick="switchRecordTab('client','details')">Details</div>
+            <div class="record-tab" data-tab="activity" onclick="switchRecordTab('client','activity')">Activity</div>
+            <div class="record-tab" data-tab="chatter" onclick="switchRecordTab('client','chatter')">Chatter</div>
+            <div class="record-tab" data-tab="related" onclick="switchRecordTab('client','related')">Related</div>
+          </div>
+          <div class="det-panel record-tab-panel">
+            <div class="tab-content active" id="cldet-tab-details">
+              <div class="det-panel-header"><span class="det-panel-title">Details</span><button class="btn btn-ghost btn-xs" onclick="openClientModal(currentClientId)">Edit</button></div>
+              <div class="det-grid" id="cldet-fields"></div>
             </div>
-            <div class="activity-wrap" id="cldet-activity"></div>
+            <div class="tab-content" id="cldet-tab-activity">
+              <div class="det-panel-header"><span class="det-panel-title">Communication History</span></div>
+              <div class="note-row">
+                <textarea id="cldet-note-in" placeholder="Log a note or interaction…"></textarea>
+                <div style="display:flex;flex-direction:column;gap:0.3rem;">
+                  <select id="cldet-note-type" style="padding:0.3rem;border:1px solid var(--line);border-radius:5px;font-size:0.72rem;outline:none;"><option value="📞 Call">Call</option><option value="✉️ Email">Email</option><option value="🤝 Meeting">Meeting</option><option value="💬 Text">Text</option><option value="📝 Note">Note</option></select>
+                  <button class="btn btn-teal btn-sm" onclick="addClNote()">Log</button>
+                </div>
+              </div>
+              <div class="activity-wrap" id="cldet-activity"></div>
+            </div>
+            <div class="tab-content" id="cldet-tab-chatter">
+              <div class="det-panel-header"><span class="det-panel-title">Chatter</span></div>
+              <div class="chatter-post-box">
+                <div class="chatter-input-row">
+                  <div class="chatter-avatar">PU</div>
+                  <textarea class="chatter-input" id="cldet-chatter-in" placeholder="Write a quick note…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();postChatter('client');}"></textarea>
+                </div>
+                <button class="btn btn-teal btn-xs chatter-post-btn" onclick="postChatter('client')">Post</button>
+                <div style="clear:both;"></div>
+              </div>
+              <div class="chatter-feed" id="cldet-chatter-feed"></div>
+            </div>
+            <div class="tab-content" id="cldet-tab-related">
+              <div class="det-panel-header"><span class="det-panel-title">Related Candidates</span></div>
+              <div id="cldet-rel-cands" style="padding:0.5rem 0;"></div>
+            </div>
           </div>
         </div>
         <div class="record-side">
           <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Pipeline Stage</span></div><div style="padding:0.8rem;display:flex;flex-direction:column;gap:0.4rem;"><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="updateClStatus('prospect')">⬡ Prospect</button><button class="btn btn-teal" style="width:100%;justify-content:center;" onclick="updateClStatus('active')">✓ Active</button><button class="btn btn-ghost" style="width:100%;justify-content:center;" onclick="updateClStatus('closed')">✕ Closed</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openSendEmailModal('client')">✉️ Send Email</button></div></div>
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Chatter</span></div>
-            <div class="chatter-post-box">
-              <div class="chatter-input-row">
-                <div class="chatter-avatar">PU</div>
-                <textarea class="chatter-input" id="cldet-chatter-in" placeholder="Write a quick note…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();postChatter('client');}"></textarea>
-              </div>
-              <button class="btn btn-teal btn-xs chatter-post-btn" onclick="postChatter('client')">Post</button>
-              <div style="clear:both;"></div>
-            </div>
-            <div class="chatter-feed" id="cldet-chatter-feed"></div>
-          </div>
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Related Candidates</span></div><div id="cldet-rel-cands" style="padding:0.5rem 0;"></div></div>
         </div>
       </div>
     </div>
 
     <div class="page" id="page-pipeline">
-      <div class="toolbar"><span style="font-size:0.78rem;color:var(--ink-soft);">Click a card to open the client record</span><div class="toolbar-right"><button class="btn btn-teal btn-sm" onclick="openClientModal()">+ Add Client</button></div></div>
-      <div class="kanban" id="kanban-board"></div>
+      <div class="record-hero">
+        <div class="record-hero-top">
+          <div class="r-avatar teal">⬡</div>
+          <div class="r-meta">
+            <div class="r-name">Pipeline</div>
+            <div class="r-sub"><span>Client pipeline overview</span><span class="dot">·</span><span>Click a card or row to open the client record</span></div>
+          </div>
+          <div class="r-actions"><button class="btn btn-teal btn-sm" onclick="openClientModal()">+ Add Client</button></div>
+        </div>
+        <div class="record-quick-stats" id="pipe-hero-stats"></div>
+      </div>
+      <div class="record-tabs" id="pipe-tabs">
+        <div class="record-tab active" data-tab="kanban" onclick="switchPipeTab('kanban')">Kanban</div>
+        <div class="record-tab" data-tab="list" onclick="switchPipeTab('list')">List</div>
+      </div>
+      <div class="det-panel record-tab-panel">
+        <div class="tab-content active" id="pipe-tab-kanban">
+          <div class="kanban" id="kanban-board" style="padding:0.9rem;"></div>
+        </div>
+        <div class="tab-content" id="pipe-tab-list">
+          <div class="tbl-wrap"><table class="crm"><thead><tr><th>Company</th><th>Contact</th><th>Status</th><th>Open Roles</th><th>Value</th></tr></thead><tbody id="pipe-list-tbody"></tbody></table></div>
+        </div>
+      </div>
     </div>
 
     <div class="page" id="page-jobs">
@@ -608,8 +692,8 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
   <div class="modal"><div class="modal-header"><h3 id="cand-mtitle">Add Candidate</h3><button class="modal-close" onclick="closeModal('modal-cand')">✕</button></div>
   <div class="modal-body"><input type="hidden" id="cand-id">
     <div class="fg2">
-      <div class="form-row"><label>Full Name *</label><input id="cand-name" placeholder="Jane Smith"></div>
-      <div class="form-row"><label>Email *</label><input type="email" id="cand-email" placeholder="jane@email.com"></div>
+      <div class="form-row" id="fr-cand-name"><label>Full Name<span class="required-mark">*</span></label><input id="cand-name" placeholder="Jane Smith"><div class="field-error" id="err-cand-name">Full name is required.</div></div>
+      <div class="form-row" id="fr-cand-email"><label>Email<span class="required-mark">*</span></label><input type="email" id="cand-email" placeholder="jane@email.com"><div class="field-error" id="err-cand-email">A valid email is required.</div></div>
       <div class="form-row"><label>Phone</label><input id="cand-phone" placeholder="(555) 555-5555"></div>
       <div class="form-row"><label>Status</label><select id="cand-status"><option value="applied">Applied</option><option value="screening">Screening</option><option value="interview">Interview</option><option value="placed">Placed</option><option value="archived">Archived</option></select></div>
       <div class="form-row"><label>Role Applied For</label><input id="cand-role" placeholder="Housekeeping"></div>
@@ -627,7 +711,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
   <div class="modal"><div class="modal-header"><h3 id="client-mtitle">Add Client</h3><button class="modal-close" onclick="closeModal('modal-client')">✕</button></div>
   <div class="modal-body"><input type="hidden" id="client-id">
     <div class="fg2">
-      <div class="form-row"><label>Company Name *</label><input id="client-company" placeholder="CORE Clean LLC"></div>
+      <div class="form-row" id="fr-client-company"><label>Company Name<span class="required-mark">*</span></label><input id="client-company" placeholder="CORE Clean LLC"><div class="field-error" id="err-client-company">Company name is required.</div></div>
       <div class="form-row"><label>Primary Contact</label><input id="client-contact" placeholder="Kevin Smith"></div>
       <div class="form-row"><label>Email</label><input type="email" id="client-email" placeholder="kevin@coreclean.com"></div>
       <div class="form-row"><label>Phone</label><input id="client-phone" placeholder="(555) 555-5555"></div>
@@ -868,15 +952,29 @@ function openCandDet(id){
   currentCandidateId=id;const c=allCandidates.find(x=>x.id===id);if(!c)return;
   const steps=['applied','screening','interview','placed'];const si=steps.indexOf(c.status);
   document.getElementById('cdet-pbar').innerHTML=`<div class="pipeline-bar">${steps.map((s,i)=>`<div class="pb-step ${i===si?'active':i<si?'done':''}" onclick="updateCStatus('${s}')">${s}</div>`).join('')}</div>`;
-  document.getElementById('cdet-hero').innerHTML=`<div class="record-hero-top"><div class="r-avatar coral">${inits(c.name)}</div><div class="r-meta"><div class="r-name">${esc(c.name)}</div><div class="r-sub"><span>${esc(c.email)}</span>${c.phone?`<span class="dot">·</span><span>${esc(c.phone)}</span>`:''}<span class="dot">·</span>${pill(c.status)}${c.temp?pill(c.temp):''}</div></div><div class="r-actions"><button class="btn btn-primary btn-sm" onclick="document.getElementById('cdet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary btn-sm" onclick="openCandidateModal('${c.id}')">Edit</button></div></div><div class="record-quick-stats"><div class="qs-item"><div class="qs-label">Status</div><div class="qs-val" style="font-size:0.85rem;">${c.status}</div></div><div class="qs-item"><div class="qs-label">Source</div><div class="qs-val" style="font-size:0.85rem;">${esc(c.source||'—')}</div></div><div class="qs-item"><div class="qs-label">Role</div><div class="qs-val" style="font-size:0.85rem;">${esc(c.role||'—')}</div></div><div class="qs-item"><div class="qs-label">Added</div><div class="qs-val" style="font-size:0.85rem;">${fmt(c.createdAt)}</div></div><div class="qs-item"><div class="qs-label">Activity</div><div class="qs-val" style="font-size:0.85rem;">${(c.activity||[]).length}</div></div></div>`;
+  document.getElementById('cdet-hero').innerHTML=`<div class="record-hero-top"><div class="r-avatar coral">${inits(c.name)}</div><div class="r-meta"><div class="r-name">${esc(c.name)}</div><div class="r-sub"><span>${esc(c.email)}</span>${c.phone?`<span class="dot">·</span><span>${esc(c.phone)}</span>`:''}<span class="dot">·</span>${pill(c.status)}${c.temp?pill(c.temp):''}</div></div><div class="r-actions"><button class="btn btn-primary btn-sm" onclick="switchRecordTab('candidate','activity');document.getElementById('cdet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary btn-sm" onclick="openCandidateModal('${c.id}')">Edit</button></div></div><div class="record-quick-stats"><div class="qs-item"><div class="qs-label">Status</div><div class="qs-val" style="font-size:0.85rem;">${c.status}</div></div><div class="qs-item"><div class="qs-label">Source</div><div class="qs-val" style="font-size:0.85rem;">${esc(c.source||'—')}</div></div><div class="qs-item"><div class="qs-label">Role</div><div class="qs-val" style="font-size:0.85rem;">${esc(c.role||'—')}</div></div><div class="qs-item"><div class="qs-label">Added</div><div class="qs-val" style="font-size:0.85rem;">${fmt(c.createdAt)}</div></div><div class="qs-item"><div class="qs-label">Activity</div><div class="qs-val" style="font-size:0.85rem;">${(c.activity||[]).length}</div></div></div>`;
   document.getElementById('cdet-fields').innerHTML=`<div class="det-field"><div class="det-label">Email</div><div class="det-val">${esc(c.email)}</div></div><div class="det-field"><div class="det-label">Phone</div><div class="det-val ${!c.phone?'empty':''}">${esc(c.phone||'Not provided')}</div></div><div class="det-field"><div class="det-label">Role</div><div class="det-val ${!c.role?'empty':''}">${esc(c.role||'—')}</div></div><div class="det-field"><div class="det-label">Req #</div><div class="det-val ${!c.reqNumber?'empty':''}">${esc(c.reqNumber||'—')}</div></div><div class="det-field"><div class="det-label">Source</div><div class="det-val">${esc(c.source||'—')}</div></div><div class="det-field"><div class="det-label">Temperature</div><div class="det-val">${c.temp?pill(c.temp):'—'}</div></div><div class="det-field"><div class="det-label">Follow-up</div><div class="det-val ${!c.followUp?'empty':''}">${c.followUp?fmt(c.followUp):'Not set'}</div></div><div class="det-field"><div class="det-label">Resume</div><div class="det-val">${c.resumePath?`<a href="#" onclick="viewRes('${c.resumePath}')">View resume ↗</a>`:(c.resumeFileName?esc(c.resumeFileName):'Not attached')}</div></div><div class="det-field full"><div class="det-label">Notes</div><div class="det-val ${!c.notes?'empty':''}">${esc(c.notes||'No notes')}</div></div>`;
   const linked=allClients.find(cl=>(c.role||'').toLowerCase().includes(cl.company.toLowerCase().slice(0,4)));
   document.getElementById('cdet-rel-client').innerHTML=linked?`<div class="mini-list-item" onclick="openClDet('${linked.id}')"><span class="cell-link">${esc(linked.company)}</span>${pill(linked.status)}</div>`:`<div style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No linked client</div>`;
   renderCActEl(c);
   renderChatterFeed('candidate', c);
+  switchRecordTab('candidate','details');
   const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span onclick="goTo('candidates')" style="cursor:pointer;color:var(--coral);">Candidates</span><span class="sep">›</span><span class="current">${esc(c.name)}</span>`;
   history.replaceState(null,'','#candidate/'+c.id);
   currentPage='candidate-detail';document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-candidate-detail').classList.add('active');
+}
+function switchRecordTab(target,tabName){
+  const prefix=target==='candidate'?'cdet':'cldet';
+  const tabsEl=document.getElementById(prefix+'-tabs');if(!tabsEl)return;
+  tabsEl.querySelectorAll('.record-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tabName));
+  document.querySelectorAll('#page-'+target+'-detail .tab-content').forEach(t=>t.classList.remove('active'));
+  const panel=document.getElementById(prefix+'-tab-'+tabName);if(panel)panel.classList.add('active');
+}
+function switchDashTab(tabName){
+  const tabsEl=document.getElementById('dash-tabs');if(!tabsEl)return;
+  tabsEl.querySelectorAll('.record-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tabName));
+  document.querySelectorAll('#page-dashboard .tab-content').forEach(t=>t.classList.remove('active'));
+  const panel=document.getElementById('dash-tab-'+tabName);if(panel)panel.classList.add('active');
 }
 function renderCActEl(c){
   const el=document.getElementById('cdet-activity');const acts=(c.activity||[]).slice().reverse();
@@ -959,11 +1057,15 @@ function openCandidateModal(id=null){
   const c=id?allCandidates.find(x=>x.id===id):null;
   document.getElementById('cand-mtitle').textContent=c?'Edit Candidate':'Add Candidate';
   document.getElementById('cand-id').value=c?c.id:'';document.getElementById('cand-name').value=c?c.name:'';document.getElementById('cand-email').value=c?c.email||'':'';document.getElementById('cand-phone').value=c?c.phone||'':'';document.getElementById('cand-status').value=c?c.status:'applied';document.getElementById('cand-role').value=c?c.role||'':'';document.getElementById('cand-source').value=c?c.source||'website':'website';document.getElementById('cand-temp').value=c?c.temp||'':'';document.getElementById('cand-followup').value=c&&c.followUp?c.followUp.slice(0,10):'';document.getElementById('cand-notes').value=c?c.notes||'':'';
+  setFieldError('fr-cand-name',false);setFieldError('fr-cand-email',false);
   openModal('modal-cand');
 }
+function setFieldError(rowId,hasError){const el=document.getElementById(rowId);if(el)el.classList.toggle('has-error',!!hasError);}
 async function saveCandidate(){
   const name=document.getElementById('cand-name').value.trim();const email=document.getElementById('cand-email').value.trim();
-  if(!name||!email){toast('Name and email required','error');return;}
+  const emailOk=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  setFieldError('fr-cand-name',!name);setFieldError('fr-cand-email',!email||!emailOk);
+  if(!name||!email||!emailOk){toast(!name||!email?'Name and email required':'Enter a valid email address','error');return;}
   const id=document.getElementById('cand-id').value;const existing=id?allCandidates.find(c=>c.id===id):null;
   const rec={id:id||uid(),name,email,phone:document.getElementById('cand-phone').value.trim(),status:document.getElementById('cand-status').value,role:document.getElementById('cand-role').value.trim(),source:document.getElementById('cand-source').value,temp:document.getElementById('cand-temp').value,followUp:document.getElementById('cand-followup').value||null,notes:document.getElementById('cand-notes').value.trim(),createdAt:existing?existing.createdAt:now(),activity:existing?existing.activity:[]};
   try{await upsertC(rec);if(!id){allCandidates.unshift(rec);await addAct({type:'candidate',refId:rec.id,refName:rec.name,action:'added',detail:`Added · ${rec.status}`});}else{const i=allCandidates.findIndex(c=>c.id===id);if(i>-1)allCandidates[i]=rec;}closeModal('modal-cand');toast(id?'Updated':'Candidate added','success');if(currentPage==='candidates')renderCandidates();if(currentPage==='dashboard')renderDashboard();if(currentPage==='candidate-detail'&&currentCandidateId===rec.id)openCandDet(rec.id);updateBadges();}
@@ -987,12 +1089,13 @@ function setClFilter(f,btn){clientFilter=f;document.querySelectorAll('#page-clie
 
 function openClDet(id){
   currentClientId=id;const c=allClients.find(x=>x.id===id);if(!c)return;
-  document.getElementById('cldet-hero').innerHTML=`<div class="record-hero-top"><div class="r-avatar teal">${inits(c.company)}</div><div class="r-meta"><div class="r-name">${esc(c.company)}</div><div class="r-sub"><span>${esc(c.contact||'')}</span>${c.email?`<span class="dot">·</span><span>${esc(c.email)}</span>`:''}<span class="dot">·</span>${pill(c.status)}</div></div><div class="r-actions"><button class="btn btn-teal btn-sm" onclick="document.getElementById('cldet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary btn-sm" onclick="openClientModal('${c.id}')">Edit</button></div></div><div class="record-quick-stats"><div class="qs-item"><div class="qs-label">Status</div><div class="qs-val" style="font-size:0.85rem;">${c.status}</div></div><div class="qs-item"><div class="qs-label">Open Roles</div><div class="qs-val">${c.openRoles||0}</div></div><div class="qs-item"><div class="qs-label">Industry</div><div class="qs-val" style="font-size:0.85rem;">${esc(c.industry||'—')}</div></div><div class="qs-item"><div class="qs-label">Value</div><div class="qs-val" style="font-size:0.85rem;">${c.value?'$'+Number(c.value).toLocaleString():'—'}</div></div><div class="qs-item"><div class="qs-label">Activity</div><div class="qs-val" style="font-size:0.85rem;">${(c.activity||[]).length}</div></div></div>`;
+  document.getElementById('cldet-hero').innerHTML=`<div class="record-hero-top"><div class="r-avatar teal">${inits(c.company)}</div><div class="r-meta"><div class="r-name">${esc(c.company)}</div><div class="r-sub"><span>${esc(c.contact||'')}</span>${c.email?`<span class="dot">·</span><span>${esc(c.email)}</span>`:''}<span class="dot">·</span>${pill(c.status)}</div></div><div class="r-actions"><button class="btn btn-teal btn-sm" onclick="switchRecordTab('client','activity');document.getElementById('cldet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary btn-sm" onclick="openClientModal('${c.id}')">Edit</button></div></div><div class="record-quick-stats"><div class="qs-item"><div class="qs-label">Status</div><div class="qs-val" style="font-size:0.85rem;">${c.status}</div></div><div class="qs-item"><div class="qs-label">Open Roles</div><div class="qs-val">${c.openRoles||0}</div></div><div class="qs-item"><div class="qs-label">Industry</div><div class="qs-val" style="font-size:0.85rem;">${esc(c.industry||'—')}</div></div><div class="qs-item"><div class="qs-label">Value</div><div class="qs-val" style="font-size:0.85rem;">${c.value?'$'+Number(c.value).toLocaleString():'—'}</div></div><div class="qs-item"><div class="qs-label">Activity</div><div class="qs-val" style="font-size:0.85rem;">${(c.activity||[]).length}</div></div></div>`;
   document.getElementById('cldet-fields').innerHTML=`<div class="det-field"><div class="det-label">Contact</div><div class="det-val ${!c.contact?'empty':''}">${esc(c.contact||'—')}</div></div><div class="det-field"><div class="det-label">Email</div><div class="det-val ${!c.email?'empty':''}">${esc(c.email||'—')}</div></div><div class="det-field"><div class="det-label">Phone</div><div class="det-val ${!c.phone?'empty':''}">${esc(c.phone||'—')}</div></div><div class="det-field"><div class="det-label">Industry</div><div class="det-val ${!c.industry?'empty':''}">${esc(c.industry||'—')}</div></div><div class="det-field"><div class="det-label">Open Roles</div><div class="det-val">${c.openRoles||0}</div></div><div class="det-field"><div class="det-label">Contract Value</div><div class="det-val">${c.value?'$'+Number(c.value).toLocaleString():'—'}</div></div><div class="det-field"><div class="det-label">Added</div><div class="det-val">${fmt(c.createdAt)}</div></div><div class="det-field"><div class="det-label">Status</div><div class="det-val">${pill(c.status)}</div></div><div class="det-field full"><div class="det-label">Notes</div><div class="det-val ${!c.notes?'empty':''}">${esc(c.notes||'No notes')}</div></div>`;
   const relCands=allCandidates.filter(cand=>(cand.role||'').toLowerCase().includes(c.company.toLowerCase().slice(0,4)));
   document.getElementById('cldet-rel-cands').innerHTML=relCands.length?relCands.map(cand=>`<div class="mini-list-item" onclick="openCandDet('${cand.id}')"><span class="cell-link">${esc(cand.name)}</span>${pill(cand.status)}</div>`).join(''):`<div style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No related candidates</div>`;
   renderClActEl(c);
   renderChatterFeed('client', c);
+  switchRecordTab('client','details');
   const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span onclick="goTo('clients')" style="cursor:pointer;color:var(--coral);">Clients</span><span class="sep">›</span><span class="current">${esc(c.company)}</span>`;
   history.replaceState(null,'','#client/'+c.id);
   currentPage='client-detail';document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-client-detail').classList.add('active');
@@ -1021,10 +1124,13 @@ function openClientModal(id=null){
   const c=id?allClients.find(x=>x.id===id):null;
   document.getElementById('client-mtitle').textContent=c?'Edit Client':'Add Client';
   document.getElementById('client-id').value=c?c.id:'';document.getElementById('client-company').value=c?c.company:'';document.getElementById('client-contact').value=c?c.contact||'':'';document.getElementById('client-email').value=c?c.email||'':'';document.getElementById('client-phone').value=c?c.phone||'':'';document.getElementById('client-industry').value=c?c.industry||'':'';document.getElementById('client-status').value=c?c.status:'prospect';document.getElementById('client-openroles').value=c?c.openRoles||0:0;document.getElementById('client-value').value=c?c.value||0:0;document.getElementById('client-notes').value=c?c.notes||'':'';
+  setFieldError('fr-client-company',false);
   openModal('modal-client');
 }
 async function saveClient(){
-  const company=document.getElementById('client-company').value.trim();if(!company){toast('Company name required','error');return;}
+  const company=document.getElementById('client-company').value.trim();
+  setFieldError('fr-client-company',!company);
+  if(!company){toast('Company name required','error');return;}
   const id=document.getElementById('client-id').value;const existing=id?allClients.find(c=>c.id===id):null;
   const rec={id:id||uid(),company,contact:document.getElementById('client-contact').value.trim(),email:document.getElementById('client-email').value.trim(),phone:document.getElementById('client-phone').value.trim(),industry:document.getElementById('client-industry').value.trim(),status:document.getElementById('client-status').value,openRoles:parseInt(document.getElementById('client-openroles').value)||0,value:parseInt(document.getElementById('client-value').value)||0,notes:document.getElementById('client-notes').value.trim(),createdAt:existing?existing.createdAt:now(),activity:existing?existing.activity:[]};
   try{await upsertCl(rec);if(!id){allClients.unshift(rec);await addAct({type:'client',refId:rec.id,refName:rec.company,action:'added',detail:`Added · ${rec.status}`});}else{const i=allClients.findIndex(c=>c.id===id);if(i>-1)allClients[i]=rec;}closeModal('modal-client');toast(id?'Updated':'Client added','success');if(currentPage==='clients')renderClients();if(currentPage==='pipeline')renderPipeline();if(currentPage==='client-detail'&&currentClientId===rec.id)openClDet(rec.id);}
@@ -1032,10 +1138,22 @@ async function saveClient(){
 }
 
 function renderPipeline(){
+  const totalValue=allClients.reduce((s,c)=>s+(c.value||0),0);
+  const totalOpenRoles=allClients.reduce((s,c)=>s+(c.openRoles||0),0);
+  document.getElementById('pipe-hero-stats').innerHTML=`<div class="qs-item"><div class="qs-label">Total Clients</div><div class="qs-val">${allClients.length}</div></div><div class="qs-item"><div class="qs-label">Active</div><div class="qs-val">${allClients.filter(c=>c.status==='active').length}</div></div><div class="qs-item"><div class="qs-label">Prospects</div><div class="qs-val">${allClients.filter(c=>c.status==='prospect').length}</div></div><div class="qs-item"><div class="qs-label">Open Roles</div><div class="qs-val">${totalOpenRoles}</div></div><div class="qs-item"><div class="qs-label">Pipeline Value</div><div class="qs-val" style="font-size:0.95rem;">${totalValue?'$'+totalValue.toLocaleString():'—'}</div></div>`;
   document.getElementById('kanban-board').innerHTML=[{k:'prospect',l:'Prospect',c:'var(--coral)'},{k:'active',l:'Active',c:'var(--teal)'},{k:'closed',l:'Closed',c:'var(--ink-faint)'}].map(stage=>{
     const cols=allClients.filter(c=>c.status===stage.k);
     return`<div class="kb-col"><div class="kb-col-header"><span class="kb-col-label" style="color:${stage.c}">${stage.l}</span><span class="kb-count">${cols.length}</span></div>${cols.map(c=>`<div class="kb-card" onclick="openClDet('${c.id}')"><div class="kb-card-name">${esc(c.company)}</div><div class="kb-card-sub">${esc(c.contact||'')}${c.industry?' · '+esc(c.industry):''}${c.email?'<br>'+esc(c.email):''}</div><div class="kb-card-footer">${c.openRoles?`<span style="font-size:0.68rem;color:var(--teal);">${c.openRoles} open role${c.openRoles!==1?'s':''}</span>`:'<span></span>'}${c.value?`<span style="font-size:0.68rem;font-weight:700;">$${Number(c.value).toLocaleString()}</span>`:''}</div></div>`).join('')}<button class="kb-add" onclick="openClientModal()">+ Add to ${stage.l}</button></div>`;
   }).join('');
+  const ltbody=document.getElementById('pipe-list-tbody');
+  if(!allClients.length){ltbody.innerHTML=`<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⬡</div><p>No clients yet.</p><div class="ea"><button class="btn btn-teal btn-sm" onclick="openClientModal()">+ Add Client</button></div></div></td></tr>`;}
+  else{ltbody.innerHTML=allClients.map(c=>`<tr onclick="openClDet('${c.id}')"><td class="cell-link">${esc(c.company)}</td><td class="cell-soft">${esc(c.contact||'—')}</td><td>${pill(c.status)}</td><td>${c.openRoles||0}</td><td>${c.value?'$'+Number(c.value).toLocaleString():'—'}</td></tr>`).join('');}
+}
+function switchPipeTab(tabName){
+  const tabsEl=document.getElementById('pipe-tabs');if(!tabsEl)return;
+  tabsEl.querySelectorAll('.record-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tabName));
+  document.querySelectorAll('#page-pipeline .tab-content').forEach(t=>t.classList.remove('active'));
+  const panel=document.getElementById('pipe-tab-'+tabName);if(panel)panel.classList.add('active');
 }
 
 function renderJobs(){
