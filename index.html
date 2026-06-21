@@ -344,6 +344,15 @@
         .form-group textarea { resize: vertical; min-height: 100px; }
         .form-hint { font-size: 0.75rem; color: var(--ink-faint); margin-top: 0.5rem; line-height: 1.6; }
 
+        .resume-mode-toggle { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; }
+        .resume-mode-btn {
+            flex: 1; padding: 0.6rem 0.7rem; border-radius: 100px; border: 1px solid var(--line);
+            background: #fff; color: var(--ink-soft); font-family: 'Inter', sans-serif;
+            font-size: 0.76rem; font-weight: 600; cursor: pointer; transition: all 0.18s; text-align: center;
+        }
+        .resume-mode-btn:hover { border-color: var(--coral); }
+        .resume-mode-btn.active { background: var(--coral); border-color: var(--coral); color: #fff; }
+
         .file-drop {
             width: 100%; background: #fff; border: 1px dashed var(--ink-faint); border-radius: 12px;
             padding: 1.1rem 1.1rem; cursor: pointer; transition: border-color 0.25s, background 0.25s;
@@ -1098,6 +1107,10 @@
                     </div>
                     <div class="form-group">
                         <label>Resume</label>
+                        <div class="resume-mode-toggle" role="radiogroup" aria-label="How would you like to handle your resume?">
+                            <button type="button" class="resume-mode-btn active" id="resume-mode-autofill" onclick="setResumeMode('autofill')">✨ Auto-fill my info</button>
+                            <button type="button" class="resume-mode-btn" id="resume-mode-manual" onclick="setResumeMode('manual')">Just attach — I'll fill in myself</button>
+                        </div>
                         <div class="file-drop" id="apply-resume-drop" onclick="document.getElementById('apply-resume').click()">
                             <input type="file" id="apply-resume" accept=".pdf,.doc,.docx" style="display:none;" onchange="handleResumeFileChange(event)">
                             <div class="file-drop-inner" id="apply-resume-placeholder">
@@ -1557,6 +1570,18 @@
         placeholder.innerHTML = '<i class="ti ti-upload" aria-hidden="true" style="font-style:normal; font-size:1.1rem;">&#8593;</i><span>Click to attach your resume</span>';
     }
 
+    // ── Resume mode: let the applicant choose AI auto-fill vs. attach-and-fill-manually ──
+    let resumeMode = 'autofill';
+    function setResumeMode(mode) {
+        resumeMode = mode;
+        const autoBtn = document.getElementById('resume-mode-autofill');
+        const manualBtn = document.getElementById('resume-mode-manual');
+        if (autoBtn) autoBtn.classList.toggle('active', mode === 'autofill');
+        if (manualBtn) manualBtn.classList.toggle('active', mode === 'manual');
+        const statusEl = document.getElementById('apply-resume-ai-status');
+        if (statusEl) { statusEl.style.display = 'none'; statusEl.textContent = ''; }
+    }
+
     function handleResumeFileChange(e) {
         const file = e.target.files[0];
         const dropZone = document.getElementById('apply-resume-drop');
@@ -1578,9 +1603,19 @@
             <button type="button" class="file-drop-remove" onclick="event.stopPropagation(); clearResumeFile();">Remove</button>
         `;
 
-        // ✨ Best-effort AI auto-fill — speeds up the form for the applicant.
-        // Never blocks or interferes with submitting the application if it fails.
-        autofillFromResume(file);
+        // The file is attached either way — submitApplication() always uploads
+        // whatever's in the file input. This toggle only controls whether we
+        // also try to auto-fill the Name/Email/Phone fields from it.
+        if (resumeMode === 'autofill') {
+            autofillFromResume(file);
+        } else {
+            const statusEl = document.getElementById('apply-resume-ai-status');
+            if (statusEl) {
+                statusEl.textContent = '📎 Resume attached. Go ahead and fill in your info above.';
+                statusEl.style.color = 'var(--ink-soft)';
+                statusEl.style.display = 'block';
+            }
+        }
     }
 
     async function extractResumeText(file) {
@@ -1612,7 +1647,7 @@
     async function autofillFromResume(file) {
         const statusEl = document.getElementById('apply-resume-ai-status');
         try {
-            if (statusEl) { statusEl.textContent = '✨ Reading your resume to speed up the form…'; statusEl.style.display = 'block'; }
+            if (statusEl) { statusEl.style.color = 'var(--teal)'; statusEl.textContent = '✨ Reading your resume to speed up the form…'; statusEl.style.display = 'block'; }
             const text = await extractResumeText(file);
             if (!text || !text.trim()) { if (statusEl) statusEl.style.display = 'none'; return; }
             const res = await fetch(SUPABASE_URL + '/functions/v1/ai-assist', {
@@ -1663,8 +1698,7 @@
         document.getElementById('apply-msg').className = 'form-msg';
         document.getElementById('apply-msg').style.display = 'none';
         resetResumeDropZone();
-        const aiStatusEl = document.getElementById('apply-resume-ai-status');
-        if (aiStatusEl) { aiStatusEl.style.display = 'none'; aiStatusEl.textContent = ''; }
+        setResumeMode('autofill');
         showPage('apply');
     }
 
