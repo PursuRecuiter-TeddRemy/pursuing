@@ -19,11 +19,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script>
-    if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}
-    </script>
 
     <style>
         :root {
@@ -343,15 +338,6 @@
         .form-group input::placeholder, .form-group textarea::placeholder { color: var(--ink-faint); }
         .form-group textarea { resize: vertical; min-height: 100px; }
         .form-hint { font-size: 0.75rem; color: var(--ink-faint); margin-top: 0.5rem; line-height: 1.6; }
-
-        .resume-mode-toggle { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; }
-        .resume-mode-btn {
-            flex: 1; padding: 0.6rem 0.7rem; border-radius: 100px; border: 1px solid var(--line);
-            background: #fff; color: var(--ink-soft); font-family: 'Inter', sans-serif;
-            font-size: 0.76rem; font-weight: 600; cursor: pointer; transition: all 0.18s; text-align: center;
-        }
-        .resume-mode-btn:hover { border-color: var(--coral); }
-        .resume-mode-btn.active { background: var(--coral); border-color: var(--coral); color: #fff; }
 
         .file-drop {
             width: 100%; background: #fff; border: 1px dashed var(--ink-faint); border-radius: 12px;
@@ -1107,10 +1093,6 @@
                     </div>
                     <div class="form-group">
                         <label>Resume</label>
-                        <div class="resume-mode-toggle" role="radiogroup" aria-label="How would you like to handle your resume?">
-                            <button type="button" class="resume-mode-btn active" id="resume-mode-autofill" onclick="setResumeMode('autofill')">✨ Auto-fill my info</button>
-                            <button type="button" class="resume-mode-btn" id="resume-mode-manual" onclick="setResumeMode('manual')">Just attach — I'll fill in myself</button>
-                        </div>
                         <div class="file-drop" id="apply-resume-drop" onclick="document.getElementById('apply-resume').click()">
                             <input type="file" id="apply-resume" accept=".pdf,.doc,.docx" style="display:none;" onchange="handleResumeFileChange(event)">
                             <div class="file-drop-inner" id="apply-resume-placeholder">
@@ -1119,7 +1101,6 @@
                             </div>
                         </div>
                         <p class="form-hint">PDF or Word document, up to 5MB.</p>
-                        <p class="form-hint" id="apply-resume-ai-status" style="display:none;color:var(--teal);font-weight:600;"></p>
                     </div>
                     <div class="form-group">
                         <label>Note (optional)</label>
@@ -1570,18 +1551,6 @@
         placeholder.innerHTML = '<i class="ti ti-upload" aria-hidden="true" style="font-style:normal; font-size:1.1rem;">&#8593;</i><span>Click to attach your resume</span>';
     }
 
-    // ── Resume mode: let the applicant choose AI auto-fill vs. attach-and-fill-manually ──
-    let resumeMode = 'autofill';
-    function setResumeMode(mode) {
-        resumeMode = mode;
-        const autoBtn = document.getElementById('resume-mode-autofill');
-        const manualBtn = document.getElementById('resume-mode-manual');
-        if (autoBtn) autoBtn.classList.toggle('active', mode === 'autofill');
-        if (manualBtn) manualBtn.classList.toggle('active', mode === 'manual');
-        const statusEl = document.getElementById('apply-resume-ai-status');
-        if (statusEl) { statusEl.style.display = 'none'; statusEl.textContent = ''; }
-    }
-
     function handleResumeFileChange(e) {
         const file = e.target.files[0];
         const dropZone = document.getElementById('apply-resume-drop');
@@ -1602,89 +1571,12 @@
             <span>${escapeHtml(file.name)}</span>
             <button type="button" class="file-drop-remove" onclick="event.stopPropagation(); clearResumeFile();">Remove</button>
         `;
-
-        // The file is attached either way — submitApplication() always uploads
-        // whatever's in the file input. This toggle only controls whether we
-        // also try to auto-fill the Name/Email/Phone fields from it.
-        if (resumeMode === 'autofill') {
-            autofillFromResume(file);
-        } else {
-            const statusEl = document.getElementById('apply-resume-ai-status');
-            if (statusEl) {
-                statusEl.textContent = '📎 Resume attached. Go ahead and fill in your info above.';
-                statusEl.style.color = 'var(--ink-soft)';
-                statusEl.style.display = 'block';
-            }
-        }
-    }
-
-    async function extractResumeText(file) {
-        const lower = file.name.toLowerCase();
-        try {
-            if (lower.endsWith('.pdf')) {
-                if (!window.pdfjsLib) return '';
-                const buf = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-                let text = '';
-                for (let p = 1; p <= pdf.numPages; p++) {
-                    const page = await pdf.getPage(p);
-                    const content = await page.getTextContent();
-                    text += content.items.map(it => it.str).join(' ') + '\n';
-                }
-                return text;
-            }
-            if (lower.endsWith('.docx')) {
-                if (!window.mammoth) return '';
-                const buf = await file.arrayBuffer();
-                const result = await mammoth.extractRawText({ arrayBuffer: buf });
-                return result.value;
-            }
-        } catch (err) { /* fall through to empty string below */ }
-        // Legacy .doc (binary format) isn't supported for client-side text extraction.
-        return '';
-    }
-
-    async function autofillFromResume(file) {
-        const statusEl = document.getElementById('apply-resume-ai-status');
-        try {
-            if (statusEl) { statusEl.style.color = 'var(--teal)'; statusEl.textContent = '✨ Reading your resume to speed up the form…'; statusEl.style.display = 'block'; }
-            const text = await extractResumeText(file);
-            if (!text || !text.trim()) { if (statusEl) statusEl.style.display = 'none'; return; }
-            const res = await fetch(SUPABASE_URL + '/functions/v1/ai-assist', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'apikey': SUPABASE_ANON_KEY },
-                body: JSON.stringify({ action: 'parse_resume', text: text.slice(0, 12000) })
-            });
-            if (!res.ok) { if (statusEl) statusEl.style.display = 'none'; return; }
-            const data = await res.json();
-            const f = data.fields || {};
-            const nameEl = document.getElementById('apply-name');
-            const emailEl = document.getElementById('apply-email');
-            const phoneEl = document.getElementById('apply-phone');
-            const filled = [];
-            if (f.name && nameEl && !nameEl.value.trim()) { nameEl.value = f.name; filled.push('name'); }
-            if (f.email && emailEl && !emailEl.value.trim()) { emailEl.value = f.email; filled.push('email'); }
-            if (f.phone && phoneEl && !phoneEl.value.trim()) { phoneEl.value = f.phone; filled.push('phone'); }
-            if (statusEl) {
-                if (filled.length) {
-                    statusEl.textContent = `✨ Auto-filled ${filled.join(', ')} from your resume — feel free to edit.`;
-                    statusEl.style.display = 'block';
-                } else {
-                    statusEl.style.display = 'none';
-                }
-            }
-        } catch (err) {
-            // Silent fail — this is a convenience feature, never blocks applying.
-            if (statusEl) statusEl.style.display = 'none';
-        }
     }
 
     function clearResumeFile() {
         const input = document.getElementById('apply-resume');
         if (input) input.value = '';
         resetResumeDropZone();
-        const statusEl = document.getElementById('apply-resume-ai-status');
-        if (statusEl) { statusEl.style.display = 'none'; statusEl.textContent = ''; }
     }
 
     function openApply(jobId) {
@@ -1698,7 +1590,6 @@
         document.getElementById('apply-msg').className = 'form-msg';
         document.getElementById('apply-msg').style.display = 'none';
         resetResumeDropZone();
-        setResumeMode('autofill');
         showPage('apply');
     }
 
