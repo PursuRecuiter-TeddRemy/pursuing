@@ -159,6 +159,11 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 .act-body{flex:1;}
 .act-text{font-size:0.78rem;line-height:1.5;}
 .act-time{font-size:0.65rem;color:var(--ink-faint);margin-top:0.2rem;}
+.email-stat{display:inline-block;font-size:0.65rem;font-weight:600;padding:0.1rem 0.45rem;border-radius:20px;margin-left:0.3rem;white-space:nowrap;}
+.email-stat-sent{background:#f1f1f1;color:#777;}
+.email-stat-delivered{background:#e8f0fe;color:#2563eb;}
+.email-stat-opened{background:#e6f7ee;color:#0f9d58;}
+.email-stat-bounced{background:#fdeaea;color:#d93025;}
 .note-row{display:flex;gap:0.5rem;padding:0.8rem 1rem;border-bottom:1px solid var(--line);}
 .note-row textarea{flex:1;border:1px solid var(--line);border-radius:6px;padding:0.5rem 0.7rem;font-family:'Inter',sans-serif;font-size:0.78rem;resize:none;height:56px;outline:none;}
 .note-row textarea:focus{border-color:var(--coral);}
@@ -420,6 +425,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
     <div class="nav-item" data-page="placements" onclick="goTo('placements')"><span class="nav-icon">✓</span><span class="nav-label">Placements</span></div>
     <div class="nav-group-label">Business</div>
     <div class="nav-item" data-page="clients" onclick="goTo('clients')"><span class="nav-icon">🏢</span><span class="nav-label">Clients</span></div>
+    <div class="nav-item" data-page="sequences" onclick="goTo('sequences')"><span class="nav-icon">📨</span><span class="nav-label">Sequences</span><span class="nav-badge" id="badge-due" style="display:none">0</span></div>
     <div class="nav-item" data-page="pipeline" onclick="goTo('pipeline')"><span class="nav-icon">⬡</span><span class="nav-label">Pipeline</span></div>
     <div class="nav-item" data-page="jobs" onclick="goTo('jobs')"><span class="nav-icon">📋</span><span class="nav-label">Open Roles</span></div>
     <div class="nav-group-label">Insights</div>
@@ -665,7 +671,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
           </div>
         </div>
         <div class="record-side">
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Pipeline Stage</span></div><div style="padding:0.8rem;display:flex;flex-direction:column;gap:0.4rem;"><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="updateClStatus('prospect')">⬡ Prospect</button><button class="btn btn-teal" style="width:100%;justify-content:center;" onclick="updateClStatus('active')">✓ Active</button><button class="btn btn-ghost" style="width:100%;justify-content:center;" onclick="updateClStatus('closed')">✕ Closed</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openSendEmailModal('client')">✉️ Send Email</button></div></div>
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Pipeline Stage</span></div><div style="padding:0.8rem;display:flex;flex-direction:column;gap:0.4rem;"><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="updateClStatus('prospect')">⬡ Prospect</button><button class="btn btn-teal" style="width:100%;justify-content:center;" onclick="updateClStatus('active')">✓ Active</button><button class="btn btn-ghost" style="width:100%;justify-content:center;" onclick="updateClStatus('closed')">✕ Closed</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openSendEmailModal('client')">✉️ Send Email</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openEnrollModal(currentClientId)">📨 Enroll in Sequence</button></div></div>
         </div>
       </div>
     </div>
@@ -699,6 +705,20 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
     <div class="page" id="page-jobs">
       <div class="toolbar"><span style="font-size:0.78rem;color:var(--ink-soft);">Live roles from wepursu.one</span><div class="toolbar-right"><button class="btn btn-secondary btn-sm" onclick="syncFromSite()">⟳ Refresh</button><a class="btn btn-teal btn-sm" href="https://wepursu.one" target="_blank">Open Site ↗</a></div></div>
       <div class="panel tbl-wrap"><table class="crm"><thead><tr><th>Title</th><th>Req #</th><th>Category</th><th>Pay</th><th>Location</th><th>Status</th><th>Link</th></tr></thead><tbody id="jobs-tbody"></tbody></table></div>
+    </div>
+
+    <div class="page" id="page-sequences">
+      <div class="toolbar"><span style="font-size:0.78rem;color:var(--ink-soft);">Build once, enroll as many clients as you want</span><div class="toolbar-right"><button class="btn btn-teal btn-sm" onclick="openSequenceModal()">+ New Sequence</button></div></div>
+
+      <div class="panel" style="margin-bottom:1rem;">
+        <div class="panel-header"><span class="panel-title">📨 Due Today</span></div>
+        <div id="due-today-wrap" style="padding:0.5rem 0.9rem 0.9rem;"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Your Sequences</span></div>
+        <div id="sequences-list" style="padding:0.5rem 0.9rem 0.9rem;"></div>
+      </div>
     </div>
 
     <div class="page" id="page-reports"><div class="report-grid" id="reports-content"></div></div>
@@ -820,6 +840,54 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
   </div>
 </div>
 
+<!-- SEQUENCE BUILDER MODAL -->
+<div class="modal-overlay" id="modal-sequence">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header"><h3 id="seq-mtitle">New Sequence</h3><button class="modal-close" onclick="closeModal('modal-sequence')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="seq-id">
+      <div class="form-row"><label>Sequence Name</label><input id="seq-name" placeholder="e.g. ERP Client Outreach"></div>
+      <div class="form-row"><label>Description (optional)</label><input id="seq-desc" placeholder="Internal note about who/what this sequence targets"></div>
+      <div class="form-row"><label>Applies To</label>
+        <select id="seq-target-type" style="padding:0.52rem 0.75rem;border:1px solid var(--line);border-radius:6px;font-size:0.8rem;color:var(--ink);background:#fff;">
+          <option value="client">Clients</option>
+          <option value="candidate">Candidates</option>
+        </select>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0 0.5rem;">
+        <label style="font-size:0.78rem;font-weight:600;color:var(--ink);">Steps</label>
+        <button class="btn btn-secondary btn-xs" type="button" onclick="addSeqStep()">+ Add Step</button>
+      </div>
+      <div id="seq-steps-wrap" style="display:flex;flex-direction:column;gap:0.6rem;"></div>
+      <div class="login-error" id="seq-error" style="display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-sequence')">Cancel</button>
+      <button class="btn btn-primary" id="seq-save-btn" onclick="saveSequence()">Save Sequence</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENROLL MODAL -->
+<div class="modal-overlay" id="modal-enroll">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><h3>Enroll in Sequence</h3><button class="modal-close" onclick="closeModal('modal-enroll')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="enroll-target-id">
+      <input type="hidden" id="enroll-target-type">
+      <div class="form-row"><label>Sequence</label>
+        <select id="enroll-seq-select" style="padding:0.52rem 0.75rem;border:1px solid var(--line);border-radius:6px;font-size:0.8rem;color:var(--ink);background:#fff;"></select>
+      </div>
+      <p style="font-size:0.76rem;color:var(--ink-soft);margin-top:0.3rem;">Step 1 will become due based on its delay (0 = today). You'll see it appear in the Due Today list on the Sequences page — sending still requires your click, nothing goes out automatically.</p>
+      <div class="login-error" id="enroll-error" style="display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-enroll')">Cancel</button>
+      <button class="btn btn-primary" id="enroll-save-btn" onclick="confirmEnroll()">Enroll</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- LOGIN SCREEN -->
@@ -908,6 +976,53 @@ async function aiCall(action,payload){
 }
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const now=()=>new Date().toISOString();
+
+// ── EMAIL SENDING (Resend, via send-email Edge Function — replaces the old Web3Forms call, which only ever notified your own inbox) ──
+const SEND_EMAIL_FN_URL=SURL+'/functions/v1/send-email';
+async function sendEmailViaResend(to,subject,body,targetType,targetId){
+  let token=SKEY;
+  try{const{data:{session}}=await db.auth.getSession();if(session&&session.access_token)token=session.access_token;}catch(e){}
+  let res;
+  try{
+    res=await fetch(SEND_EMAIL_FN_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'apikey':SKEY},body:JSON.stringify({to,subject,body,targetType,targetId})});
+  }catch(netErr){
+    throw new Error('Email service unreachable — check your connection');
+  }
+  let data;try{data=await res.json();}catch(e){data={success:false,error:'Unexpected response from email service'};}
+  if(!res.ok||!data.success){
+    throw new Error(data.error||('Email send failed ('+res.status+')'));
+  }
+  return data; // {success:true, logId, resendId}
+}
+
+// ── EMAIL TRACKING (Sent / Delivered / Opened, populated via Resend webhook → crm_email_log) ──
+let emailStatusMap={}; // logId -> {status, sentAt, deliveredAt, openedAt, openCount}
+let emailStatusPollTimer=null;
+async function loadEmailStatuses(targetType,targetId){
+  if(!db||!targetId)return;
+  const r=await dbQ(()=>db.from('crm_email_log').select('*').eq('target_type',targetType).eq('target_id',targetId));
+  if(r&&!r.error&&r.data){
+    r.data.forEach(row=>{emailStatusMap[row.id]={status:row.status,sentAt:row.sent_at,deliveredAt:row.delivered_at,openedAt:row.opened_at,openCount:row.open_count||0};});
+  }
+}
+function emailStatusBadge(logId){
+  if(!logId)return'';
+  const s=emailStatusMap[logId];
+  if(!s)return'<span class="email-stat email-stat-sent" title="Sent">✓ Sent</span>';
+  if(s.status==='opened')return`<span class="email-stat email-stat-opened" title="Opened ${fmtT(s.openedAt)}${s.openCount>1?' · '+s.openCount+'x':''}">👁 Opened ${fmtT(s.openedAt)}</span>`;
+  if(s.status==='delivered')return`<span class="email-stat email-stat-delivered" title="Delivered ${fmtT(s.deliveredAt)}">📨 Delivered</span>`;
+  if(s.status==='bounced')return'<span class="email-stat email-stat-bounced" title="Bounced">⚠ Bounced</span>';
+  return'<span class="email-stat email-stat-sent" title="Sent">✓ Sent</span>';
+}
+function startEmailStatusPolling(targetType,targetId){
+  stopEmailStatusPolling();
+  emailStatusPollTimer=setInterval(async()=>{
+    await loadEmailStatuses(targetType,targetId);
+    if(targetType==='candidate'&&currentCandidateId===targetId){const c=allCandidates.find(x=>x.id===targetId);if(c)renderCActEl(c);}
+    if(targetType==='client'&&currentClientId===targetId){const c=allClients.find(x=>x.id===targetId);if(c)renderClActEl(c);}
+  },20000);
+}
+function stopEmailStatusPolling(){if(emailStatusPollTimer){clearInterval(emailStatusPollTimer);emailStatusPollTimer=null;}}
 const fmt=iso=>{if(!iso)return'—';const d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});};
 const fmtT=iso=>{if(!iso)return'';const d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});};
 const inits=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
@@ -920,7 +1035,7 @@ let lb=null;
 function setLoading(on){if(!lb){lb=document.createElement('div');lb.style.cssText='position:fixed;top:0;left:0;right:0;height:2px;background:var(--coral);z-index:9999;display:none;';document.body.appendChild(lb);}lb.style.display=on?'block':'none';}
 
 let currentPage='dashboard',currentCandidateId=null,currentClientId=null;
-let allCandidates=[],allClients=[],allActivity=[],siteJobs=[];
+let allCandidates=[],allClients=[],allActivity=[],siteJobs=[],allSequences=[],allEnrollments=[];
 let candFilter='all',clientFilter='all',candSort={field:'createdAt',dir:-1};
 let selectedCands=new Set();
 
@@ -928,23 +1043,29 @@ async function dbQ(fn){if(!db)return null;try{setLoading(true);const r=await fn(
 
 const rowToC=r=>({id:r.id,siteId:r.site_id,name:r.name,email:r.email,phone:r.phone,status:r.status,role:r.role,source:r.source,notes:r.notes,resumeFileName:r.resume_file_name,resumePath:r.resume_path,reqNumber:r.req_number,temp:r.temp,followUp:r.follow_up,activity:r.activity||[],chatter:r.chatter||[],createdAt:r.created_at,updatedAt:r.updated_at});
 const rowToCl=r=>({id:r.id,company:r.company,contact:r.contact,email:r.email,phone:r.phone,industry:r.industry,status:r.status,openRoles:r.open_roles||0,value:r.value||0,notes:r.notes,activity:r.activity||[],chatter:r.chatter||[],createdAt:r.created_at,updatedAt:r.updated_at});
+const rowToSeq=r=>({id:r.id,name:r.name,description:r.description,targetType:r.target_type,steps:r.steps||[],active:r.active,createdAt:r.created_at,updatedAt:r.updated_at});
+const rowToEnr=r=>({id:r.id,sequenceId:r.sequence_id,targetType:r.target_type,targetId:r.target_id,currentStep:r.current_step,nextSendDate:r.next_send_date,status:r.status,enrolledAt:r.enrolled_at,lastSentAt:r.last_sent_at});
 
 async function loadAll(){
   setLoading(true);
-  const [rc,rcl,ra,rj]=await Promise.all([
+  const [rc,rcl,ra,rj,rs,re]=await Promise.all([
     dbQ(()=>db.from('crm_candidates').select('*').order('created_at',{ascending:false})),
     dbQ(()=>db.from('crm_clients').select('*').order('created_at',{ascending:false})),
     dbQ(()=>db.from('crm_activity').select('*').order('created_at',{ascending:false}).limit(300)),
-    dbQ(()=>db.from('jobs').select('*').order('created_at',{ascending:false}))
+    dbQ(()=>db.from('jobs').select('*').order('created_at',{ascending:false})),
+    dbQ(()=>db.from('email_sequences').select('*').order('created_at',{ascending:false})),
+    dbQ(()=>db.from('sequence_enrollments').select('*').order('next_send_date',{ascending:true}))
   ]);
   if(rc&&!rc.error)allCandidates=(rc.data||[]).map(rowToC);
   if(rcl&&!rcl.error)allClients=(rcl.data||[]).map(rowToCl);
   if(ra&&!ra.error)allActivity=(ra.data||[]).map(r=>({id:r.id,type:r.type,refId:r.ref_id,refName:r.ref_name,action:r.action,detail:r.detail,at:r.created_at}));
   if(rj&&!rj.error)siteJobs=rj.data||[];
+  if(rs&&!rs.error)allSequences=(rs.data||[]).map(rowToSeq);
+  if(re&&!re.error)allEnrollments=(re.data||[]).map(rowToEnr);
   setLoading(false);updateBadges();
   // Restore page from URL hash on reload
   const hash=window.location.hash.replace('#','');
-  const validPages=['dashboard','candidates','placements','clients','pipeline','jobs','reports','activity','settings'];
+  const validPages=['dashboard','candidates','placements','clients','pipeline','jobs','sequences','reports','activity','settings'];
   if(hash.startsWith('candidate/')){
     const id=hash.replace('candidate/','');
     const found=allCandidates.find(c=>c.id===id);
@@ -974,11 +1095,12 @@ async function addAct(entry){
 }
 
 function goTo(page){
+  if(!page.includes('-detail'))stopEmailStatusPolling();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const el=document.getElementById('page-'+page);if(el)el.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page||(page.includes('candidate')&&n.dataset.page==='candidates')||(page.includes('client')&&n.dataset.page==='clients')));
   document.querySelectorAll('.bt-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page||(page.includes('candidate')&&n.dataset.page==='candidates')||(page.includes('client')&&n.dataset.page==='clients')));
-  const titles={dashboard:'Dashboard',candidates:'Candidates','candidate-detail':'Candidate',placements:'Placements',clients:'Clients','client-detail':'Client',pipeline:'Pipeline',jobs:'Open Roles',reports:'Reports',activity:'Activity Feed',settings:'Settings'};
+  const titles={dashboard:'Dashboard',candidates:'Candidates','candidate-detail':'Candidate',placements:'Placements',clients:'Clients','client-detail':'Client',pipeline:'Pipeline',jobs:'Open Roles',sequences:'Sequences',reports:'Reports',activity:'Activity Feed',settings:'Settings'};
   const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span class="current">${titles[page]||page}</span>`;
   currentPage=page;
   // Write hash so reload restores this page (skip detail pages — no stable URL without record id)
@@ -989,6 +1111,7 @@ function goTo(page){
   if(page==='clients')renderClients();
   if(page==='pipeline')renderPipeline();
   if(page==='jobs')renderJobs();
+  if(page==='sequences')renderSequences();
   if(page==='reports')renderReports();
   if(page==='activity')renderActivity();
   if(page==='settings')renderSettings('general');
@@ -1004,7 +1127,12 @@ function closeMobileNav(){
   document.getElementById('sidebar-overlay').classList.remove('show');
 }
 function handleAdd(){if(currentPage==='clients'||currentPage==='pipeline')openClientModal();else openCandidateModal();}
-function updateBadges(){const n=allCandidates.filter(c=>c.status==='applied').length;const el=document.getElementById('badge-cands');el.textContent=n||'';el.style.display=n?'':'none';}
+function updateBadges(){
+  const n=allCandidates.filter(c=>c.status==='applied').length;const el=document.getElementById('badge-cands');el.textContent=n||'';el.style.display=n?'':'none';
+  const today=new Date().toISOString().slice(0,10);
+  const due=allEnrollments.filter(e=>e.status==='active'&&e.nextSendDate<=today).length;
+  const dueEl=document.getElementById('badge-due');if(dueEl){dueEl.textContent=due||'';dueEl.style.display=due?'':'none';}
+}
 
 function renderDashboard(){
   document.getElementById('st-cands').textContent=allCandidates.length;
@@ -1154,6 +1282,8 @@ function openCandDet(id){
   const linked=allClients.find(cl=>(c.role||'').toLowerCase().includes(cl.company.toLowerCase().slice(0,4)));
   document.getElementById('cdet-rel-client').innerHTML=linked?`<div class="mini-list-item" onclick="openClDet('${linked.id}')"><span class="cell-link">${esc(linked.company)}</span>${pill(linked.status)}</div>`:`<div style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No linked client</div>`;
   renderCActEl(c);
+  loadEmailStatuses('candidate',c.id).then(()=>renderCActEl(c));
+  startEmailStatusPolling('candidate',c.id);
   renderChatterFeed('candidate', c);
   switchRecordTab('candidate','details');
   const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span onclick="goTo('candidates')" style="cursor:pointer;color:var(--coral);">Candidates</span><span class="sep">›</span><span class="current">${esc(c.name)}</span>`;
@@ -1176,7 +1306,7 @@ function switchDashTab(tabName){
 function renderCActEl(c){
   const el=document.getElementById('cdet-activity');const acts=(c.activity||[]).slice().reverse();
   if(!acts.length){el.innerHTML=`<div class="empty-state" style="padding:1.5rem;"><p>No activity yet.</p></div>`;return;}
-  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot coral">◎</div><div class="act-body"><div class="act-text">${esc(a.text)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
+  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot coral">◎</div><div class="act-body"><div class="act-text">${esc(a.text)} ${emailStatusBadge(a.emailLogId)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
 }
 
 // ── CHATTER ──
@@ -1369,6 +1499,8 @@ function openClDet(id){
   const relCands=allCandidates.filter(cand=>(cand.role||'').toLowerCase().includes(c.company.toLowerCase().slice(0,4)));
   document.getElementById('cldet-rel-cands').innerHTML=relCands.length?relCands.map(cand=>`<div class="mini-list-item" onclick="openCandDet('${cand.id}')"><span class="cell-link">${esc(cand.name)}</span>${pill(cand.status)}</div>`).join(''):`<div style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No related candidates</div>`;
   renderClActEl(c);
+  loadEmailStatuses('client',c.id).then(()=>renderClActEl(c));
+  startEmailStatusPolling('client',c.id);
   renderChatterFeed('client', c);
   switchRecordTab('client','details');
   const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span onclick="goTo('clients')" style="cursor:pointer;color:var(--coral);">Clients</span><span class="sep">›</span><span class="current">${esc(c.company)}</span>`;
@@ -1378,7 +1510,7 @@ function openClDet(id){
 function renderClActEl(c){
   const el=document.getElementById('cldet-activity');const acts=(c.activity||[]).slice().reverse();
   if(!acts.length){el.innerHTML=`<div class="empty-state" style="padding:1.5rem;"><p>No activity yet.</p></div>`;return;}
-  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot teal">◎</div><div class="act-body"><div class="act-text">${esc(a.text)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
+  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot teal">◎</div><div class="act-body"><div class="act-text">${esc(a.text)} ${emailStatusBadge(a.emailLogId)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
 }
 async function updateClStatus(status){
   const i=allClients.findIndex(c=>c.id===currentClientId);if(i===-1)return;
@@ -1469,7 +1601,6 @@ function exportData(){
 }
 
 // ── SEND EMAIL ──
-const WEB3FORMS_KEY = "44f3ceab-1934-4b55-839b-adfce51365d0";
 
 function openSendEmailModal(target){
   let record, email, name;
@@ -1539,53 +1670,309 @@ async function sendEmailNow(){
   btn.disabled = true; btn.textContent = 'Sending…';
 
   try{
-    const res = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        access_key: WEB3FORMS_KEY,
-        subject: subject,
-        from_name: 'Pursu Solutions LLC',
-        email: to,
-        message: body,
-        to: to
-      })
-    });
-    const data = await res.json();
+    const sendResult = await sendEmailViaResend(to, subject, body, target, targetId);
     btn.disabled = false; btn.textContent = 'Send Email';
-    if(data.success){
-      closeModal('modal-email');
-      toast('Email sent','success');
-      // Log it as a chatter note and activity entry
-      const logText = `✉️ Email sent — "${subject}"`;
-      if(target==='candidate'){
-        const i = allCandidates.findIndex(c=>c.id===targetId);
-        if(i>-1){
-          allCandidates[i].activity = allCandidates[i].activity||[];
-          allCandidates[i].activity.push({text:logText, at:now()});
-          await upsertC(allCandidates[i]);
-          if(currentCandidateId===targetId) renderCActEl(allCandidates[i]);
-        }
-        await addAct({type:'candidate', refId:targetId, refName: allCandidates.find(c=>c.id===targetId)?.name||'', action:'email', detail:`Email sent: ${subject}`});
-      } else {
-        const i = allClients.findIndex(c=>c.id===targetId);
-        if(i>-1){
-          allClients[i].activity = allClients[i].activity||[];
-          allClients[i].activity.push({text:logText, at:now()});
-          await upsertCl(allClients[i]);
-          if(currentClientId===targetId) renderClActEl(allClients[i]);
-        }
-        await addAct({type:'client', refId:targetId, refName: allClients.find(c=>c.id===targetId)?.company||'', action:'email', detail:`Email sent: ${subject}`});
+    closeModal('modal-email');
+    toast('Email sent','success');
+    // Log it as a chatter note and activity entry, tagged with the email-tracking log id
+    const logText = `✉️ Email sent — "${subject}"`;
+    const emailLogId = sendResult && sendResult.logId ? sendResult.logId : null;
+    if(emailLogId) emailStatusMap[emailLogId] = {status:'sent', sentAt: now(), deliveredAt:null, openedAt:null, openCount:0};
+    if(target==='candidate'){
+      const i = allCandidates.findIndex(c=>c.id===targetId);
+      if(i>-1){
+        allCandidates[i].activity = allCandidates[i].activity||[];
+        allCandidates[i].activity.push({text:logText, at:now(), emailLogId});
+        await upsertC(allCandidates[i]);
+        if(currentCandidateId===targetId) renderCActEl(allCandidates[i]);
       }
+      await addAct({type:'candidate', refId:targetId, refName: allCandidates.find(c=>c.id===targetId)?.name||'', action:'email', detail:`Email sent: ${subject}`});
     } else {
-      errEl.textContent = 'Could not send email: ' + (data.message || 'unknown error');
-      errEl.style.display='block';
+      const i = allClients.findIndex(c=>c.id===targetId);
+      if(i>-1){
+        allClients[i].activity = allClients[i].activity||[];
+        allClients[i].activity.push({text:logText, at:now(), emailLogId});
+        await upsertCl(allClients[i]);
+        if(currentClientId===targetId) renderClActEl(allClients[i]);
+      }
+      await addAct({type:'client', refId:targetId, refName: allClients.find(c=>c.id===targetId)?.company||'', action:'email', detail:`Email sent: ${subject}`});
     }
   } catch(e){
     btn.disabled = false; btn.textContent = 'Send Email';
-    errEl.textContent = 'Network error — could not send email. Please try again.';
+    errEl.textContent = 'Could not send email: ' + (e.message || 'unknown error');
     errEl.style.display='block';
   }
+}
+
+// ══════════════════════════════════════════════════════════
+// EMAIL SEQUENCES
+// ══════════════════════════════════════════════════════════
+
+function addDays(dateStr, days){
+  const d = new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()+Number(days||0));
+  return d.toISOString().slice(0,10);
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+// ── Sequence list page ──
+function renderSequences(){
+  renderDueToday();
+  const wrap = document.getElementById('sequences-list');
+  if(!allSequences.length){
+    wrap.innerHTML = `<div style="padding:1.5rem;text-align:center;color:var(--ink-faint);font-size:0.82rem;">No sequences yet. Click "+ New Sequence" to build your first one — add as many steps as you want.</div>`;
+    return;
+  }
+  wrap.innerHTML = allSequences.map(s=>{
+    const enrolledCount = allEnrollments.filter(e=>e.sequenceId===s.id && e.status==='active').length;
+    const completedCount = allEnrollments.filter(e=>e.sequenceId===s.id && e.status==='completed').length;
+    return `<div class="panel" style="margin-bottom:0.6rem;padding:0.85rem 1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;">
+      <div>
+        <div style="font-weight:600;font-size:0.86rem;color:var(--ink);">${esc(s.name)} ${!s.active?'<span class="pill pill-archived" style="margin-left:0.4rem;">inactive</span>':''}</div>
+        <div style="font-size:0.74rem;color:var(--ink-soft);margin-top:0.15rem;">${esc(s.description||'')}</div>
+        <div style="font-size:0.72rem;color:var(--ink-faint);margin-top:0.3rem;">${s.steps.length} step${s.steps.length===1?'':'s'} · targets ${s.targetType==='client'?'clients':'candidates'} · ${enrolledCount} active enrollment${enrolledCount===1?'':'s'} · ${completedCount} completed</div>
+      </div>
+      <div style="display:flex;gap:0.4rem;flex-shrink:0;">
+        <button class="btn btn-secondary btn-xs" onclick="openSequenceModal('${s.id}')">Edit</button>
+        <button class="btn btn-ghost btn-xs" onclick="deleteSequence('${s.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Due Today widget ──
+function renderDueToday(){
+  const wrap = document.getElementById('due-today-wrap');
+  if(!wrap) return;
+  const today = todayStr();
+  const due = allEnrollments.filter(e=>e.status==='active' && e.nextSendDate<=today);
+  if(!due.length){
+    wrap.innerHTML = `<div style="color:var(--ink-faint);font-size:0.82rem;padding:0.4rem 0;">Nothing due today. 🎉</div>`;
+    return;
+  }
+  wrap.innerHTML = due.map(e=>{
+    const seq = allSequences.find(s=>s.id===e.sequenceId);
+    const step = seq ? seq.steps[e.currentStep] : null;
+    const target = e.targetType==='client' ? allClients.find(c=>c.id===e.targetId) : allCandidates.find(c=>c.id===e.targetId);
+    const targetName = e.targetType==='client' ? (target?.contact||target?.company||'Unknown') : (target?.name||'Unknown');
+    const targetEmail = target?.email||'';
+    if(!seq || !step || !target){
+      return `<div style="padding:0.6rem 0;border-bottom:1px solid var(--line);font-size:0.78rem;color:var(--ink-faint);">Orphaned enrollment (sequence or record deleted) — <button class="btn btn-ghost btn-xs" onclick="stopEnrollment('${e.id}')">Remove</button></div>`;
+    }
+    return `<div style="padding:0.7rem 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+      <div>
+        <div style="font-weight:600;font-size:0.82rem;color:var(--ink);">${esc(targetName)} <span style="font-weight:400;color:var(--ink-faint);">— ${esc(targetEmail)}</span></div>
+        <div style="font-size:0.76rem;color:var(--ink-soft);margin-top:0.15rem;">${esc(seq.name)} · Step ${e.currentStep+1} of ${seq.steps.length}: "${esc(step.subject)}"</div>
+      </div>
+      <div style="display:flex;gap:0.4rem;flex-shrink:0;">
+        <button class="btn btn-ghost btn-xs" onclick="previewSequenceStep('${e.id}')">Preview</button>
+        <button class="btn btn-secondary btn-xs" onclick="pauseEnrollment('${e.id}')">Pause</button>
+        <button class="btn btn-teal btn-xs" onclick="sendSequenceStep('${e.id}')">Send</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function previewSequenceStep(enrollmentId){
+  const e = allEnrollments.find(x=>x.id===enrollmentId); if(!e) return;
+  const seq = allSequences.find(s=>s.id===e.sequenceId); if(!seq) return;
+  const step = seq.steps[e.currentStep]; if(!step) return;
+  const target = e.targetType==='client' ? allClients.find(c=>c.id===e.targetId) : allCandidates.find(c=>c.id===e.targetId);
+  const merged = mergeTemplate(step.body, target, e.targetType);
+  alert(`Subject: ${step.subject}\n\n${merged}`);
+}
+
+// Simple merge fields: {{first_name}}, {{name}}, {{company}}
+function mergeTemplate(text, target, targetType){
+  if(!target) return text;
+  const firstName = (targetType==='client' ? (target.contact||target.company) : target.name || '').split(' ')[0] || '';
+  return (text||'')
+    .replaceAll('{{first_name}}', firstName)
+    .replaceAll('{{name}}', targetType==='client' ? (target.contact||target.company||'') : (target.name||''))
+    .replaceAll('{{company}}', targetType==='client' ? (target.company||'') : '');
+}
+
+async function sendSequenceStep(enrollmentId){
+  const e = allEnrollments.find(x=>x.id===enrollmentId); if(!e) return;
+  const seq = allSequences.find(s=>s.id===e.sequenceId); if(!seq){toast('Sequence not found','error');return;}
+  const step = seq.steps[e.currentStep]; if(!step){toast('Step not found','error');return;}
+  const target = e.targetType==='client' ? allClients.find(c=>c.id===e.targetId) : allCandidates.find(c=>c.id===e.targetId);
+  if(!target || !target.email){toast('No email address on file for this record','error');return;}
+
+  const subject = mergeTemplate(step.subject, target, e.targetType);
+  const body = mergeTemplate(step.body, target, e.targetType);
+
+  try{
+    await sendEmailViaResend(target.email, subject, body);
+  }catch(err){
+    toast('Send failed: '+(err.message||'unknown error'),'error');
+    return;
+  }
+
+  // Advance to next step (or complete)
+  const nextStepIdx = e.currentStep + 1;
+  const isLastStep = nextStepIdx >= seq.steps.length;
+  const update = {
+    id: e.id,
+    current_step: nextStepIdx,
+    status: isLastStep ? 'completed' : 'active',
+    next_send_date: isLastStep ? e.nextSendDate : addDays(todayStr(), seq.steps[nextStepIdx].delayDays||0),
+    last_sent_at: now()
+  };
+  await dbQ(()=>db.from('sequence_enrollments').update(update).eq('id', e.id));
+  const i = allEnrollments.findIndex(x=>x.id===e.id);
+  if(i>-1) allEnrollments[i] = {...allEnrollments[i], currentStep:update.current_step, status:update.status, nextSendDate:update.next_send_date, lastSentAt:update.last_sent_at};
+
+  // Log to chatter + activity on the target record
+  const logText = `📨 Sequence email sent — "${subject}" (${seq.name}, step ${e.currentStep+1}/${seq.steps.length})`;
+  if(e.targetType==='client'){
+    const ci = allClients.findIndex(c=>c.id===e.targetId);
+    if(ci>-1){ allClients[ci].activity = allClients[ci].activity||[]; allClients[ci].activity.push({text:logText, at:now()}); await upsertCl(allClients[ci]); }
+    await addAct({type:'client', refId:e.targetId, refName: target.company||target.contact||'', action:'email', detail:logText});
+  } else {
+    const ci = allCandidates.findIndex(c=>c.id===e.targetId);
+    if(ci>-1){ allCandidates[ci].activity = allCandidates[ci].activity||[]; allCandidates[ci].activity.push({text:logText, at:now()}); await upsertC(allCandidates[ci]); }
+    await addAct({type:'candidate', refId:e.targetId, refName: target.name||'', action:'email', detail:logText});
+  }
+
+  toast(isLastStep ? 'Sent — sequence completed' : 'Sent — next step queued','success');
+  updateBadges();
+  renderDueToday();
+  if(currentPage==='sequences') renderSequences();
+}
+
+async function pauseEnrollment(id){
+  await dbQ(()=>db.from('sequence_enrollments').update({status:'paused'}).eq('id', id));
+  const i = allEnrollments.findIndex(e=>e.id===id); if(i>-1) allEnrollments[i].status='paused';
+  toast('Paused','success'); updateBadges(); renderDueToday();
+}
+async function stopEnrollment(id){
+  if(!confirm('Remove this enrollment? It will stop receiving further emails in this sequence.')) return;
+  await dbQ(()=>db.from('sequence_enrollments').delete().eq('id', id));
+  allEnrollments = allEnrollments.filter(e=>e.id!==id);
+  toast('Enrollment removed','success'); updateBadges(); renderDueToday();
+}
+
+async function deleteSequence(id){
+  const inUse = allEnrollments.some(e=>e.sequenceId===id && e.status==='active');
+  if(inUse && !confirm('This sequence has active enrollments — deleting it will stop those emails from sending. Continue?')) return;
+  await dbQ(()=>db.from('email_sequences').delete().eq('id', id));
+  allSequences = allSequences.filter(s=>s.id!==id);
+  allEnrollments = allEnrollments.filter(e=>e.sequenceId!==id);
+  toast('Sequence deleted','success'); renderSequences(); updateBadges();
+}
+
+// ── Sequence builder modal ──
+let seqStepsDraft = [];
+function openSequenceModal(id){
+  const existing = id ? allSequences.find(s=>s.id===id) : null;
+  document.getElementById('seq-mtitle').textContent = existing ? 'Edit Sequence' : 'New Sequence';
+  document.getElementById('seq-id').value = existing ? existing.id : '';
+  document.getElementById('seq-name').value = existing ? existing.name : '';
+  document.getElementById('seq-desc').value = existing ? (existing.description||'') : '';
+  document.getElementById('seq-target-type').value = existing ? existing.targetType : 'client';
+  seqStepsDraft = existing ? JSON.parse(JSON.stringify(existing.steps)) : [{order:1,subject:'',body:'',delayDays:0}];
+  renderSeqStepsDraft();
+  document.getElementById('seq-error').style.display='none';
+  openModal('modal-sequence');
+}
+function renderSeqStepsDraft(){
+  const wrap = document.getElementById('seq-steps-wrap');
+  wrap.innerHTML = seqStepsDraft.map((step,i)=>`
+    <div style="border:1px solid var(--line);border-radius:8px;padding:0.7rem 0.8rem;background:var(--cream);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <span style="font-size:0.76rem;font-weight:700;color:var(--ink);">Step ${i+1}</span>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <label style="font-size:0.72rem;color:var(--ink-soft);">Send</label>
+          <input type="number" min="0" value="${step.delayDays}" style="width:54px;padding:0.3rem;border:1px solid var(--line);border-radius:5px;font-size:0.74rem;" onchange="seqStepsDraft[${i}].delayDays=parseInt(this.value)||0">
+          <label style="font-size:0.72rem;color:var(--ink-soft);">day(s) after ${i===0?'enrollment':'previous step'}</label>
+          ${seqStepsDraft.length>1?`<button class="btn btn-ghost btn-xs" type="button" onclick="removeSeqStep(${i})">✕</button>`:''}
+        </div>
+      </div>
+      <input placeholder="Subject line — supports {{first_name}}, {{name}}, {{company}}" value="${esc(step.subject)}" style="margin-bottom:0.4rem;width:100%;padding:0.5rem 0.6rem;border:1px solid var(--line);border-radius:6px;font-size:0.78rem;" oninput="seqStepsDraft[${i}].subject=this.value">
+      <textarea placeholder="Email body — supports {{first_name}}, {{name}}, {{company}}" style="width:100%;min-height:90px;padding:0.5rem 0.6rem;border:1px solid var(--line);border-radius:6px;font-size:0.78rem;font-family:inherit;" oninput="seqStepsDraft[${i}].body=this.value">${esc(step.body)}</textarea>
+    </div>
+  `).join('');
+}
+function addSeqStep(){
+  seqStepsDraft.push({order:seqStepsDraft.length+1, subject:'', body:'', delayDays:3});
+  renderSeqStepsDraft();
+}
+function removeSeqStep(i){
+  seqStepsDraft.splice(i,1);
+  seqStepsDraft.forEach((s,idx)=>s.order=idx+1);
+  renderSeqStepsDraft();
+}
+async function saveSequence(){
+  const id = document.getElementById('seq-id').value;
+  const name = document.getElementById('seq-name').value.trim();
+  const description = document.getElementById('seq-desc').value.trim();
+  const targetType = document.getElementById('seq-target-type').value;
+  const errEl = document.getElementById('seq-error');
+  errEl.style.display='none';
+
+  if(!name){ errEl.textContent='Please name this sequence.'; errEl.style.display='block'; return; }
+  if(!seqStepsDraft.length || seqStepsDraft.some(s=>!s.subject.trim()||!s.body.trim())){
+    errEl.textContent='Every step needs a subject and body.'; errEl.style.display='block'; return;
+  }
+
+  const btn = document.getElementById('seq-save-btn');
+  btn.disabled=true; btn.textContent='Saving…';
+  const row = { id: id||uid(), name, description, target_type: targetType, steps: seqStepsDraft, active:true, updated_at: now() };
+  if(!id) row.created_at = now();
+  const r = await dbQ(()=>db.from('email_sequences').upsert(row));
+  btn.disabled=false; btn.textContent='Save Sequence';
+  if(r && r.error){ errEl.textContent='Could not save: '+r.error.message; errEl.style.display='block'; return; }
+
+  const mapped = rowToSeq(row);
+  const i = allSequences.findIndex(s=>s.id===row.id);
+  if(i>-1) allSequences[i]=mapped; else allSequences.unshift(mapped);
+  closeModal('modal-sequence');
+  toast('Sequence saved','success');
+  renderSequences();
+}
+
+// ── Enroll modal ──
+function openEnrollModal(clientId){
+  if(!clientId){toast('No client selected','error');return;}
+  document.getElementById('enroll-target-id').value = clientId;
+  document.getElementById('enroll-target-type').value = 'client';
+  const select = document.getElementById('enroll-seq-select');
+  const options = allSequences.filter(s=>s.active && s.targetType==='client');
+  if(!options.length){
+    select.innerHTML = '<option value="">No active client sequences yet — create one first</option>';
+  } else {
+    select.innerHTML = options.map(s=>`<option value="${s.id}">${esc(s.name)} (${s.steps.length} step${s.steps.length===1?'':'s'})</option>`).join('');
+  }
+  document.getElementById('enroll-error').style.display='none';
+  openModal('modal-enroll');
+}
+async function confirmEnroll(){
+  const targetId = document.getElementById('enroll-target-id').value;
+  const targetType = document.getElementById('enroll-target-type').value;
+  const sequenceId = document.getElementById('enroll-seq-select').value;
+  const errEl = document.getElementById('enroll-error');
+  if(!sequenceId){ errEl.textContent='Pick a sequence first.'; errEl.style.display='block'; return; }
+
+  const seq = allSequences.find(s=>s.id===sequenceId);
+  const alreadyEnrolled = allEnrollments.some(e=>e.sequenceId===sequenceId && e.targetId===targetId && e.status==='active');
+  if(alreadyEnrolled){ errEl.textContent='Already actively enrolled in this sequence.'; errEl.style.display='block'; return; }
+
+  const btn = document.getElementById('enroll-save-btn');
+  btn.disabled=true; btn.textContent='Enrolling…';
+  const firstDelay = seq.steps[0]?.delayDays || 0;
+  const row = {
+    id: uid(), sequence_id: sequenceId, target_type: targetType, target_id: targetId,
+    current_step: 0, next_send_date: addDays(todayStr(), firstDelay), status: 'active', enrolled_at: now()
+  };
+  const r = await dbQ(()=>db.from('sequence_enrollments').insert(row));
+  btn.disabled=false; btn.textContent='Enroll';
+  if(r && r.error){ errEl.textContent='Could not enroll: '+r.error.message; errEl.style.display='block'; return; }
+
+  allEnrollments.unshift(rowToEnr(row));
+  closeModal('modal-enroll');
+  toast('Enrolled — first email due '+(firstDelay===0?'today':'in '+firstDelay+' day(s)'),'success');
+  updateBadges();
 }
 
 async function syncFromSite(){
