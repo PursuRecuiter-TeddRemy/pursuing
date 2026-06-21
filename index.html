@@ -19,6 +19,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script>
+    if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}
+    </script>
 
     <style>
         :root {
@@ -1101,6 +1106,7 @@
                             </div>
                         </div>
                         <p class="form-hint">PDF or Word document, up to 5MB.</p>
+                        <p class="form-hint" id="apply-resume-ai-status" style="display:none;color:var(--teal);font-weight:600;"></p>
                     </div>
                     <div class="form-group">
                         <label>Note (optional)</label>
@@ -1571,12 +1577,79 @@
             <span>${escapeHtml(file.name)}</span>
             <button type="button" class="file-drop-remove" onclick="event.stopPropagation(); clearResumeFile();">Remove</button>
         `;
+
+        // ✨ Best-effort AI auto-fill — speeds up the form for the applicant.
+        // Never blocks or interferes with submitting the application if it fails.
+        autofillFromResume(file);
+    }
+
+    async function extractResumeText(file) {
+        const lower = file.name.toLowerCase();
+        try {
+            if (lower.endsWith('.pdf')) {
+                if (!window.pdfjsLib) return '';
+                const buf = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+                let text = '';
+                for (let p = 1; p <= pdf.numPages; p++) {
+                    const page = await pdf.getPage(p);
+                    const content = await page.getTextContent();
+                    text += content.items.map(it => it.str).join(' ') + '\n';
+                }
+                return text;
+            }
+            if (lower.endsWith('.docx')) {
+                if (!window.mammoth) return '';
+                const buf = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer: buf });
+                return result.value;
+            }
+        } catch (err) { /* fall through to empty string below */ }
+        // Legacy .doc (binary format) isn't supported for client-side text extraction.
+        return '';
+    }
+
+    async function autofillFromResume(file) {
+        const statusEl = document.getElementById('apply-resume-ai-status');
+        try {
+            if (statusEl) { statusEl.textContent = '✨ Reading your resume to speed up the form…'; statusEl.style.display = 'block'; }
+            const text = await extractResumeText(file);
+            if (!text || !text.trim()) { if (statusEl) statusEl.style.display = 'none'; return; }
+            const res = await fetch(SUPABASE_URL + '/functions/v1/ai-assist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'apikey': SUPABASE_ANON_KEY },
+                body: JSON.stringify({ action: 'parse_resume', text: text.slice(0, 12000) })
+            });
+            if (!res.ok) { if (statusEl) statusEl.style.display = 'none'; return; }
+            const data = await res.json();
+            const f = data.fields || {};
+            const nameEl = document.getElementById('apply-name');
+            const emailEl = document.getElementById('apply-email');
+            const phoneEl = document.getElementById('apply-phone');
+            const filled = [];
+            if (f.name && nameEl && !nameEl.value.trim()) { nameEl.value = f.name; filled.push('name'); }
+            if (f.email && emailEl && !emailEl.value.trim()) { emailEl.value = f.email; filled.push('email'); }
+            if (f.phone && phoneEl && !phoneEl.value.trim()) { phoneEl.value = f.phone; filled.push('phone'); }
+            if (statusEl) {
+                if (filled.length) {
+                    statusEl.textContent = `✨ Auto-filled ${filled.join(', ')} from your resume — feel free to edit.`;
+                    statusEl.style.display = 'block';
+                } else {
+                    statusEl.style.display = 'none';
+                }
+            }
+        } catch (err) {
+            // Silent fail — this is a convenience feature, never blocks applying.
+            if (statusEl) statusEl.style.display = 'none';
+        }
     }
 
     function clearResumeFile() {
         const input = document.getElementById('apply-resume');
         if (input) input.value = '';
         resetResumeDropZone();
+        const statusEl = document.getElementById('apply-resume-ai-status');
+        if (statusEl) { statusEl.style.display = 'none'; statusEl.textContent = ''; }
     }
 
     function openApply(jobId) {
@@ -1590,6 +1663,8 @@
         document.getElementById('apply-msg').className = 'form-msg';
         document.getElementById('apply-msg').style.display = 'none';
         resetResumeDropZone();
+        const aiStatusEl = document.getElementById('apply-resume-ai-status');
+        if (aiStatusEl) { aiStatusEl.style.display = 'none'; aiStatusEl.textContent = ''; }
         showPage('apply');
     }
 
