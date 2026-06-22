@@ -109,6 +109,13 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 .pill-archived{background:var(--sand);color:var(--ink-faint);}
 .pill-prospect{background:var(--teal-tint);color:var(--teal-deep);}
 .pill-active{background:#d4f0e3;color:var(--success);}
+.pill-sent{background:#f0f0f0;color:#555;}
+.pill-delivered{background:#e8f0fb;color:#1a56c4;}
+.pill-opened{background:#d4f0e3;color:var(--success);}
+.pill-bounced{background:#fde8e8;color:#c41a1a;}
+.pill-complained{background:#fde8e8;color:#c41a1a;}
+.pill-failed{background:#fde8e8;color:#c41a1a;}
+.pill-delayed{background:#fff4e0;color:#b36a00;}
 .pill-closed{background:var(--sand);color:var(--ink-faint);}
 .pill-hot{background:#ffe4e4;color:#c42a2a;}
 .pill-warm{background:#fef3e2;color:var(--warning);}
@@ -159,11 +166,6 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 .act-body{flex:1;}
 .act-text{font-size:0.78rem;line-height:1.5;}
 .act-time{font-size:0.65rem;color:var(--ink-faint);margin-top:0.2rem;}
-.email-stat{display:inline-block;font-size:0.65rem;font-weight:600;padding:0.1rem 0.45rem;border-radius:20px;margin-left:0.3rem;white-space:nowrap;}
-.email-stat-sent{background:#f1f1f1;color:#777;}
-.email-stat-delivered{background:#e8f0fe;color:#2563eb;}
-.email-stat-opened{background:#e6f7ee;color:#0f9d58;}
-.email-stat-bounced{background:#fdeaea;color:#d93025;}
 .note-row{display:flex;gap:0.5rem;padding:0.8rem 1rem;border-bottom:1px solid var(--line);}
 .note-row textarea{flex:1;border:1px solid var(--line);border-radius:6px;padding:0.5rem 0.7rem;font-family:'Inter',sans-serif;font-size:0.78rem;resize:none;height:56px;outline:none;}
 .note-row textarea:focus{border-color:var(--coral);}
@@ -633,6 +635,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
           <div class="record-tabs" id="cldet-tabs">
             <div class="record-tab active" data-tab="details" onclick="switchRecordTab('client','details')">Details</div>
             <div class="record-tab" data-tab="activity" onclick="switchRecordTab('client','activity')">Activity</div>
+            <div class="record-tab" data-tab="emails" onclick="switchRecordTab('client','emails')">✉️ Emails</div>
             <div class="record-tab" data-tab="chatter" onclick="switchRecordTab('client','chatter')">Chatter</div>
             <div class="record-tab" data-tab="related" onclick="switchRecordTab('client','related')">Related</div>
           </div>
@@ -651,6 +654,10 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
                 </div>
               </div>
               <div class="activity-wrap" id="cldet-activity"></div>
+            </div>
+            <div class="tab-content" id="cldet-tab-emails">
+              <div class="det-panel-header"><span class="det-panel-title">Email History</span><span id="cldet-email-live" style="font-size:0.7rem;color:var(--success);display:none;">● live</span></div>
+              <div id="cldet-email-log" style="padding:0.5rem 0;"></div>
             </div>
             <div class="tab-content" id="cldet-tab-chatter">
               <div class="det-panel-header"><span class="det-panel-title">Chatter</span></div>
@@ -708,10 +715,10 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
     </div>
 
     <div class="page" id="page-sequences">
-      <div class="toolbar"><span style="font-size:0.78rem;color:var(--ink-soft);">Build once, enroll as many clients as you want</span><div class="toolbar-right"><button class="btn btn-teal btn-sm" onclick="openSequenceModal()">+ New Sequence</button></div></div>
+      <div class="toolbar"><span style="font-size:0.78rem;color:var(--ink-soft);">Build once, enroll as many clients as you want — emails send automatically when due</span><div class="toolbar-right"><button class="btn btn-secondary btn-sm" id="send-all-due-btn" onclick="autoSendAllDue(true)">⚡ Send All Due</button><button class="btn btn-teal btn-sm" onclick="openSequenceModal()">+ New Sequence</button></div></div>
 
       <div class="panel" style="margin-bottom:1rem;">
-        <div class="panel-header"><span class="panel-title">📨 Due Today</span></div>
+        <div class="panel-header"><span class="panel-title">📨 Due Today</span><span id="auto-send-status" style="font-size:0.72rem;color:var(--ink-faint);"></span></div>
         <div id="due-today-wrap" style="padding:0.5rem 0.9rem 0.9rem;"></div>
       </div>
 
@@ -977,52 +984,110 @@ async function aiCall(action,payload){
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const now=()=>new Date().toISOString();
 
-// ── EMAIL SENDING (Resend, via send-email Edge Function — replaces the old Web3Forms call, which only ever notified your own inbox) ──
+// ── EMAIL SENDING (Resend, via send-email Edge Function) ──
 const SEND_EMAIL_FN_URL=SURL+'/functions/v1/send-email';
-async function sendEmailViaResend(to,subject,body,targetType,targetId){
+async function sendEmailViaResend(to,subject,body,opts={}){
   let token=SKEY;
   try{const{data:{session}}=await db.auth.getSession();if(session&&session.access_token)token=session.access_token;}catch(e){}
   let res;
   try{
-    res=await fetch(SEND_EMAIL_FN_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'apikey':SKEY},body:JSON.stringify({to,subject,body,targetType,targetId})});
-  }catch(netErr){
-    throw new Error('Email service unreachable — check your connection');
-  }
+    res=await fetch(SEND_EMAIL_FN_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'apikey':SKEY},body:JSON.stringify({to,subject,body,targetType:opts.targetType||null,targetId:opts.targetId||null,enrollmentId:opts.enrollmentId||null})});
+  }catch(netErr){throw new Error('Email service unreachable — check your connection');}
   let data;try{data=await res.json();}catch(e){data={success:false,error:'Unexpected response from email service'};}
-  if(!res.ok||!data.success){
-    throw new Error(data.error||('Email send failed ('+res.status+')'));
-  }
-  return data; // {success:true, logId, resendId}
+  if(!res.ok||!data.success){throw new Error(data.error||('Email send failed ('+res.status+')'));}
+  return data;
 }
 
-// ── EMAIL TRACKING (Sent / Delivered / Opened, populated via Resend webhook → crm_email_log) ──
-let emailStatusMap={}; // logId -> {status, sentAt, deliveredAt, openedAt, openCount}
-let emailStatusPollTimer=null;
-async function loadEmailStatuses(targetType,targetId){
-  if(!db||!targetId)return;
-  const r=await dbQ(()=>db.from('crm_email_log').select('*').eq('target_type',targetType).eq('target_id',targetId));
-  if(r&&!r.error&&r.data){
-    r.data.forEach(row=>{emailStatusMap[row.id]={status:row.status,sentAt:row.sent_at,deliveredAt:row.delivered_at,openedAt:row.opened_at,openCount:row.open_count||0};});
+// ── REALTIME: live email status updates (delivered / opened) ──
+let _realtimeChannel=null;
+function subscribeEmailLogRealtime(){
+  if(_realtimeChannel||!db)return;
+  try{
+    _realtimeChannel=db.channel('email_log_changes')
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'email_log'},payload=>{
+        const updated=rowToLog(payload.new);
+        const i=allEmailLog.findIndex(r=>r.id===updated.id);
+        if(i>-1)allEmailLog[i]=updated;else allEmailLog.unshift(updated);
+        // Refresh the email tab if we're looking at the right client
+        if(currentPage==='client-detail'&&currentClientId&&updated.targetId===currentClientId){
+          renderEmailLogForTarget('client',currentClientId);
+        }
+        // Show a live toast on status change
+        const statusLabel={delivered:'📬 Delivered',opened:'👁 Opened',bounced:'⚠️ Bounced',complained:'⚠️ Complaint'};
+        if(statusLabel[updated.status]){
+          const target=allClients.find(c=>c.id===updated.targetId)||allCandidates.find(c=>c.id===updated.targetId);
+          const name=target?(target.contact||target.company||target.name):'';
+          toast(`${statusLabel[updated.status]}${name?' — '+name:''}: "${updated.subject||''}"`,updated.status==='bounced'||updated.status==='complained'?'error':'success');
+          const liveEl=document.getElementById('cldet-email-live');if(liveEl)liveEl.style.display='';
+        }
+      })
+      .subscribe();
+  }catch(e){console.warn('Realtime subscription failed:',e);}
+}
+
+// ── EMAIL LOG UI ──
+function emailStatusPill(status,openCount){
+  const cfg={
+    sent:{label:'Sent',cls:'pill-sent',icon:'📤'},
+    delivered:{label:'Delivered',cls:'pill-delivered',icon:'📬'},
+    opened:{label:`Opened${openCount>1?' (×'+openCount+')':''}`,cls:'pill-opened',icon:'👁'},
+    clicked:{label:'Clicked',cls:'pill-opened',icon:'🔗'},
+    bounced:{label:'Bounced',cls:'pill-bounced',icon:'⚠️'},
+    complained:{label:'Complaint',cls:'pill-complained',icon:'🚫'},
+    failed:{label:'Failed',cls:'pill-failed',icon:'✕'},
+    delayed:{label:'Delayed',cls:'pill-delayed',icon:'⏳'},
+  };
+  const c=cfg[status]||{label:status,cls:'',icon:'📧'};
+  return `<span class="pill ${c.cls}" title="${c.label}">${c.icon} ${c.label}</span>`;
+}
+function renderEmailLogForTarget(targetType,targetId){
+  const wrap=document.getElementById('cldet-email-log');
+  if(!wrap)return;
+  const logs=allEmailLog.filter(r=>r.targetType===targetType&&r.targetId===targetId);
+  if(!logs.length){wrap.innerHTML='<div style="padding:1rem;color:var(--ink-faint);font-size:0.8rem;">No emails sent yet.</div>';return;}
+  const liveEl=document.getElementById('cldet-email-live');
+  if(liveEl&&logs.some(r=>r.status==='opened'))liveEl.style.display='';
+  wrap.innerHTML=logs.map(r=>`
+    <div style="padding:0.7rem 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:0.25rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+        <span style="font-size:0.82rem;font-weight:600;color:var(--ink);">${esc(r.subject||'(no subject)')}</span>
+        ${emailStatusPill(r.status,r.openCount)}
+      </div>
+      <div style="font-size:0.72rem;color:var(--ink-faint);">
+        To: ${esc(r.toEmail)} · Sent ${fmtT(r.sentAt)}
+        ${r.deliveredAt?'· Delivered '+fmtT(r.deliveredAt):''}
+        ${r.openedAt?'· <strong style="color:var(--success);">Opened '+fmtT(r.openedAt)+(r.openCount>1?' ('+r.openCount+'×)':'')+'</strong>':''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── AUTO-SEND ENGINE ──
+// Called automatically every time the Sequences page loads, and when the CRM first boots.
+// silent=true suppresses toasts if nothing is due (so startup doesn't nag you).
+let _autoSending=false;
+async function autoSendAllDue(manual=false){
+  if(_autoSending)return;
+  _autoSending=true;
+  const statusEl=document.getElementById('auto-send-status');
+  const today=todayStr();
+  const due=allEnrollments.filter(e=>e.status==='active'&&e.nextSendDate.slice(0,10)<=today);
+  if(!due.length){
+    if(manual)toast('No emails due right now','');
+    if(statusEl)statusEl.textContent='';
+    _autoSending=false;
+    return;
   }
+  if(statusEl)statusEl.textContent=`Sending ${due.length} email${due.length===1?'':'s'}…`;
+  let sent=0,failed=0;
+  for(const e of due){
+    try{await sendSequenceStep(e.id,true);}catch(ex){failed++;}
+    sent++;
+  }
+  if(statusEl)statusEl.textContent=`✓ Auto-sent ${sent-failed}${failed?', '+failed+' failed':''}`;
+  setTimeout(()=>{if(statusEl)statusEl.textContent='';},4000);
+  _autoSending=false;
 }
-function emailStatusBadge(logId){
-  if(!logId)return'';
-  const s=emailStatusMap[logId];
-  if(!s)return'<span class="email-stat email-stat-sent" title="Sent">✓ Sent</span>';
-  if(s.status==='opened')return`<span class="email-stat email-stat-opened" title="Opened ${fmtT(s.openedAt)}${s.openCount>1?' · '+s.openCount+'x':''}">👁 Opened ${fmtT(s.openedAt)}</span>`;
-  if(s.status==='delivered')return`<span class="email-stat email-stat-delivered" title="Delivered ${fmtT(s.deliveredAt)}">📨 Delivered</span>`;
-  if(s.status==='bounced')return'<span class="email-stat email-stat-bounced" title="Bounced">⚠ Bounced</span>';
-  return'<span class="email-stat email-stat-sent" title="Sent">✓ Sent</span>';
-}
-function startEmailStatusPolling(targetType,targetId){
-  stopEmailStatusPolling();
-  emailStatusPollTimer=setInterval(async()=>{
-    await loadEmailStatuses(targetType,targetId);
-    if(targetType==='candidate'&&currentCandidateId===targetId){const c=allCandidates.find(x=>x.id===targetId);if(c)renderCActEl(c);}
-    if(targetType==='client'&&currentClientId===targetId){const c=allClients.find(x=>x.id===targetId);if(c)renderClActEl(c);}
-  },20000);
-}
-function stopEmailStatusPolling(){if(emailStatusPollTimer){clearInterval(emailStatusPollTimer);emailStatusPollTimer=null;}}
 const fmt=iso=>{if(!iso)return'—';const d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});};
 const fmtT=iso=>{if(!iso)return'';const d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});};
 const inits=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
@@ -1035,7 +1100,7 @@ let lb=null;
 function setLoading(on){if(!lb){lb=document.createElement('div');lb.style.cssText='position:fixed;top:0;left:0;right:0;height:2px;background:var(--coral);z-index:9999;display:none;';document.body.appendChild(lb);}lb.style.display=on?'block':'none';}
 
 let currentPage='dashboard',currentCandidateId=null,currentClientId=null;
-let allCandidates=[],allClients=[],allActivity=[],siteJobs=[],allSequences=[],allEnrollments=[];
+let allCandidates=[],allClients=[],allActivity=[],siteJobs=[],allSequences=[],allEnrollments=[],allEmailLog=[];
 let candFilter='all',clientFilter='all',candSort={field:'createdAt',dir:-1};
 let selectedCands=new Set();
 
@@ -1045,16 +1110,18 @@ const rowToC=r=>({id:r.id,siteId:r.site_id,name:r.name,email:r.email,phone:r.pho
 const rowToCl=r=>({id:r.id,company:r.company,contact:r.contact,email:r.email,phone:r.phone,industry:r.industry,status:r.status,openRoles:r.open_roles||0,value:r.value||0,notes:r.notes,activity:r.activity||[],chatter:r.chatter||[],createdAt:r.created_at,updatedAt:r.updated_at});
 const rowToSeq=r=>({id:r.id,name:r.name,description:r.description,targetType:r.target_type,steps:r.steps||[],active:r.active,createdAt:r.created_at,updatedAt:r.updated_at});
 const rowToEnr=r=>({id:r.id,sequenceId:r.sequence_id,targetType:r.target_type,targetId:r.target_id,currentStep:r.current_step,nextSendDate:r.next_send_date,status:r.status,enrolledAt:r.enrolled_at,lastSentAt:r.last_sent_at});
+const rowToLog=r=>({id:r.id,resendId:r.resend_id,targetType:r.target_type,targetId:r.target_id,toEmail:r.to_email,subject:r.subject,enrollmentId:r.enrollment_id,status:r.status,sentAt:r.sent_at,deliveredAt:r.delivered_at,openedAt:r.opened_at,openCount:r.open_count||0,lastEventAt:r.last_event_at});
 
 async function loadAll(){
   setLoading(true);
-  const [rc,rcl,ra,rj,rs,re]=await Promise.all([
+  const [rc,rcl,ra,rj,rs,re,rl]=await Promise.all([
     dbQ(()=>db.from('crm_candidates').select('*').order('created_at',{ascending:false})),
     dbQ(()=>db.from('crm_clients').select('*').order('created_at',{ascending:false})),
     dbQ(()=>db.from('crm_activity').select('*').order('created_at',{ascending:false}).limit(300)),
     dbQ(()=>db.from('jobs').select('*').order('created_at',{ascending:false})),
     dbQ(()=>db.from('email_sequences').select('*').order('created_at',{ascending:false})),
-    dbQ(()=>db.from('sequence_enrollments').select('*').order('next_send_date',{ascending:true}))
+    dbQ(()=>db.from('sequence_enrollments').select('*').order('next_send_date',{ascending:true})),
+    dbQ(()=>db.from('email_log').select('*').order('sent_at',{ascending:false}).limit(500))
   ]);
   if(rc&&!rc.error)allCandidates=(rc.data||[]).map(rowToC);
   if(rcl&&!rcl.error)allClients=(rcl.data||[]).map(rowToCl);
@@ -1062,7 +1129,9 @@ async function loadAll(){
   if(rj&&!rj.error)siteJobs=rj.data||[];
   if(rs&&!rs.error)allSequences=(rs.data||[]).map(rowToSeq);
   if(re&&!re.error)allEnrollments=(re.data||[]).map(rowToEnr);
+  if(rl&&!rl.error)allEmailLog=(rl.data||[]).map(rowToLog);
   setLoading(false);updateBadges();
+  subscribeEmailLogRealtime();
   // Restore page from URL hash on reload
   const hash=window.location.hash.replace('#','');
   const validPages=['dashboard','candidates','placements','clients','pipeline','jobs','sequences','reports','activity','settings'];
@@ -1095,7 +1164,6 @@ async function addAct(entry){
 }
 
 function goTo(page){
-  if(!page.includes('-detail'))stopEmailStatusPolling();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const el=document.getElementById('page-'+page);if(el)el.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page||(page.includes('candidate')&&n.dataset.page==='candidates')||(page.includes('client')&&n.dataset.page==='clients')));
@@ -1111,7 +1179,7 @@ function goTo(page){
   if(page==='clients')renderClients();
   if(page==='pipeline')renderPipeline();
   if(page==='jobs')renderJobs();
-  if(page==='sequences')renderSequences();
+  if(page==='sequences'){renderSequences();autoSendAllDue(false);}
   if(page==='reports')renderReports();
   if(page==='activity')renderActivity();
   if(page==='settings')renderSettings('general');
@@ -1282,8 +1350,6 @@ function openCandDet(id){
   const linked=allClients.find(cl=>(c.role||'').toLowerCase().includes(cl.company.toLowerCase().slice(0,4)));
   document.getElementById('cdet-rel-client').innerHTML=linked?`<div class="mini-list-item" onclick="openClDet('${linked.id}')"><span class="cell-link">${esc(linked.company)}</span>${pill(linked.status)}</div>`:`<div style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No linked client</div>`;
   renderCActEl(c);
-  loadEmailStatuses('candidate',c.id).then(()=>renderCActEl(c));
-  startEmailStatusPolling('candidate',c.id);
   renderChatterFeed('candidate', c);
   switchRecordTab('candidate','details');
   const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span onclick="goTo('candidates')" style="cursor:pointer;color:var(--coral);">Candidates</span><span class="sep">›</span><span class="current">${esc(c.name)}</span>`;
@@ -1296,6 +1362,11 @@ function switchRecordTab(target,tabName){
   tabsEl.querySelectorAll('.record-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tabName));
   document.querySelectorAll('#page-'+target+'-detail .tab-content').forEach(t=>t.classList.remove('active'));
   const panel=document.getElementById(prefix+'-tab-'+tabName);if(panel)panel.classList.add('active');
+  // Lazy-render email log when Emails tab is opened
+  if(tabName==='emails'){
+    const id=target==='client'?currentClientId:currentCandidateId;
+    if(id)renderEmailLogForTarget(target,id);
+  }
 }
 function switchDashTab(tabName){
   const tabsEl=document.getElementById('dash-tabs');if(!tabsEl)return;
@@ -1306,7 +1377,7 @@ function switchDashTab(tabName){
 function renderCActEl(c){
   const el=document.getElementById('cdet-activity');const acts=(c.activity||[]).slice().reverse();
   if(!acts.length){el.innerHTML=`<div class="empty-state" style="padding:1.5rem;"><p>No activity yet.</p></div>`;return;}
-  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot coral">◎</div><div class="act-body"><div class="act-text">${esc(a.text)} ${emailStatusBadge(a.emailLogId)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
+  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot coral">◎</div><div class="act-body"><div class="act-text">${esc(a.text)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
 }
 
 // ── CHATTER ──
@@ -1499,9 +1570,8 @@ function openClDet(id){
   const relCands=allCandidates.filter(cand=>(cand.role||'').toLowerCase().includes(c.company.toLowerCase().slice(0,4)));
   document.getElementById('cldet-rel-cands').innerHTML=relCands.length?relCands.map(cand=>`<div class="mini-list-item" onclick="openCandDet('${cand.id}')"><span class="cell-link">${esc(cand.name)}</span>${pill(cand.status)}</div>`).join(''):`<div style="padding:0.7rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No related candidates</div>`;
   renderClActEl(c);
-  loadEmailStatuses('client',c.id).then(()=>renderClActEl(c));
-  startEmailStatusPolling('client',c.id);
   renderChatterFeed('client', c);
+  renderEmailLogForTarget('client', c.id);
   switchRecordTab('client','details');
   const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span onclick="goTo('clients')" style="cursor:pointer;color:var(--coral);">Clients</span><span class="sep">›</span><span class="current">${esc(c.company)}</span>`;
   history.replaceState(null,'','#client/'+c.id);
@@ -1510,7 +1580,7 @@ function openClDet(id){
 function renderClActEl(c){
   const el=document.getElementById('cldet-activity');const acts=(c.activity||[]).slice().reverse();
   if(!acts.length){el.innerHTML=`<div class="empty-state" style="padding:1.5rem;"><p>No activity yet.</p></div>`;return;}
-  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot teal">◎</div><div class="act-body"><div class="act-text">${esc(a.text)} ${emailStatusBadge(a.emailLogId)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
+  el.innerHTML=acts.map(a=>`<div class="act-item"><div class="act-dot teal">◎</div><div class="act-body"><div class="act-text">${esc(a.text)}</div><div class="act-time">${fmtT(a.at)}</div></div></div>`).join('');
 }
 async function updateClStatus(status){
   const i=allClients.findIndex(c=>c.id===currentClientId);if(i===-1)return;
@@ -1670,19 +1740,17 @@ async function sendEmailNow(){
   btn.disabled = true; btn.textContent = 'Sending…';
 
   try{
-    const sendResult = await sendEmailViaResend(to, subject, body, target, targetId);
+    await sendEmailViaResend(to, subject, body, {targetType:target, targetId});
     btn.disabled = false; btn.textContent = 'Send Email';
     closeModal('modal-email');
     toast('Email sent','success');
-    // Log it as a chatter note and activity entry, tagged with the email-tracking log id
+    // Log it as a chatter note and activity entry
     const logText = `✉️ Email sent — "${subject}"`;
-    const emailLogId = sendResult && sendResult.logId ? sendResult.logId : null;
-    if(emailLogId) emailStatusMap[emailLogId] = {status:'sent', sentAt: now(), deliveredAt:null, openedAt:null, openCount:0};
     if(target==='candidate'){
       const i = allCandidates.findIndex(c=>c.id===targetId);
       if(i>-1){
         allCandidates[i].activity = allCandidates[i].activity||[];
-        allCandidates[i].activity.push({text:logText, at:now(), emailLogId});
+        allCandidates[i].activity.push({text:logText, at:now()});
         await upsertC(allCandidates[i]);
         if(currentCandidateId===targetId) renderCActEl(allCandidates[i]);
       }
@@ -1691,7 +1759,7 @@ async function sendEmailNow(){
       const i = allClients.findIndex(c=>c.id===targetId);
       if(i>-1){
         allClients[i].activity = allClients[i].activity||[];
-        allClients[i].activity.push({text:logText, at:now(), emailLogId});
+        allClients[i].activity.push({text:logText, at:now()});
         await upsertCl(allClients[i]);
         if(currentClientId===targetId) renderClActEl(allClients[i]);
       }
@@ -1792,21 +1860,23 @@ function mergeTemplate(text, target, targetType){
     .replaceAll('{{company}}', targetType==='client' ? (target.company||'') : '');
 }
 
-async function sendSequenceStep(enrollmentId){
+async function sendSequenceStep(enrollmentId, silent=false){
   const e = allEnrollments.find(x=>x.id===enrollmentId); if(!e) return;
-  const seq = allSequences.find(s=>s.id===e.sequenceId); if(!seq){toast('Sequence not found','error');return;}
-  const step = seq.steps[e.currentStep]; if(!step){toast('Step not found','error');return;}
+  const seq = allSequences.find(s=>s.id===e.sequenceId);
+  if(!seq){if(!silent)toast('Sequence not found','error');return;}
+  const step = seq.steps[e.currentStep];
+  if(!step){if(!silent)toast('Step not found','error');return;}
   const target = e.targetType==='client' ? allClients.find(c=>c.id===e.targetId) : allCandidates.find(c=>c.id===e.targetId);
-  if(!target || !target.email){toast('No email address on file for this record','error');return;}
+  if(!target || !target.email){if(!silent)toast('No email address on file for this record','error');return;}
 
   const subject = mergeTemplate(step.subject, target, e.targetType);
   const body = mergeTemplate(step.body, target, e.targetType);
 
   try{
-    await sendEmailViaResend(target.email, subject, body);
+    await sendEmailViaResend(target.email, subject, body, {targetType:e.targetType, targetId:e.targetId, enrollmentId:e.id});
   }catch(err){
-    toast('Send failed: '+(err.message||'unknown error'),'error');
-    return;
+    if(!silent)toast('Send failed: '+(err.message||'unknown error'),'error');
+    throw err;
   }
 
   // Advance to next step (or complete)
@@ -1823,7 +1893,7 @@ async function sendSequenceStep(enrollmentId){
   const i = allEnrollments.findIndex(x=>x.id===e.id);
   if(i>-1) allEnrollments[i] = {...allEnrollments[i], currentStep:update.current_step, status:update.status, nextSendDate:update.next_send_date, lastSentAt:update.last_sent_at};
 
-  // Log to chatter + activity on the target record
+  // Log to activity on the target record
   const logText = `📨 Sequence email sent — "${subject}" (${seq.name}, step ${e.currentStep+1}/${seq.steps.length})`;
   if(e.targetType==='client'){
     const ci = allClients.findIndex(c=>c.id===e.targetId);
@@ -1835,7 +1905,7 @@ async function sendSequenceStep(enrollmentId){
     await addAct({type:'candidate', refId:e.targetId, refName: target.name||'', action:'email', detail:logText});
   }
 
-  toast(isLastStep ? 'Sent — sequence completed' : 'Sent — next step queued','success');
+  if(!silent) toast(isLastStep ? 'Sent — sequence completed' : 'Sent — next step queued','success');
   updateBadges();
   renderDueToday();
   if(currentPage==='sequences') renderSequences();
