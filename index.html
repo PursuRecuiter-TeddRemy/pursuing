@@ -614,6 +614,41 @@
         #intro-overlay.fade-out { opacity: 0; pointer-events: none; }
         #intro-overlay.gone    { display: none; }
 
+        /* ── Returning-visitor logo face (original animation) ── */
+        .intro-logo-wrap {
+            display: flex; flex-direction: column; align-items: center; gap: 0;
+            opacity: 0; transform: translateY(30px) scale(0.92);
+            animation: introRise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards;
+        }
+        .intro-logo-text {
+            font-family: 'Fraunces', serif; font-size: clamp(4rem, 14vw, 9rem);
+            font-weight: 600; letter-spacing: -0.03em; color: #F7F3EC; line-height: 1;
+        }
+        .intro-logo-text span { color: #E8603C; }
+        .intro-tagline-simple {
+            font-family: 'Inter', sans-serif; font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+            font-weight: 500; letter-spacing: 0.3em; text-transform: uppercase;
+            color: rgba(247,243,236,0.45); margin-top: 0.6rem;
+            opacity: 0; animation: introFade 0.7s ease 0.85s forwards;
+        }
+        .intro-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: #E8603C;
+            margin-top: 1.8rem; opacity: 0;
+            animation: introDot 0.5s ease 1.2s forwards, introPulse 1.2s ease 1.7s infinite;
+        }
+        .intro-line {
+            height: 1px; background: #E8603C; width: 0; margin-top: 1.2rem;
+            animation: introLineGrow 0.8s cubic-bezier(0.4,0,0.2,1) 0.8s forwards;
+        }
+        @keyframes introRise { to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes introFade { to { opacity: 1; } }
+        @keyframes introDot  { to { opacity: 1; } }
+        @keyframes introPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.6); opacity: 0.5; }
+        }
+        @keyframes introLineGrow { to { width: 120px; } }
+
         /* Subtle dot-grid texture on the dark bg */
         #intro-overlay::before {
             content: '';
@@ -1520,22 +1555,499 @@
 
         /* page-section already handled by existing .page-section display:none */
 
+
+        /* ================================================================
+           COMPREHENSIVE MOBILE & HANDHELD RESPONSIVE OVERHAUL
+           Breakpoints: 1024px tablet | 768px phablet | 480px phone | 360px small phone
+           Every section, grid, card, hero, form, and nav is covered.
+        ================================================================ */
+
+        /* ── viewport meta already set, but enforce no text inflate ── */
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+        /* ────────────────────────────────────────────────────────────
+           TABLET  ≤ 1024px
+        ──────────────────────────────────────────────────────────── */
+        @media (max-width: 1024px) {
+
+            /* Nav */
+            nav { padding: 1.4rem 5%; }
+            .nav-links { gap: 1.2rem; }
+            .nav-links a, .nav-links button { font-size: 0.78rem; }
+            .nav-cta { padding: 0.5rem 1rem; font-size: 0.76rem; }
+
+            /* Home hero */
+            .pursu-b2b-hero { padding: 4rem 5% 3.5rem; }
+            .pursu-b2b-hero__h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
+            .pursu-b2b-split__inner { gap: 1.2rem; }
+
+            /* Stats */
+            .stats-strip { padding: 2rem 5%; }
+            .stats-strip__inner { gap: 0.8rem; }
+
+            /* Industries */
+            .industries-grid { grid-template-columns: repeat(3, 1fr); gap: 0.9rem; }
+
+            /* Process steps */
+            .process-steps { grid-template-columns: repeat(2, 1fr); }
+            .process-step { border-right: none; border-bottom: 1px solid var(--line); }
+            .process-step:nth-child(odd) { border-right: 1px solid var(--line); }
+            .process-step:last-child, .process-step:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+
+            /* B2B pillar grid */
+            .b2b-grid-3 { grid-template-columns: 1fr 1fr; }
+            .b2b-grid-2 { grid-template-columns: 1fr 1fr; }
+
+            /* Stat bar */
+            .b2b-stat-bar { grid-template-columns: repeat(2, 1fr); }
+            .b2b-stat-bar__item:nth-child(2) { border-right: none; }
+            .b2b-stat-bar__item:nth-child(3) { border-top: 1px solid rgba(247,243,236,0.08); }
+            .b2b-stat-bar__item:nth-child(4) { border-top: 1px solid rgba(247,243,236,0.08); }
+
+            /* Consultation layout */
+            .consultation-layout { grid-template-columns: 1fr; gap: 2rem; padding: 3.5rem 5%; }
+            .consultation-sidebar { position: static; max-height: none; overflow: visible; }
+
+            /* Service tiers */
+            .service-tier-grid { grid-template-columns: 1fr 1fr; }
+
+            /* About */
+            .about-hero { gap: 2rem; }
+
+            /* Footer */
+            .site-footer-full__grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+
+            /* Quote cards */
+            .quote-cards { grid-template-columns: 1fr 1fr; }
+
+            /* Contact split */
+            .contact-split { gap: 2rem; }
+        }
+
+        /* ────────────────────────────────────────────────────────────
+           PHABLET / LARGE PHONE  ≤ 768px
+        ──────────────────────────────────────────────────────────── */
+        @media (max-width: 768px) {
+
+            /* ── Nav ── */
+            nav { padding: 1rem 4%; position: relative; flex-wrap: wrap; }
+            .nav-toggle { display: flex !important; }
+            .nav-links { display: none; width: 100%; }
+            .nav-links.open {
+                display: flex; flex-direction: column;
+                position: absolute; top: 100%; left: 0; right: 0;
+                background: var(--cream); padding: 1rem 4%;
+                gap: 0.5rem; border-bottom: 2px solid var(--coral);
+                z-index: 300; align-items: stretch;
+                box-shadow: 0 8px 24px rgba(30,26,23,0.12);
+            }
+            .nav-links.open a,
+            .nav-links.open button {
+                font-size: 1rem; padding: 0.8rem 0;
+                border-bottom: 1px solid var(--line);
+                text-align: left; color: var(--ink);
+            }
+            .nav-links.open a:last-child,
+            .nav-links.open button:last-child { border-bottom: none; }
+            .nav-links.open .nav-cta {
+                margin-top: 0.6rem;
+                padding: 0.9rem 1.5rem;
+                text-align: center;
+                border-radius: 100px;
+                border-bottom: none !important;
+                justify-content: center;
+                font-size: 0.95rem;
+                display: flex;
+            }
+
+            /* ── All page sections ── */
+            .page-section { padding: 3rem 4% 4rem; }
+            .section-title { font-size: clamp(1.7rem, 6vw, 2.4rem); }
+            .section-lede { font-size: 0.9rem; }
+            .section-inner { padding: 0; }
+
+            /* ── Home hero ── */
+            .pursu-b2b-hero { padding: 3rem 4% 3rem; text-align: center; }
+            .pursu-b2b-hero__inner { text-align: center; }
+            .pursu-b2b-hero__h1 { font-size: clamp(1.9rem, 7vw, 2.8rem); }
+            .pursu-b2b-hero__sub { font-size: 0.93rem; margin: 0 auto 2rem; }
+            .pursu-b2b-hero__ctas { flex-direction: column; align-items: center; }
+            .pursu-b2b-cta { width: 100%; max-width: 340px; justify-content: center; }
+            .pursu-b2b-stats { gap: 1.4rem; flex-wrap: wrap; }
+            .pursu-b2b-stats__divider { display: none; }
+            .pursu-b2b-stats__item { min-width: 120px; }
+
+            /* ── Path cards ── */
+            .pursu-b2b-split { padding: 2.5rem 4%; }
+            .pursu-b2b-split__inner { grid-template-columns: 1fr; gap: 1rem; }
+            .pursu-b2b-split__card, .path-card { min-height: 160px; padding: 1.6rem 1.4rem; }
+            .path-card h2 { font-size: 1.4rem; }
+            .path-card p { font-size: 0.85rem; }
+
+            /* ── Stats strip ── */
+            .stats-strip { padding: 1.8rem 4%; }
+            .stats-strip__inner { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+            .stats-strip__num { font-size: 1.8rem; }
+            .stats-strip__label { font-size: 0.72rem; }
+
+            /* ── Industries grid ── */
+            .industries-grid { grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.5rem 0; }
+            .industry-card { padding: 1.2rem 1rem; }
+            .industry-card__icon { font-size: 1.3rem; }
+            .industry-card h4 { font-size: 0.9rem; }
+            .industry-card p { font-size: 0.74rem; }
+
+            /* ── Process steps ── */
+            .process-steps { grid-template-columns: 1fr; }
+            .process-step { border-right: none; border-bottom: 1px solid var(--line); padding: 1.5rem 1.2rem; }
+            .process-step:last-child { border-bottom: none; }
+            .process-step__num { font-size: 2.4rem; }
+
+            /* ── Placement models 3-col → 1-col ── */
+            /* handled via inline grid — override here */
+            #page-home div[style*="repeat(3,1fr)"],
+            #page-home div[style*="repeat(3, 1fr)"] { display: flex !important; flex-direction: column !important; gap: 1rem !important; }
+
+            /* ── How it works split ── */
+            #page-home div[style*="grid-template-columns:1fr 1fr"],
+            #page-home div[style*="grid-template-columns: 1fr 1fr"] { display: block !important; }
+            #page-home div[style*="grid-template-columns:1fr 1fr"] > div,
+            #page-home div[style*="grid-template-columns: 1fr 1fr"] > div { margin-bottom: 2.5rem; }
+
+            /* ── B2B CTA banner ── */
+            .pursu-b2b-ctabanner { padding: 3rem 4%; }
+            .pursu-b2b-ctabanner__inner { flex-direction: column; gap: 1.8rem; }
+            .pursu-b2b-ctabanner__actions { width: 100%; }
+            .pursu-b2b-cta--banner { width: 100%; justify-content: center; }
+            .pursu-b2b-ctabanner__title { font-size: clamp(1.5rem, 5vw, 2rem); }
+
+            /* ── B2B new page heroes ── */
+            .b2b-page-hero { padding: 3rem 4% 2.5rem; }
+            .b2b-page-hero__h1 { font-size: clamp(1.8rem, 6vw, 2.6rem); }
+            .b2b-page-hero__sub { font-size: 0.9rem; }
+            .b2b-page-hero__ctas { flex-direction: column; gap: 0.8rem; }
+            .cta-arrow-btn { width: 100%; justify-content: center; }
+
+            /* ── B2B grid cards ── */
+            .b2b-grid-3 { grid-template-columns: 1fr; gap: 1rem; }
+            .b2b-grid-2 { grid-template-columns: 1fr; gap: 1rem; }
+            .b2b-card { padding: 1.6rem 1.4rem; }
+
+            /* ── B2B stat bar ── */
+            .b2b-stat-bar { grid-template-columns: 1fr 1fr; }
+            .b2b-stat-bar__item { border-right: none; border-bottom: 1px solid rgba(247,243,236,0.08); padding: 1.6rem 1.2rem; }
+            .b2b-stat-bar__item:nth-child(odd) { border-right: 1px solid rgba(247,243,236,0.08); }
+            .b2b-stat-bar__item:last-child,
+            .b2b-stat-bar__item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+            .b2b-stat-bar__num { font-size: 1.6rem; }
+
+            /* ── Comparison table scroll ── */
+            .b2b-table { font-size: 0.78rem; }
+            /* Wrap table in scrollable container via JS — see note below */
+            /* For pure CSS, we use overflow-x on the parent */
+            #page-capabilities div[data-reveal] { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+            /* ── Solutions accordion ── */
+            .b2b-accordion__trigger { font-size: 1rem; padding: 1.2rem 0; }
+
+            /* ── Consultation ── */
+            .consultation-layout {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 2.5rem 4%;
+            }
+            .consultation-sidebar { position: static; max-height: none; overflow: visible; }
+            .consultation-sidebar__title { font-size: 1.6rem; }
+            .consultation-form-wrap { padding: 1.8rem 1.4rem; border-radius: 16px; }
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+
+            /* ── About page ── */
+            .about-hero { grid-template-columns: 1fr; gap: 1.5rem; }
+            .about-stat-card { padding: 1.8rem 1.4rem; }
+            .about-timeline { margin: 2rem 0; }
+            .about-timeline::before { left: 14px; }
+            .about-timeline-dot { width: 30px; height: 30px; font-size: 0.75rem; }
+            .about-timeline-item { gap: 1.2rem; margin-bottom: 1.8rem; }
+            /* Inline grid overrides for about page */
+            #page-about div[style*="grid-template-columns:1fr 1fr"] { display: block !important; }
+            #page-about div[style*="grid-template-columns:1fr 1fr"] > div { margin-bottom: 2rem; }
+
+            /* ── Values row ── */
+            .values-row { grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+            .value-card { padding: 1.4rem 1.2rem; }
+
+            /* ── Services / Employers ── */
+            .service-tier-grid { grid-template-columns: 1fr; }
+
+            /* ── Contact split ── */
+            .contact-split { grid-template-columns: 1fr; gap: 1.5rem; margin-top: 2rem; }
+            .contact-form-card { padding: 1.8rem 1.4rem; border-radius: 16px; }
+            .contact-info-card { padding: 1.8rem 1.4rem; border-radius: 16px; }
+
+            /* ── Consultant grid ── */
+            .consultant-grid { grid-template-columns: 1fr; gap: 1rem; }
+
+            /* ── Job cards ── */
+            .job-card { flex-direction: column; align-items: flex-start; gap: 0.8rem; padding: 1.2rem; }
+            .job-card .apply-btn { width: 100%; text-align: center; }
+            .job-title { font-size: 1.1rem; }
+
+            /* ── Search container ── */
+            .search-container { grid-template-columns: 1fr; gap: 0.7rem; }
+            .search-container button { padding: 1rem; width: 100%; border-radius: 12px; }
+
+            /* ── Forms ── */
+            .form-group input, .form-group textarea, .form-select-styled { font-size: 16px; } /* prevents zoom on iOS */
+            .submit-btn { width: 100%; padding: 1rem; font-size: 0.95rem; }
+            .apply-btn { font-size: 0.84rem; padding: 0.75rem 1.5rem; }
+
+            /* ── Admin ── */
+            .admin-grid-2 { grid-template-columns: 1fr; }
+            .admin-row { flex-direction: column; gap: 0.6rem; align-items: flex-start; }
+
+            /* ── Footer ── */
+            .site-footer-full { padding: 3rem 4% 6rem; } /* 6rem bottom clears fixed ticker */
+            .site-footer-full__grid { grid-template-columns: 1fr 1fr; gap: 1.8rem; padding-bottom: 2rem; }
+            .site-footer-full__bottom { flex-direction: column; text-align: center; gap: 0.4rem; }
+
+            /* ── Footer bottom-tab bar (ticker) spacing ── */
+            body { padding-bottom: 50px; }
+
+            /* ── Quote cards ── */
+            .quote-cards { grid-template-columns: 1fr; }
+
+            /* ── Intro overlay ── */
+            #intro-typed-text { font-size: clamp(2.8rem, 14vw, 5rem); }
+            #intro-period { font-size: clamp(2.8rem, 14vw, 5rem); }
+            #intro-cursor { height: clamp(2.2rem, 10vw, 4rem); }
+
+            /* ── Ticker ── */
+            .market-ticker { padding: 10px 0; }
+            .ticker-item { font-size: 0.68rem; margin-right: 2rem; }
+            .ticker-badge { font-size: 0.56rem; }
+        }
+
+        /* ────────────────────────────────────────────────────────────
+           PHONE  ≤ 480px
+        ──────────────────────────────────────────────────────────── */
+        @media (max-width: 480px) {
+
+            /* Global padding tightened */
+            .page-section { padding: 2.5rem 4% 3.5rem; }
+            nav { padding: 0.9rem 4%; }
+            .logo-text { font-size: 1.25rem; }
+
+            /* Hero big text */
+            .pursu-b2b-hero { padding: 2.5rem 4% 2.5rem; }
+            .pursu-b2b-hero__h1 { font-size: clamp(1.7rem, 8vw, 2.2rem); }
+            .pursu-b2b-hero__sub { font-size: 0.88rem; }
+            .b2b-page-hero { padding: 2.5rem 4% 2rem; }
+            .b2b-page-hero__h1 { font-size: clamp(1.6rem, 7.5vw, 2.2rem); }
+
+            /* Stats strip single column */
+            .stats-strip__inner { grid-template-columns: 1fr 1fr; }
+            .stats-strip__num { font-size: 1.6rem; }
+
+            /* Industries single column */
+            .industries-grid { grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+            .industry-card { padding: 1rem 0.9rem; }
+            .industry-card__icon { font-size: 1.2rem; margin-bottom: 0.5rem; }
+            .industry-card h4 { font-size: 0.85rem; }
+            .industry-card p { font-size: 0.7rem; line-height: 1.5; }
+
+            /* B2B stat bar full single column */
+            .b2b-stat-bar { grid-template-columns: 1fr; }
+            .b2b-stat-bar__item { border-right: none; }
+            .b2b-stat-bar__item:nth-child(odd) { border-right: none; }
+
+            /* Values row */
+            .values-row { grid-template-columns: 1fr; }
+            .value-card { padding: 1.2rem; }
+
+            /* Section headings */
+            .section-title { font-size: clamp(1.5rem, 7vw, 1.9rem); }
+            .b2b-page-hero__h1 { font-size: clamp(1.6rem, 8vw, 2.2rem); }
+
+            /* About founder photo */
+            #page-about div[style*="width:200px"] { width: 150px !important; height: 150px !important; }
+
+            /* Consultation form */
+            .consultation-form-wrap { padding: 1.4rem 1rem; border-radius: 12px; }
+            .consultation-sidebar__title { font-size: 1.4rem; }
+            .consultation-layout { padding: 2rem 4%; }
+
+            /* Service tier cards */
+            .service-tier-card { padding: 1.4rem 1.2rem; }
+
+            /* Contact */
+            .contact-form-card { padding: 1.4rem 1rem; }
+            .contact-info-card { padding: 1.4rem 1rem; }
+
+            /* Buttons full width on small screens */
+            .cta-arrow-btn { font-size: 0.85rem; padding: 0.85rem 1.5rem; }
+
+            /* CTA banner */
+            .pursu-b2b-ctabanner { padding: 2.5rem 4%; }
+            .pursu-b2b-ctabanner__title { font-size: clamp(1.4rem, 6vw, 1.8rem); }
+
+            /* Footer collapse */
+            .site-footer-full__grid { grid-template-columns: 1fr; gap: 1.4rem; }
+            .site-footer-full { padding: 2.5rem 4% 6rem; }
+
+            /* Admin */
+            .admin-panel { padding: 1rem; }
+            .rte-toolbar { flex-wrap: wrap; gap: 0.3rem; }
+
+            /* Ticker */
+            .ticker-item { font-size: 0.62rem; margin-right: 1.6rem; }
+            .market-ticker { padding: 9px 0; }
+
+            /* Intro */
+            #intro-typed-text { font-size: clamp(2.4rem, 13vw, 4rem); }
+            #intro-period { font-size: clamp(2.4rem, 13vw, 4rem); }
+            #intro-cursor { height: clamp(1.8rem, 9vw, 3.2rem); width: 3px; }
+            #intro-tagline { font-size: 0.6rem; letter-spacing: 0.22em; }
+
+            /* Form inputs — 16px prevents iOS auto-zoom */
+            input, textarea, select { font-size: 16px !important; }
+        }
+
+        /* ────────────────────────────────────────────────────────────
+           SMALL PHONE  ≤ 360px  (iPhone SE, Galaxy A series)
+        ──────────────────────────────────────────────────────────── */
+        @media (max-width: 360px) {
+
+            nav { padding: 0.8rem 3.5%; }
+            .logo-text { font-size: 1.1rem; }
+            .nav-toggle { font-size: 1.2rem; }
+
+            .page-section { padding: 2rem 3.5% 3rem; }
+
+            .pursu-b2b-hero { padding: 2rem 3.5% 2rem; }
+            .pursu-b2b-hero__h1 { font-size: clamp(1.5rem, 9vw, 2rem); letter-spacing: -0.01em; }
+            .b2b-page-hero { padding: 2rem 3.5% 1.8rem; }
+            .b2b-page-hero__h1 { font-size: clamp(1.4rem, 8.5vw, 1.9rem); }
+
+            .industries-grid { grid-template-columns: 1fr; }
+
+            .stats-strip__inner { grid-template-columns: 1fr; }
+            .stats-strip__item { padding: 0.6rem; }
+            .stats-strip__num { font-size: 1.5rem; }
+
+            .pursu-b2b-stats__item { flex: 1 1 100%; }
+
+            .b2b-stat-bar { grid-template-columns: 1fr; }
+
+            .path-card { padding: 1.2rem 1rem; min-height: 140px; }
+            .path-card h2 { font-size: 1.2rem; }
+
+            .section-title { font-size: clamp(1.4rem, 8vw, 1.7rem); }
+            .section-lede { font-size: 0.85rem; }
+
+            .apply-btn, .submit-btn, .cta-arrow-btn { font-size: 0.82rem; padding: 0.8rem 1.2rem; }
+
+            .site-footer-full__grid { grid-template-columns: 1fr; }
+
+            /* About photo */
+            #page-about div[style*="width:200px"] { width: 120px !important; height: 120px !important; }
+
+            /* Ticker */
+            .ticker-item { font-size: 0.58rem; margin-right: 1.2rem; }
+
+            /* Intro */
+            #intro-typed-text { font-size: clamp(2rem, 12vw, 3rem); }
+            #intro-period { font-size: clamp(2rem, 12vw, 3rem); }
+            #intro-cursor { height: clamp(1.5rem, 8vw, 2.5rem); }
+        }
+
+        /* ────────────────────────────────────────────────────────────
+           TOUCH DEVICE — disable hover transforms (battery + UX)
+        ──────────────────────────────────────────────────────────── */
+        @media (hover: none) and (pointer: coarse) {
+            .apply-btn:hover, .submit-btn:hover, .icon-btn:hover,
+            .path-card:hover, .value-card:hover, .job-card:hover,
+            .nav-cta:hover, .search-container button:hover,
+            .custom-select-trigger:hover,
+            .b2b-card:hover, .industry-card:hover,
+            .service-tier-card:hover, .consultant-card:hover,
+            .cta-arrow-btn:hover, .pursu-b2b-cta--primary:hover,
+            .pursu-b2b-cta--banner:hover,
+            .about-timeline-dot:hover,
+            .quote-card:hover { transform: none !important; box-shadow: none !important; }
+            .nav-links a::after { display: none; }
+            .b2b-card:hover::before { transform: scaleX(0) !important; }
+            .service-tier-card:hover::after { transform: scaleX(0) !important; }
+            /* Keep color transitions on touch — they feel responsive without causing jank */
+            .nav-links a:active { color: var(--coral); }
+            .apply-btn:active { opacity: 0.82; }
+            .cta-arrow-btn:active { opacity: 0.82; }
+        }
+
+        /* ────────────────────────────────────────────────────────────
+           SAFE AREA INSETS — iPhone notch / Dynamic Island / home bar
+        ──────────────────────────────────────────────────────────── */
+        @supports (padding: env(safe-area-inset-bottom)) {
+            nav {
+                padding-left: max(4%, env(safe-area-inset-left));
+                padding-right: max(4%, env(safe-area-inset-right));
+            }
+            .market-ticker {
+                padding-bottom: max(14px, env(safe-area-inset-bottom));
+            }
+            body {
+                padding-bottom: max(50px, calc(44px + env(safe-area-inset-bottom)));
+            }
+        }
+
+        /* ────────────────────────────────────────────────────────────
+           LANDSCAPE PHONE  (short viewport, wide)
+        ──────────────────────────────────────────────────────────── */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .pursu-b2b-hero { padding: 2rem 5% 1.8rem; }
+            .b2b-page-hero { padding: 2rem 5% 1.8rem; }
+            #intro-overlay { justify-content: center; }
+            #intro-typed-text { font-size: clamp(2rem, 10vh, 4rem); }
+            #intro-period { font-size: clamp(2rem, 10vh, 4rem); }
+            #intro-cursor { height: clamp(1.5rem, 8vh, 3rem); }
+            .consultation-layout { padding: 2rem 5%; }
+            .nav-links.open { max-height: 60vh; overflow-y: auto; }
+        }
+
+        /* ────────────────────────────────────────────────────────────
+           REDUCED MOTION — respect accessibility preferences
+        ──────────────────────────────────────────────────────────── */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            [data-reveal], [data-reveal-group] > * { opacity: 1 !important; transform: none !important; }
+            .pursu-ticker__track { animation: none !important; }
+            #intro-cursor { animation: none !important; }
+        }
+
     </style>
 </head>
 <body>
 
     <div id="intro-overlay">
-        <div class="intro-typing-wrap">
-            <!-- Word row: typed text + coral period + blinking cursor -->
+        <!-- New-visitor face: typing animation -->
+        <div class="intro-typing-wrap" id="intro-face-typo">
             <div class="intro-word-row">
                 <span id="intro-typed-text"></span>
                 <span id="intro-period">.</span>
                 <span id="intro-cursor" aria-hidden="true"></span>
             </div>
-            <!-- Underline grows under completed name -->
             <div id="intro-underline"></div>
-            <!-- Tagline fades in at the end -->
             <p id="intro-tagline">Pursuing the Perfect Match</p>
+        </div>
+        <!-- Returning-visitor face: original simple logo animation -->
+        <div class="intro-logo-wrap" id="intro-face-logo" style="display:none; flex-direction:column; align-items:center;">
+            <div class="intro-logo-text">Pursu<span>.</span></div>
+            <div class="intro-line"></div>
+            <div class="intro-tagline-simple">Pursuing the Perfect Match</div>
+            <div class="intro-dot"></div>
         </div>
         <p id="intro-hint">Tap anywhere to continue <span>↓</span></p>
     </div>
@@ -1589,8 +2101,8 @@
                     </div>
                     <div class="pursu-b2b-stats__divider" aria-hidden="true"></div>
                     <div class="pursu-b2b-stats__item">
-                        <span class="pursu-b2b-stats__num">All Industries</span>
-                        <span class="pursu-b2b-stats__label">Technical, Professional & Frontline</span>
+                        <span class="pursu-b2b-stats__num">Nationwide</span>
+                        <span class="pursu-b2b-stats__label">Serving clients &amp; candidates across all 50 states</span>
                     </div>
                     <div class="pursu-b2b-stats__divider" aria-hidden="true"></div>
                     <div class="pursu-b2b-stats__item">
@@ -1870,22 +2382,13 @@
             </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════
-             TICKER
-        ═══════════════════════════════════════════════════ -->
-        <div class="market-ticker">
-            <div class="ticker-track" id="ticker-box">
-                <div class="ticker-item"><span>Pursu</span> Loading roles...</div>
-            </div>
-        </div>
-
     </section>
 
     <!-- TALENT -->
     <section class="page-section" id="page-talent">
         <div class="section-inner">
             <span class="section-eyebrow" data-reveal>Open Roles</span>
-            <h2 class="section-title" data-reveal>Find your <span class="italic-accent">next role</span></h2>
+            <h2 class="section-title" data-reveal>Find your <span class="italic-accent">next role.</span></h2>
             <p class="section-lede" data-reveal>Browse current opportunities across all industries, functions, and placement types. New positions are added regularly — check back often, or <a href="javascript:void(0)" onclick="showPage('contact')" style="color:var(--coral);font-weight:600;">reach out</a> to tell us what you're looking for.</p>
 
             <!-- Placement type key -->
@@ -1929,7 +2432,7 @@
     <section class="page-section" id="page-employers">
         <div class="section-inner">
             <span class="section-eyebrow teal" data-reveal>For Employers</span>
-            <h2 class="section-title" data-reveal>Built for <span class="italic-accent" style="color:var(--teal)">direct partnership</span></h2>
+            <h2 class="section-title" data-reveal>Built for <span class="italic-accent" style="color:var(--teal)">direct partnership.</span></h2>
             <p class="section-lede" data-reveal>Pursu provides dedicated workforce solutions across every industry, function, and engagement model. From a single specialized hire to a full workforce program — we handle the talent strategy and the employment relationship so you can focus on your operations.</p>
 
             <!-- Service Tiers -->
@@ -1940,7 +2443,7 @@
                     <p>Deploy skilled professionals for defined projects, seasonal surges, or operational gaps — without long-term employment obligations. Fully W-2, fully covered.</p>
                     <ul>
                         <li>Short- and long-term contract assignments</li>
-                        <li>Multi-site and national coverage</li>
+                        <li>Nationwide placement — all 50 states, all major markets</li>
                         <li>Payroll, taxes & workers' comp on us</li>
                         <li>Single point of contact for every placement</li>
                     </ul>
@@ -2040,8 +2543,8 @@
                     >
                 </div>
                 <span class="section-eyebrow" style="margin-bottom:0.4rem;">Founder &amp; CEO</span>
-                <h2 class="section-title" style="margin-bottom:0.3rem;">Tedd C. <span class="italic-accent">Remy</span></h2>
-                <p style="font-size:0.88rem; color:var(--ink-soft); font-family:Inter,sans-serif; letter-spacing:0.06em;">Pursu Solutions, LLC &mdash; Virginia</p>
+                <h2 class="section-title" style="margin-bottom:0.3rem;">Tedd C. <span class="italic-accent">Remy.</span></h2>
+                <p style="font-size:0.88rem; color:var(--ink-soft); font-family:Inter,sans-serif; letter-spacing:0.06em;">Pursu Solutions, LLC &mdash; Nationwide &middot; HQ: D.C. Metro, Virginia</p>
             </div>
 
             <div class="about-hero" data-reveal-group>
@@ -2105,7 +2608,7 @@
     <section class="page-section" id="page-hours">
         <div class="section-inner">
             <span class="section-eyebrow" data-reveal>For Consultants</span>
-            <h2 class="section-title" data-reveal>Your <span class="italic-accent">consultant hub</span></h2>
+            <h2 class="section-title" data-reveal>Your <span class="italic-accent">consultant hub.</span></h2>
             <p class="section-lede" data-reveal>Everything you need as a Pursu consultant — timekeeping, pay stubs, onboarding docs, and direct access to your contact at Pursu. All in one place.</p>
 
             <div class="consultant-grid" data-reveal-group>
@@ -2148,7 +2651,7 @@
     <section class="page-section" id="page-contact">
         <div class="section-inner">
             <span class="section-eyebrow" data-reveal>Get In Touch</span>
-            <h2 class="section-title" data-reveal>Let&rsquo;s <span class="italic-accent">talk</span></h2>
+            <h2 class="section-title" data-reveal>Let&rsquo;s <span class="italic-accent">talk.</span></h2>
             <p class="section-lede" data-reveal>Whether you&rsquo;re looking for your next opportunity or your next hire &mdash; reach out and a real person will follow up promptly.</p>
 
             <div class="contact-split">
@@ -2185,6 +2688,13 @@
                         </div>
                         <button type="submit" class="submit-btn" id="contact-submit-btn">Send Message</button>
                         <div class="form-msg" id="contact-msg"></div>
+                        <!-- Success state — shown after submission -->
+                        <div id="contact-success-state" style="display:none; text-align:center; padding:2rem 1rem; background:var(--sand); border-radius:16px; margin-top:1rem;">
+                            <div style="font-size:2.5rem; margin-bottom:0.8rem;">✉️</div>
+                            <h4 style="font-family:Fraunces,serif; font-size:1.3rem; margin-bottom:0.5rem; color:var(--ink);">Message received.</h4>
+                            <p style="font-size:0.88rem; color:var(--ink-soft); line-height:1.7; max-width:340px; margin:0 auto 1.2rem;">We'll follow up within one business day. In the meantime, feel free to call or text us directly.</p>
+                            <a href="tel:13019134975" style="font-size:0.9rem; font-weight:600; color:var(--teal); text-decoration:none;">(301) 913-4975</a>
+                        </div>
                     </form>
                 </div>
 
@@ -2209,7 +2719,7 @@
                         <div class="contact-info-item__icon">&#127968;</div>
                         <div class="contact-info-item__text">
                             <strong>Location</strong>
-                            <span>Washington, D.C. Metro &mdash; Virginia</span>
+                            <span>Nationwide &mdash; Headquartered in the Washington, D.C. Metro Area</span>
                         </div>
                     </div>
                     <div class="contact-hours">
@@ -2261,16 +2771,24 @@
 
     <!-- HIRE REQUEST SUCCESS -->
     <section class="page-section" id="page-hire-sent">
-        <div class="section-inner" style="text-align:center; max-width:560px;">
-            <div style="width:64px; height:64px; border-radius:50%; background:var(--teal-tint); display:flex; align-items:center; justify-content:center; margin:0 auto 1.6rem;">
-                <i class="ti ti-check" aria-hidden="true" style="font-size:1.8rem; color:var(--teal); font-style:normal;">&#10003;</i>
+        <div class="section-inner" style="text-align:center; max-width:600px; margin:0 auto;">
+            <div style="font-size:3.5rem; margin-bottom:1rem; line-height:1;">✅</div>
+            <span class="section-eyebrow teal" style="display:block; text-align:center;">Staffing request received</span>
+            <h2 class="section-title" style="text-align:center;">We're on <span class="italic-accent" style="color:var(--teal)">it.</span></h2>
+            <p class="section-lede" style="margin:0 auto 1.2rem; text-align:center;">Your request has been received by Pursu. A strategist will follow up within <strong>24 hours</strong> to confirm your needs and open a search.</p>
+            <div style="background:var(--sand); border-radius:16px; padding:1.5rem 2rem; margin:1.5rem auto; text-align:left; max-width:460px;">
+                <p style="font-size:0.85rem; font-weight:700; color:var(--ink); margin-bottom:0.6rem; letter-spacing:0.04em; text-transform:uppercase;">What happens next</p>
+                <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.55rem;">
+                    <li style="font-size:0.84rem; color:var(--ink-soft); display:flex; align-items:flex-start; gap:0.6rem;"><span style="color:var(--teal); font-weight:700; flex-shrink:0;">01</span>You'll receive an email confirmation shortly</li>
+                    <li style="font-size:0.84rem; color:var(--ink-soft); display:flex; align-items:flex-start; gap:0.6rem;"><span style="color:var(--teal); font-weight:700; flex-shrink:0;">02</span>A Pursu strategist reaches out within 24 hours</li>
+                    <li style="font-size:0.84rem; color:var(--ink-soft); display:flex; align-items:flex-start; gap:0.6rem;"><span style="color:var(--teal); font-weight:700; flex-shrink:0;">03</span>We align on role architecture, timeline &amp; scope</li>
+                    <li style="font-size:0.84rem; color:var(--ink-soft); display:flex; align-items:flex-start; gap:0.6rem;"><span style="color:var(--teal); font-weight:700; flex-shrink:0;">04</span>Active nationwide sourcing begins immediately</li>
+                </ul>
             </div>
-            <span class="section-eyebrow teal" style="display:block; text-align:center;">Request received</span>
-            <h2 class="section-title" style="text-align:center;">We're on <span class="italic-accent" style="color:var(--teal)">it</span></h2>
-            <p class="section-lede" style="margin:0 auto 0.8rem; text-align:center; font-weight:600; color:var(--ink);">Thank you for your interest. Your information has been shared with Pursu.</p>
-            <p class="section-lede" style="margin:0 auto 2rem; text-align:center;">We've received your request and will follow up by email shortly.</p>
+            <p style="font-size:0.85rem; color:var(--ink-soft); margin-bottom:2rem;">Need us sooner? <a href="tel:13019134975" style="color:var(--coral); font-weight:600; text-decoration:none;">(301) 913-4975</a> &nbsp;·&nbsp; Mon–Fri 8 AM–7 PM ET</p>
             <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-                <a href="javascript:void(0)" class="apply-btn teal-hover" style="background:var(--teal);" onclick="showPage('home')">Back to home</a>
+                <a href="javascript:void(0)" class="apply-btn" style="background:var(--teal);" onclick="showPage('home')">Back to home</a>
+                <a href="javascript:void(0)" class="apply-btn" style="background:transparent; border:1.5px solid var(--ink); color:var(--ink);" onclick="showPage('talent')">Browse open roles</a>
             </div>
         </div>
     </section>
@@ -2294,7 +2812,7 @@
     <section class="page-section" id="page-apply">
         <div class="section-inner">
             <span class="section-eyebrow">Apply</span>
-            <h2 class="section-title" id="apply-job-title">Apply for <span class="italic-accent">role</span></h2>
+            <h2 class="section-title" id="apply-job-title">Apply for <span class="italic-accent">this role.</span></h2>
             <p class="section-lede" id="apply-job-meta"></p>
             <div class="form-block" style="margin-top: 2.5rem;">
                 <form id="apply-form" onsubmit="submitApplication(event)">
@@ -2335,17 +2853,24 @@
 
     <!-- APPLICATION SUCCESS -->
     <section class="page-section" id="page-applied">
-        <div class="section-inner" style="text-align:center; max-width:560px;">
-            <div style="width:64px; height:64px; border-radius:50%; background:var(--coral-tint); display:flex; align-items:center; justify-content:center; margin:0 auto 1.6rem;">
-                <i class="ti ti-check" aria-hidden="true" style="font-size:1.8rem; color:var(--coral); font-style:normal;">&#10003;</i>
-            </div>
+        <div class="section-inner" style="text-align:center; max-width:600px; margin:0 auto;">
+            <div style="font-size:3.5rem; margin-bottom:1rem; line-height:1;">🚀</div>
             <span class="section-eyebrow" style="display:block; text-align:center;">Application received</span>
-            <h2 class="section-title" style="text-align:center;">You're <span class="italic-accent">in</span></h2>
-            <p class="section-lede" style="margin:0 auto 0.8rem; text-align:center; font-weight:600; color:var(--ink);">Thank you for your interest. Your information has been shared with Pursu.</p>
-            <p class="section-lede" style="margin:0 auto 2rem; text-align:center;" id="applied-job-title">Thanks for applying. A real person will review your application and follow up by email.</p>
+            <h2 class="section-title" style="text-align:center; margin-bottom:0.8rem;"><span class="italic-accent">You're in.</span></h2>
+            <p class="section-lede" style="margin:0 auto 1.2rem; text-align:center;" id="applied-job-title">Thanks for applying. A real person will review your application and follow up by email.</p>
+            <div style="background:var(--sand); border-radius:16px; padding:1.5rem 2rem; margin:1.5rem auto; text-align:left; max-width:460px;">
+                <p style="font-size:0.85rem; font-weight:700; color:var(--ink); margin-bottom:0.6rem; letter-spacing:0.04em; text-transform:uppercase;">What happens next</p>
+                <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.55rem;">
+                    <li style="font-size:0.84rem; color:var(--ink-soft); display:flex; align-items:flex-start; gap:0.6rem;"><span style="color:var(--coral); font-weight:700; flex-shrink:0;">01</span>Your application goes directly to our Founder &amp; CEO</li>
+                    <li style="font-size:0.84rem; color:var(--ink-soft); display:flex; align-items:flex-start; gap:0.6rem;"><span style="color:var(--coral); font-weight:700; flex-shrink:0;">02</span>A real person reviews every submission — no ATS black holes</li>
+                    <li style="font-size:0.84rem; color:var(--ink-soft); display:flex; align-items:flex-start; gap:0.6rem;"><span style="color:var(--coral); font-weight:700; flex-shrink:0;">03</span>We'll follow up within 2–3 business days by email</li>
+                    <li style="font-size:0.84rem; color:var(--ink-soft); display:flex; align-items:flex-start; gap:0.6rem;"><span style="color:var(--coral); font-weight:700; flex-shrink:0;">04</span>Even if not a fit now, we keep your profile on file</li>
+                </ul>
+            </div>
+            <p style="font-size:0.85rem; color:var(--ink-soft); margin-bottom:2rem;">Questions? <a href="mailto:PursuSolutions@wepursu.one" style="color:var(--coral); font-weight:600; text-decoration:none;">PursuSolutions@wepursu.one</a></p>
             <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-                <a href="javascript:void(0)" class="apply-btn" onclick="showPage('talent')">Browse more roles</a>
-                <a href="javascript:void(0)" class="icon-btn" onclick="showPage('home')" style="padding:0.85rem 1.6rem;">Back to home</a>
+                <a href="javascript:void(0)" class="apply-btn" onclick="showPage('talent')">See more roles</a>
+                <a href="javascript:void(0)" class="apply-btn" style="background:transparent; border:1.5px solid var(--ink); color:var(--ink);" onclick="showPage('home')">Back to home</a>
             </div>
         </div>
     </section>
@@ -2354,7 +2879,7 @@
     <section class="page-section" id="page-admin-login">
         <div class="section-inner">
             <span class="section-eyebrow">Admin</span>
-            <h2 class="section-title">Sign <span class="italic-accent">in</span></h2>
+            <h2 class="section-title">Sign <span class="italic-accent">in.</span></h2>
             <div class="form-block" style="margin-top: 2rem;">
                 <form onsubmit="adminLogin(event)">
                     <div class="form-group">
@@ -2372,7 +2897,7 @@
     <section class="page-section" id="page-admin">
         <div class="section-inner">
             <span class="section-eyebrow">Admin</span>
-            <h2 class="section-title">Manage <span class="italic-accent">roles &amp; applicants</span></h2>
+            <h2 class="section-title">Manage <span class="italic-accent">roles &amp; applicants.</span></h2>
             <p class="section-lede">Post new roles, edit existing ones, and review applications submitted through the site.</p>
             <div class="admin-grid" style="margin-top: 2.5rem;">
                 <div class="admin-panel">
@@ -2803,8 +3328,8 @@
                     </div>
                     <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
                         <div style="text-align:center; padding:0.8rem 1.4rem; border:1px solid rgba(247,243,236,0.12); border-radius:12px;">
-                            <span style="display:block; font-family:Fraunces,serif; font-size:1.4rem; font-weight:600; color:var(--coral);">24h</span>
-                            <span style="font-size:0.7rem; color:rgba(247,243,236,0.4); letter-spacing:0.06em;">response time</span>
+                            <span style="display:block; font-family:Fraunces,serif; font-size:1.4rem; font-weight:600; color:var(--coral);">50</span>
+                            <span style="font-size:0.7rem; color:rgba(247,243,236,0.4); letter-spacing:0.06em;">states served</span>
                         </div>
                         <div style="text-align:center; padding:0.8rem 1.4rem; border:1px solid rgba(247,243,236,0.12); border-radius:12px;">
                             <span style="display:block; font-family:Fraunces,serif; font-size:1.4rem; font-weight:600; color:var(--coral);">100%</span>
@@ -2837,7 +3362,7 @@
                 <div style="margin-top:2rem; padding:1.5rem; background:var(--sand); border-radius:16px;">
                     <p style="font-size:0.78rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink); margin-bottom:0.5rem;">Prefer to speak directly?</p>
                     <a href="tel:13019134975" style="font-size:1rem; font-weight:600; color:var(--coral); text-decoration:none;">(301) 913-4975</a>
-                    <p style="font-size:0.8rem; color:var(--ink-soft); margin-top:0.3rem;">Mon – Fri · 8 AM – 7 PM ET</p>
+                    <p style="font-size:0.8rem; color:var(--ink-soft); margin-top:0.3rem;">Mon – Fri · 8 AM – 7 PM ET · Serving clients nationwide</p>
                 </div>
             </div>
 
@@ -2961,7 +3486,7 @@
                 <div class="site-footer-full__contact">
                     <a href="mailto:PursuSolutions@wepursu.one">&#9993; PursuSolutions@wepursu.one</a>
                     <a href="tel:13019134975">&#9742; (301) 913-4975</a>
-                    <span style="font-size:0.78rem; color:rgba(247,243,236,0.3); margin-top:0.2rem;">Washington, D.C. Metro &mdash; Virginia</span>
+                    <span style="font-size:0.78rem; color:rgba(247,243,236,0.3); margin-top:0.2rem;">Nationwide · Headquartered in the Washington, D.C. Metro</span>
                 </div>
             </div>
             <div class="site-footer-full__col">
@@ -2997,7 +3522,7 @@
         </div>
         <div class="site-footer-full__bottom">
             <span>&copy; 2025 Pursu Solutions, LLC. All rights reserved.</span>
-            <span>Virginia &mdash; Pursuing the Perfect Match</span>
+            <span>Nationwide Staffing &mdash; Pursuing the Perfect Match</span>
         </div>
     </footer>
 
@@ -3132,25 +3657,29 @@
     const TICKER_SPEED = 0.6;
 
     function startTickerLoop() {
-        if (tickerRAF) cancelAnimationFrame(tickerRAF);
-        const track = document.getElementById('ticker-box');
+        if (tickerRAF) { cancelAnimationFrame(tickerRAF); tickerRAF = null; }
+        // Use querySelector to always find the visible, canonical ticker
+        const track = document.querySelector('.market-ticker .ticker-track');
         if (!track) return;
-        tickerHalfWidth = track.scrollWidth / 2;
-        tickerPos = 0;
-        track.style.transform = 'translateX(0)';
-
-        function step() {
-            tickerPos += TICKER_SPEED;
-            if (tickerPos >= tickerHalfWidth) tickerPos = 0;
-            track.style.transform = `translateX(-${tickerPos}px)`;
+        // Wait one frame to ensure layout is calculated
+        requestAnimationFrame(function() {
+            tickerHalfWidth = track.scrollWidth / 2;
+            if (tickerHalfWidth <= 0) { setTimeout(startTickerLoop, 200); return; }
+            tickerPos = 0;
+            track.style.transform = 'translateX(0)';
+            function step() {
+                tickerPos += TICKER_SPEED;
+                if (tickerPos >= tickerHalfWidth) tickerPos = 0;
+                track.style.transform = 'translateX(-' + tickerPos + 'px)';
+                tickerRAF = requestAnimationFrame(step);
+            }
             tickerRAF = requestAnimationFrame(step);
-        }
-        tickerRAF = requestAnimationFrame(step);
+        });
     }
 
     // Enterprise B2B ticker items — always shown alongside live role pipeline
     const B2B_TICKER_ITEMS = [
-        '<span class="ticker-badge">NOW SOURCING</span> Critical Facilities Engineers | Active Pipelines in NVTC / Data Center Alley',
+        '<span class="ticker-badge">NOW SOURCING</span> Critical Facilities Engineers | Active Nationwide Pipelines — NVTC, Phoenix, Dallas &amp; More',
         '<span class="ticker-badge">COMPLIANCE</span> 100% W-2 Employer of Record Services | Full Liability &amp; Workers&rsquo; Comp Covered',
         '<span class="ticker-badge">LIVE TALENT</span> Lead Commissioning Agents &amp; Cloud Infrastructure Specialists — Vetted &amp; Available',
         '<span class="ticker-badge">COVERAGE</span> Hyperscale Cloud, Enterprise, Physical-to-Cloud, Healthcare &amp; Corporate Deployments',
@@ -3159,7 +3688,7 @@
     ];
 
     function renderTicker() {
-        const tickerBox = document.getElementById('ticker-box');
+        const tickerBox = document.querySelector('.market-ticker .ticker-track');
         if (!tickerBox) return;
         const activeJobs = jobs.filter(j => j.active !== false);
         // Build combined items: B2B static items + live job pipeline
@@ -4051,6 +4580,40 @@
     // ================================================================
     (function initIntroSequence() {
 
+        // ── Determine which intro face to show ──────────────────────
+        // sessionStorage persists within a browser session (tab/window).
+        // Closing the tab clears it. So:
+        //   - Fresh tab open (first visit in session) → typo animation
+        //   - Refresh / F5 / Cmd+R within same tab → simple logo
+        // localStorage would persist forever — we use sessionStorage so
+        // the typo can still show if they open a fresh tab later.
+        const SESSION_KEY = 'pursu_intro_shown';
+        const isReturning = sessionStorage.getItem(SESSION_KEY) === '1';
+
+        if (isReturning) {
+            // Show original simple logo animation for returning visitors
+            const typoFace = document.getElementById('intro-face-typo');
+            const logoFace = document.getElementById('intro-face-logo');
+            if (typoFace) typoFace.style.display = 'none';
+            if (logoFace) logoFace.style.display = 'flex';
+            // Auto-dismiss faster for returning visitors
+            const overlay = document.getElementById('intro-overlay');
+            if (overlay) {
+                window.dismissIntro = function() {
+                    if (overlay.classList.contains('fade-out')) return;
+                    overlay.classList.add('fade-out');
+                    setTimeout(() => overlay.classList.add('gone'), 1100);
+                };
+                overlay.addEventListener('click', window.dismissIntro, { once: true });
+                document.addEventListener('keydown', window.dismissIntro, { once: true });
+                setTimeout(window.dismissIntro, 2800); // shorter for return visits
+            }
+            return; // skip typing sequence
+        }
+
+        // Mark as seen for this session (so refresh shows simple logo)
+        sessionStorage.setItem(SESSION_KEY, '1');
+
         // The wrong word the visitor sees typed first, then corrected
         const WRONG   = 'Pursue';   // includes the typo
         const CORRECT = 'Pursu';    // final correct spelling
@@ -4273,14 +4836,14 @@
         if (btn) { btn.disabled = false; btn.textContent = 'Send Message'; }
 
         if (ok) {
-            msg.textContent = 'Message sent! We\'ll follow up within one business day.';
-            msg.className = 'form-msg success';
-            document.getElementById('contact-general-form').reset();
+            document.getElementById('contact-general-form').style.display = 'none';
+            const successEl = document.getElementById('contact-success-state');
+            if (successEl) successEl.style.display = 'block';
         } else {
             msg.textContent = 'Something went wrong. Please try emailing us directly at PursuSolutions@wepursu.one.';
             msg.className = 'form-msg error';
+            msg.style.display = 'block';
         }
-        msg.style.display = 'block';
     }
 
     // ================================================================
@@ -4356,10 +4919,17 @@ Additional Notes: ${notes || 'None'}`,
         if (btn) { btn.disabled = false; btn.textContent = 'Submit Deployment Request'; }
 
         if (savedOk) {
-            document.getElementById('consultation-form').reset();
-            document.getElementById('cons-headcount-val').textContent = '1';
-            msg.textContent = 'Request received. A Pursu strategist will reach out within 24 hours to confirm your requirements and open a search.';
-            msg.className = 'form-msg success';
+            document.getElementById('consultation-form').style.display = 'none';
+            msg.innerHTML = `
+                <div style="text-align:center; padding:2.5rem 1rem; background:var(--sand); border-radius:20px;">
+                    <div style="font-size:2.8rem; margin-bottom:1rem;">🎯</div>
+                    <h4 style="font-family:Fraunces,serif; font-size:1.4rem; margin-bottom:0.6rem; color:var(--ink);">Deployment request received.</h4>
+                    <p style="font-size:0.9rem; color:var(--ink-soft); line-height:1.75; max-width:380px; margin:0 auto 1.2rem;">
+                        A Pursu strategist will reach out within <strong>24 hours</strong> to confirm your requirements and open a search. Check your inbox at <strong>${email}</strong>.
+                    </p>
+                    <p style="font-size:0.82rem; color:var(--ink-soft);">Need to talk now? Call or text: <a href="tel:13019134975" style="color:var(--teal); font-weight:600;">(301) 913-4975</a></p>
+                </div>`;
+            msg.className = 'form-msg';
             msg.style.display = 'block';
             // Email notification in background
             sendWeb3Form({
@@ -4428,6 +4998,116 @@ Additional Notes: ${notes || 'None'}`,
             if (pageName) showPage(pageName, true);
         }
     });
-</script>
+    // ================================================================
+    // MOBILE RESPONSIVE HELPER
+    // Converts inline-style grids and 2-col layouts to single-col
+    // on small screens. Runs on load + resize. Pure JS, no library.
+    // ================================================================
+    (function initMobileLayouts() {
+
+        function applyMobileLayouts() {
+            const w = window.innerWidth;
+
+            // Selectors for all inline-style grid/flex blocks that need
+            // to collapse on mobile (can't target with class selectors)
+            const inlineGrids = document.querySelectorAll(
+                '#page-home [style*="grid-template-columns"], ' +
+                '#page-about [style*="grid-template-columns"], ' +
+                '#page-employers [style*="grid-template-columns"], ' +
+                '#page-solutions [style*="grid-template-columns"], ' +
+                '#page-capabilities [style*="grid-template-columns"]'
+            );
+
+            inlineGrids.forEach(function(el) {
+                if (w <= 768) {
+                    // Collapse to single column on mobile
+                    el.style.gridTemplateColumns = '1fr';
+                    el.style.gap = '1.2rem';
+                } else if (w <= 1024) {
+                    // Keep some 2-col layouts on tablet
+                    const orig = el.getAttribute('data-orig-cols');
+                    if (!orig) {
+                        // Store original on first run
+                        el.setAttribute('data-orig-cols', el.style.gridTemplateColumns || '');
+                    }
+                    // 3-col → 2-col on tablet
+                    const cols = orig || el.style.gridTemplateColumns || '';
+                    if (cols.includes('repeat(3') || cols.includes('repeat(4') || cols.split('1fr').length > 3) {
+                        el.style.gridTemplateColumns = '1fr 1fr';
+                    }
+                } else {
+                    // Restore original on desktop
+                    const orig = el.getAttribute('data-orig-cols');
+                    if (orig) el.style.gridTemplateColumns = orig;
+                }
+            });
+
+            // Consultation hero stat pills — stack on mobile
+            const consMiniStats = document.querySelector('.b2b-page-hero__inner > div[style*="display:flex"]');
+            if (consMiniStats) {
+                if (w <= 768) {
+                    consMiniStats.style.flexWrap = 'wrap';
+                    consMiniStats.style.gap = '0.6rem';
+                    consMiniStats.style.justifyContent = 'flex-start';
+                } else {
+                    consMiniStats.style.flexWrap = '';
+                    consMiniStats.style.gap = '';
+                }
+            }
+
+            // Mobile table: wrap comparison table in scroll container
+            const tables = document.querySelectorAll('.b2b-table');
+            tables.forEach(function(t) {
+                const parent = t.parentElement;
+                if (w <= 768) {
+                    parent.style.overflowX = 'auto';
+                    parent.style.webkitOverflowScrolling = 'touch';
+                    t.style.minWidth = '480px';
+                } else {
+                    parent.style.overflowX = '';
+                    t.style.minWidth = '';
+                }
+            });
+
+            // Fix about hero image size on very small screens
+            const founderImg = document.querySelector('#page-about div[style*="width:200px"]');
+            if (founderImg) {
+                if (w <= 360) {
+                    founderImg.style.width = '120px';
+                    founderImg.style.height = '120px';
+                } else if (w <= 480) {
+                    founderImg.style.width = '150px';
+                    founderImg.style.height = '150px';
+                } else {
+                    founderImg.style.width = '200px';
+                    founderImg.style.height = '200px';
+                }
+            }
+        }
+
+        // Run on load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyMobileLayouts);
+        } else {
+            applyMobileLayouts();
+        }
+
+        // Run on resize (debounced)
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(applyMobileLayouts, 120);
+        });
+
+        // Run after each page transition (showPage patches this in)
+        const _origShowPage2 = window.showPage;
+        window.showPage = function() {
+            _origShowPage2 && _origShowPage2.apply(this, arguments);
+            setTimeout(applyMobileLayouts, 60);
+        };
+
+    })();
+
+    </script>
 </body>
 </html>
