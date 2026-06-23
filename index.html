@@ -4686,70 +4686,80 @@
     //   6. Show "tap to continue" hint
     //   7. Auto-dismiss after 1.8s, or immediately on click/keydown
     // ================================================================
+    // INTRO SEQUENCE — URL-driven, no localStorage needed
+    //
+    //   Home URL (no hash, or ./ or #/)
+    //     → ALWAYS play the typo animation ("Pursue" → backspace → "Pursu.")
+    //       This fires every single time someone navigates to the home URL.
+    //
+    //   Sub-page URL (/#/about, /#/solutions, /#/roles, etc.)
+    //     → Play the original logo-rise animation (shorter), then reveal
+    //       the requested page underneath. No typo — they came for content.
+    //
+    //   Admin / job-detail URLs
+    //     → Skip the overlay entirely (handled in the load handler below).
+    // ================================================================
     (function initIntroSequence() {
 
-        // ══════════════════════════════════════════════════════════
-        // INTRO ROUTING — which animation to show
-        //
-        // localStorage persists across tab-switches, reloads, and
-        // even closing/reopening the browser. This gives us:
-        //
-        //   KEY ABSENT   → genuine first-ever visit → TYPO animation
-        //                  (types "Pursue", flashes, backspaces to "Pursu.")
-        //   KEY PRESENT  → reload / tab switch / return visit → ORIGINAL
-        //                  animation (logo rises in, line draws, dot pulses)
-        //
-        // The key is written BEFORE the animation starts so that even if
-        // the visitor closes the tab mid-animation, they see the original
-        // logo on every subsequent visit.
-        // ══════════════════════════════════════════════════════════
-        const INTRO_KEY = 'pursu_has_visited';
-        const isFirstVisit = !localStorage.getItem(INTRO_KEY);
+        // ── Determine which animation to show based purely on URL ─────
+        // Strip the hash and check if we're on the root/home URL.
+        const rawHash = window.location.hash.replace(/^#/, '');
+        const slug = rawHash.startsWith('/') ? rawHash : ('/' + rawHash);
 
-        if (!isFirstVisit) {
-            // ── RETURNING / RELOAD → original logo animation ──────
+        // "Home" = no hash at all, or hash is exactly '/' or empty
+        const isHomePage = !rawHash || rawHash === '/' || rawHash === '';
+
+        // Sub-pages that get the logo animation (not typo)
+        const isSubPage = !isHomePage
+            && !slug.startsWith('/admin')
+            && !slug.startsWith('/job/');
+
+        // ── SHARED: dismissIntro — fades the overlay out ──────────────
+        const overlay = document.getElementById('intro-overlay');
+        if (!overlay) return;
+
+        let dismissed = false;
+        function dismissIntro() {
+            if (dismissed) return;
+            dismissed = true;
+            overlay.classList.add('fade-out');
+            setTimeout(() => overlay.classList.add('gone'), 1100);
+        }
+        window.dismissIntro = dismissIntro; // expose for load-handler
+
+        // ── LOGO ANIMATION — for sub-page direct links ────────────────
+        if (isSubPage) {
             const typoFace = document.getElementById('intro-face-typo');
             const logoFace = document.getElementById('intro-face-logo');
             if (typoFace) typoFace.style.display = 'none';
             if (logoFace) logoFace.style.display = 'flex';
 
-            const overlay = document.getElementById('intro-overlay');
-            if (overlay) {
-                window.dismissIntro = function() {
-                    if (overlay.classList.contains('fade-out')) return;
-                    overlay.classList.add('fade-out');
-                    setTimeout(() => overlay.classList.add('gone'), 1100);
-                };
-                overlay.addEventListener('click', window.dismissIntro, { once: true });
-                document.addEventListener('keydown', window.dismissIntro, { once: true });
-                // Original animation is ~2.4s before the dot pulses — dismiss at 3.2s
-                setTimeout(window.dismissIntro, 3200);
-            }
+            overlay.addEventListener('click', dismissIntro, { once: true });
+            document.addEventListener('keydown', dismissIntro, { once: true });
+            // Logo animation runs ~2.4s — auto-dismiss at 3.0s
+            setTimeout(dismissIntro, 3000);
             return;
         }
 
-        // ── FIRST EVER VISIT → run typo animation ─────────────
-        // The key is written inside dismissIntro() so it's only
-        // set once the visitor has actually seen the animation.
+        // ── TYPO ANIMATION — always plays on the home URL ─────────────
+        // No localStorage check — if you're on the home URL, you see the typo.
 
-        // The wrong word the visitor sees typed first, then corrected
-        const WRONG   = 'Pursue';   // includes the typo
-        const CORRECT = 'Pursu';    // final correct spelling
+        const WRONG   = 'Pursue';  // typed first (wrong)
+        const CORRECT = 'Pursu';   // corrected to this
 
-        // Timing constants (ms)
         const T = {
-            START_DELAY : 420,   // pause before the first keystroke
-            TYPE_BASE   : 110,   // base ms per character typed
-            TYPE_JITTER : 55,    // random extra ms added for human feel
-            PAUSE_AFTER_WRONG : 680,  // how long the wrong word sits visible
-            FLASH_DURATION    : 260,  // red-flash duration before backspacing
-            DELETE_BASE  : 80,   // ms per backspace
-            DELETE_JITTER: 35,
-            PAUSE_AFTER_CORRECT : 320,  // pause between correct name & period
-            UNDERLINE_DELAY     : 200,  // after period appears
-            TAGLINE_DELAY       : 550,  // after underline starts
-            HINT_DELAY          : 900,  // after tagline
-            AUTO_DISMISS_DELAY  : 1800, // after hint appears
+            START_DELAY          : 420,
+            TYPE_BASE            : 110,
+            TYPE_JITTER          : 55,
+            PAUSE_AFTER_WRONG    : 680,
+            FLASH_DURATION       : 260,
+            DELETE_BASE          : 80,
+            DELETE_JITTER        : 35,
+            PAUSE_AFTER_CORRECT  : 320,
+            UNDERLINE_DELAY      : 200,
+            TAGLINE_DELAY        : 550,
+            HINT_DELAY           : 900,
+            AUTO_DISMISS_DELAY   : 1800,
         };
 
         const elText      = document.getElementById('intro-typed-text');
@@ -4758,25 +4768,13 @@
         const elUnderline = document.getElementById('intro-underline');
         const elTagline   = document.getElementById('intro-tagline');
         const elHint      = document.getElementById('intro-hint');
-        const overlay     = document.getElementById('intro-overlay');
 
-        if (!overlay || !elText) return;  // safety guard
+        if (!elText) return;
 
-        let dismissed = false;
+        // Allow early exit via click or key press at any point
+        overlay.addEventListener('click', dismissIntro, { once: true });
+        document.addEventListener('keydown', dismissIntro, { once: true });
 
-        function dismissIntro() {
-            if (dismissed) return;
-            dismissed = true;
-            // Mark as seen NOW — after the visitor has experienced the animation
-            localStorage.setItem(INTRO_KEY, '1');
-            overlay.classList.add('fade-out');
-            setTimeout(() => overlay.classList.add('gone'), 1100);
-        }
-
-        // Expose for external callers (admin hash-jump etc.)
-        window.dismissIntro = dismissIntro;
-
-        // ── tiny scheduler helper ──────────────────────────────────
         function wait(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
@@ -4784,41 +4782,38 @@
             return base + Math.random() * extra;
         }
 
-        // ── main async sequence ────────────────────────────────────
         async function runSequence() {
-
             await wait(T.START_DELAY);
 
-            // 1. Type the wrong word one character at a time
+            // 1. Type the wrong word letter by letter
             for (let i = 0; i < WRONG.length; i++) {
                 elText.textContent += WRONG[i];
                 await wait(jitter(T.TYPE_BASE, T.TYPE_JITTER));
             }
 
-            // 2. Pause so the viewer sees the typo
+            // 2. Let the typo sit so visitor registers it
             await wait(T.PAUSE_AFTER_WRONG);
 
-            // 3. Flash red briefly
+            // 3. Flash red — "oh that's wrong"
             elText.classList.add('intro-typo-flash');
             await wait(T.FLASH_DURATION);
             elText.classList.remove('intro-typo-flash');
             await wait(80);
 
-            // 4. Backspace the extra characters back to CORRECT
-            const charsToDelete = WRONG.length - CORRECT.length;  // = 1 ('e')
+            // 4. Backspace the extra 'e' one character at a time
+            const charsToDelete = WRONG.length - CORRECT.length; // = 1
             for (let i = 0; i < charsToDelete; i++) {
                 elText.textContent = elText.textContent.slice(0, -1);
                 await wait(jitter(T.DELETE_BASE, T.DELETE_JITTER));
             }
 
-            // 5. Pause, then reveal period
+            // 5. Reveal the coral period
             await wait(T.PAUSE_AFTER_CORRECT);
             elPeriod.classList.add('visible');
 
-            // 6. Hide cursor, draw underline
+            // 6. Hide cursor, draw underline beneath the correct name
             await wait(T.UNDERLINE_DELAY);
             elCursor.classList.add('hidden');
-            // Set underline width to match the text width
             const textWidth = elText.offsetWidth + elPeriod.offsetWidth;
             elUnderline.style.width = textWidth + 'px';
 
@@ -4826,18 +4821,14 @@
             await wait(T.TAGLINE_DELAY);
             elTagline.classList.add('visible');
 
-            // 8. Show hint
+            // 8. Show "tap to continue" hint
             await wait(T.HINT_DELAY);
             elHint.classList.add('visible');
 
-            // 9. Auto-dismiss
+            // 9. Auto-dismiss after hint has been visible
             await wait(T.AUTO_DISMISS_DELAY);
             dismissIntro();
         }
-
-        // Allow early exit via click or key
-        overlay.addEventListener('click', dismissIntro, { once: true });
-        document.addEventListener('keydown', dismissIntro, { once: true });
 
         runSequence();
 
