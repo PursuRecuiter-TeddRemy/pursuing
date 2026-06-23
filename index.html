@@ -4728,10 +4728,9 @@
             return;
         }
 
-        // ── FIRST EVER VISIT → mark it, then run typo animation ───
-        // Written before the animation so tab-close mid-animation
-        // still results in the logo on their next visit.
-        localStorage.setItem(INTRO_KEY, '1');
+        // ── FIRST EVER VISIT → run typo animation ─────────────
+        // The key is written inside dismissIntro() so it's only
+        // set once the visitor has actually seen the animation.
 
         // The wrong word the visitor sees typed first, then corrected
         const WRONG   = 'Pursue';   // includes the typo
@@ -4768,6 +4767,8 @@
         function dismissIntro() {
             if (dismissed) return;
             dismissed = true;
+            // Mark as seen NOW — after the visitor has experienced the animation
+            localStorage.setItem(INTRO_KEY, '1');
             overlay.classList.add('fade-out');
             setTimeout(() => overlay.classList.add('gone'), 1100);
         }
