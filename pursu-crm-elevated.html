@@ -2261,14 +2261,27 @@ function setLoginError(n, msg){ const el=document.getElementById('login-error-'+
 
 function _showLogin(){document.getElementById('login-screen').classList.remove('hidden');showLoginStep('step-password');}
 function _hideLogin(){document.getElementById('login-screen').classList.add('hidden');}
+
 async function checkSession(){
   if(!db){_showLogin();return;}
-  try{var r=await db.auth.getSession();var s=r.data&&r.data.session?r.data.session:null;if(s){_hideLogin();startSessionTimer();loadAll();}else{_showLogin();}}
-  catch(e){_showLogin();}
+  try{
+    var r=await db.auth.getSession();
+    var session=r.data&&r.data.session?r.data.session:null;
+    if(!session){_showLogin();return;}
+    // Session exists — check MFA assurance level
+    var aal=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    var cur=(aal.data&&aal.data.currentLevel)||'aal1';
+    var nxt=(aal.data&&aal.data.nextLevel)||'aal1';
+    if(nxt==='aal2'&&cur!=='aal2'){
+      // Session exists but MFA not verified — must go through login
+      _showLogin();return;
+    }
+    // Fully authenticated — go straight in
+    _hideLogin();startSessionTimer();loadAll();
+  }catch(e){_showLogin();}
 }
 
-async function checkMfaAndProceed(){
-  const {data,error}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+=await db.auth.mfa.getAuthenticatorAssuranceLevel();
   if(error){
     document.getElementById('login-screen').classList.add('hidden');
     startSessionTimer(); loadAll(); return;
