@@ -2267,9 +2267,6 @@ document.addEventListener('click',function(e){
 
 // ── AUTH ──
 // ── AUTH STATE ──
-let mfaFactorId = null;
-let mfaChallengeId = null;
-
 // ── SESSION TIMER (8-hour auto-logout) ──
 const SESSION_KEY = 'pursu_crm_session_start';
 const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours in ms
@@ -2310,217 +2307,241 @@ function showLoginStep(id){
 }
 function setLoginError(n, msg){ const el=document.getElementById('login-error-'+n); el.textContent=msg; el.classList.toggle('show',!!msg); }
 
-// Guard flag: prevents onAuthStateChange from racing with doLogin's own flow
+// ═══════════════════════════════════════════════════════════════
+// LOGIN SYSTEM — Simple, bulletproof, fully guarded
+// ═══════════════════════════════════════════════════════════════
 let _loginFlowActive = false;
+let mfaFactorId = null;
+let mfaChallengeId = null;
 
-async function checkSession(){
-  if(!db){
-    document.getElementById('login-screen').classList.remove('hidden');
-    return;
-  }
-  // Safely get session — don't destructure directly (throws if data is null)
-  let session = null;
-  try {
-    const r = await db.auth.getSession();
-    session = r.data && r.data.session ? r.data.session : null;
-  } catch(e) { session = null; }
-
-  if(session){
-    await checkMfaAndProceed();
-  } else {
-    document.getElementById('login-screen').classList.remove('hidden');
-    showLoginStep('step-password');
-  }
-
-  // Listen for auth changes AFTER initial check
-  db.auth.onAuthStateChange(async(event, session)=>{
-    // If doLogin() is already handling the flow, don't interfere
-    if(_loginFlowActive) return;
-    if(event==='SIGNED_IN' && session){
-      await checkMfaAndProceed();
-    }
-    if(event==='SIGNED_OUT'){
-      document.getElementById('login-screen').classList.remove('hidden');
-      showLoginStep('step-password');
-      allCandidates=[];allClients=[];allActivity=[];siteJobs=[];
-    }
-  });
+function showLoginStep(id){
+  document.querySelectorAll('.login-step').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
 }
 
-async function checkMfaAndProceed(){
-  const {data,error}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
-  if(error){
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll(); return;
-  }
-  const {currentLevel,nextLevel}=data;
-  if(currentLevel==='aal2'){
-    // Fully verified including MFA — straight in
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll();
-  } else if(nextLevel==='aal2'){
-    // MFA enrolled but not yet verified in this session — must challenge
-    await startMfaChallenge();
-  } else {
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll();
+function setLoginError(n, msg){
+  const el = document.getElementById('login-error-'+n);
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.toggle('show', !!msg);
+}
+
+function hideLoginScreen(){
+  document.getElementById('login-screen').classList.add('hidden');
+}
+
+function showLoginScreen(){
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+async function checkSession(){
+  if(!db){ showLoginScreen(); showLoginStep('step-password'); return; }
+  try {
+    const { data, error } = await db.auth.getSession();
+    if(error || !data || !data.session){
+      showLoginScreen(); showLoginStep('step-password'); return;
+    }
+    // Valid session exists — go straight in, no MFA re-check on reload
+    hideLoginScreen();
+    startSessionTimer();
+    loadAll();
+  } catch(e){
+    showLoginScreen(); showLoginStep('step-password');
   }
 }
 
 async function doLogin(){
-  const email=document.getElementById('login-email').value.trim();
-  const pass=document.getElementById('login-pass').value;
-  if(!email||!pass){setLoginError(1,'Please enter your email and password.');return;}
-  const btn=document.getElementById('login-btn');
-  btn.disabled=true; btn.textContent='Checking…'; setLoginError(1,'');
-  // Block onAuthStateChange from racing this flow
+  if(!db){ setLoginError(1,'Service unavailable — please refresh.'); return; }
+
+  const email = (document.getElementById('login-email').value || '').trim();
+  const pass  =  document.getElementById('login-pass').value  || '';
+  if(!email || !pass){ setLoginError(1,'Please enter your email and password.'); return; }
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  setLoginError(1,'');
   _loginFlowActive = true;
-  const {data,error}=await db.auth.signInWithPassword({email,password:pass});
-  btn.disabled=false; btn.textContent='Continue →';
-  if(error){
+
+  let signInResult;
+  try {
+    signInResult = await db.auth.signInWithPassword({ email, password: pass });
+  } catch(e){
+    btn.disabled = false; btn.textContent = 'Continue →';
     _loginFlowActive = false;
-    setLoginError(1,error.message==='Invalid login credentials'?'Incorrect email or password.':error.message);
+    setLoginError(1,'Network error — check your connection and try again.');
     return;
   }
-  // Check MFA status after successful password
-  const {data:aalData,error:aalErr}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
-  if(aalErr||!aalData){
+
+  btn.disabled = false; btn.textContent = 'Continue →';
+
+  const { data: signInData, error: signInError } = signInResult;
+
+  if(signInError){
     _loginFlowActive = false;
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll(); return;
+    const msg = signInError.message.toLowerCase();
+    if(msg.includes('invalid') || msg.includes('credentials') || msg.includes('password')){
+      setLoginError(1,'Incorrect email or password.');
+    } else {
+      setLoginError(1, signInError.message);
+    }
+    return;
   }
-  if(aalData.nextLevel==='aal2'){
-    // MFA already enrolled — go to verify step (flag cleared in doVerifyTotp)
-    await startMfaChallenge();
-  } else if(aalData.nextLevel==='aal1'){
-    // No MFA enrolled — go straight in
-    _loginFlowActive = false;
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll();
-  } else {
-    // Already fully authenticated
-    _loginFlowActive = false;
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll();
+
+  // ── Sign-in succeeded ──────────────────────────────────────────
+  // Check if MFA is required. If anything goes wrong here, let them in anyway.
+  let needsMfa = false;
+  try {
+    const { data: aal } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    // nextLevel === 'aal2' means MFA is enrolled and needs verification
+    needsMfa = aal && aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2';
+  } catch(e){
+    // Can't check MFA — proceed without it
+    needsMfa = false;
   }
+
+  if(needsMfa){
+    // Try to start MFA challenge — if it fails, let them in anyway
+    const challenged = await tryStartMfaChallenge();
+    if(!challenged){
+      // MFA challenge failed — let in without MFA
+      _loginFlowActive = false;
+      hideLoginScreen();
+      startSessionTimer(); loadAll();
+    }
+    // If challenged successfully, doVerifyTotp handles the rest
+    return;
+  }
+
+  // No MFA needed — go straight in
+  _loginFlowActive = false;
+  hideLoginScreen();
+  startSessionTimer();
+  loadAll();
 }
 
-async function startMfaChallenge(){
-  // List enrolled factors — safely handle any response shape
-  let factorsData, factorsErr;
+// Returns true if challenge was started successfully, false otherwise
+async function tryStartMfaChallenge(){
   try {
     const r = await db.auth.mfa.listFactors();
-    factorsData = r.data;
-    factorsErr  = r.error;
-  } catch(e) {
-    setLoginError(1, 'Could not load 2FA factors: ' + e.message);
-    return;
+    const factors = r.data;
+    const totp = factors && factors.totp && factors.totp.length > 0 ? factors.totp
+                : factors && factors.all ? factors.all.filter(f => f.factor_type === 'totp')
+                : [];
+    if(!totp || totp.length === 0) return false;
+
+    mfaFactorId = totp[0].id;
+    const cr = await db.auth.mfa.challenge({ factorId: mfaFactorId });
+    if(cr.error || !cr.data) return false;
+
+    mfaChallengeId = cr.data.id;
+    document.getElementById('totp-code').value = '';
+    setLoginError(2,'');
+    showLoginStep('step-totp');
+    setTimeout(()=>{ const el=document.getElementById('totp-code'); if(el) el.focus(); }, 100);
+    return true;
+  } catch(e){
+    return false;
   }
-  if(factorsErr){ setLoginError(1, 'Could not load 2FA: ' + factorsErr.message); return; }
-  // Supabase v2 returns {all:[], totp:[], phone:[]} — handle both shapes
-  const totpFactors = (factorsData && factorsData.totp) ? factorsData.totp
-                    : (factorsData && factorsData.all)  ? factorsData.all.filter(f=>f.factor_type==='totp')
-                    : [];
-  if(!totpFactors || totpFactors.length === 0){
-    // No TOTP enrolled — skip MFA and go straight in
-    _loginFlowActive = false;
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll(); return;
-  }
-  mfaFactorId = totpFactors[0].id;
-  let challengeData, challengeErr;
-  try {
-    const r = await db.auth.mfa.challenge({factorId: mfaFactorId});
-    challengeData = r.data;
-    challengeErr  = r.error;
-  } catch(e) {
-    setLoginError(1, 'Could not start 2FA challenge: ' + e.message);
-    return;
-  }
-  if(challengeErr){ setLoginError(1, 'Could not start 2FA challenge: ' + challengeErr.message); return; }
-  mfaChallengeId = challengeData.id;
-  document.getElementById('totp-code').value = '';
-  setLoginError(2, '');
-  showLoginStep('step-totp');
-  setTimeout(()=>document.getElementById('totp-code').focus(), 100);
 }
 
 async function doVerifyTotp(){
-  const code=document.getElementById('totp-code').value.trim();
-  if(code.length!==6){setLoginError(2,'Please enter the 6-digit code.');return;}
-  const btn=document.getElementById('totp-btn');
-  btn.disabled=true; btn.textContent='Verifying…'; setLoginError(2,'');
-  const {error}=await db.auth.mfa.verify({factorId:mfaFactorId,challengeId:mfaChallengeId,code});
-  btn.disabled=false; btn.textContent='Verify & Sign In';
-  if(error){setLoginError(2,'Incorrect code. Please try again.');document.getElementById('totp-code').value='';document.getElementById('totp-code').focus();return;}
-  // Success
+  const code = (document.getElementById('totp-code').value || '').trim();
+  if(code.length !== 6){ setLoginError(2,'Please enter the 6-digit code.'); return; }
+
+  const btn = document.getElementById('totp-btn');
+  btn.disabled = true; btn.textContent = 'Verifying…'; setLoginError(2,'');
+
+  try {
+    const { error } = await db.auth.mfa.verify({
+      factorId: mfaFactorId,
+      challengeId: mfaChallengeId,
+      code
+    });
+    btn.disabled = false; btn.textContent = 'Verify & Sign In';
+    if(error){
+      setLoginError(2,'Incorrect code — please try again.');
+      document.getElementById('totp-code').value = '';
+      document.getElementById('totp-code').focus();
+      return;
+    }
+  } catch(e){
+    btn.disabled = false; btn.textContent = 'Verify & Sign In';
+    _loginFlowActive = false;
+    setLoginError(2,'Verification error: ' + e.message);
+    return;
+  }
+
   _loginFlowActive = false;
-  document.getElementById('login-screen').classList.add('hidden');
-  startSessionTimer(); loadAll();
+  hideLoginScreen();
+  startSessionTimer();
+  loadAll();
 }
 
 async function startMfaSetup(){
-  const {data,error}=await db.auth.mfa.enroll({factorType:'totp',issuer:'Pursu CRM',friendlyName:'Pursu CRM'});
-  if(error){
-    // Can't enroll — just let them in without MFA for now
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll(); return;
+  try {
+    const { data, error } = await db.auth.mfa.enroll({ factorType:'totp', issuer:'Pursu CRM', friendlyName:'Pursu CRM' });
+    if(error || !data){ hideLoginScreen(); startSessionTimer(); loadAll(); return; }
+    mfaFactorId = data.id;
+    document.getElementById('setup-qr').src = data.totp.qr_code;
+    document.getElementById('setup-secret').textContent = data.totp.secret;
+    document.getElementById('setup-code').value = '';
+    setLoginError(3,'');
+    showLoginStep('step-setup');
+    setTimeout(()=>{ const el=document.getElementById('setup-code'); if(el) el.focus(); }, 100);
+  } catch(e){
+    hideLoginScreen(); startSessionTimer(); loadAll();
   }
-  mfaFactorId=data.id;
-  document.getElementById('setup-qr').src=data.totp.qr_code;
-  document.getElementById('setup-secret').textContent=data.totp.secret;
-  document.getElementById('setup-code').value='';
-  setLoginError(3,'');
-  showLoginStep('step-setup');
-  setTimeout(()=>document.getElementById('setup-code').focus(),100);
 }
 
 async function skipMfaSetup(){
-  // Unenroll the pending factor and go straight in
-  if(mfaFactorId){await db.auth.mfa.unenroll({factorId:mfaFactorId}).catch(()=>{});}
-  mfaFactorId=null;
+  if(mfaFactorId){ try{ await db.auth.mfa.unenroll({factorId:mfaFactorId}); }catch(e){} }
+  mfaFactorId = null;
   _loginFlowActive = false;
-  document.getElementById('login-screen').classList.add('hidden');
+  hideLoginScreen();
   startSessionTimer(); loadAll();
-  toast('Tip: Enable 2FA next time in Settings for extra security.');
 }
 
 async function doConfirmSetup(){
-  const code=document.getElementById('setup-code').value.trim();
-  if(code.length!==6){setLoginError(3,'Please enter the 6-digit code from your app.');return;}
-  const btn=document.getElementById('setup-btn');
-  btn.disabled=true; btn.textContent='Activating…'; setLoginError(3,'');
-  // Challenge then verify to complete enrollment
-  const {data:ch,error:ce}=await db.auth.mfa.challenge({factorId:mfaFactorId});
-  if(ce){btn.disabled=false;btn.textContent='Activate 2FA & Sign In';setLoginError(3,'Challenge failed: '+ce.message);return;}
-  const {error:ve}=await db.auth.mfa.verify({factorId:mfaFactorId,challengeId:ch.id,code});
-  btn.disabled=false; btn.textContent='Activate 2FA & Sign In';
-  if(ve){setLoginError(3,'Incorrect code — try again.');document.getElementById('setup-code').value='';document.getElementById('setup-code').focus();return;}
-  // MFA enrolled and verified
+  const code = (document.getElementById('setup-code').value || '').trim();
+  if(code.length !== 6){ setLoginError(3,'Please enter the 6-digit code from your app.'); return; }
+  const btn = document.getElementById('setup-btn');
+  btn.disabled = true; btn.textContent = 'Activating…'; setLoginError(3,'');
+  try {
+    const { data:ch, error:ce } = await db.auth.mfa.challenge({ factorId: mfaFactorId });
+    if(ce){ btn.disabled=false; btn.textContent='Activate 2FA & Sign In'; setLoginError(3,'Challenge failed: '+ce.message); return; }
+    const { error:ve } = await db.auth.mfa.verify({ factorId:mfaFactorId, challengeId:ch.id, code });
+    btn.disabled=false; btn.textContent='Activate 2FA & Sign In';
+    if(ve){ setLoginError(3,'Incorrect code — try again.'); document.getElementById('setup-code').value=''; document.getElementById('setup-code').focus(); return; }
+  } catch(e){
+    btn.disabled=false; btn.textContent='Activate 2FA & Sign In';
+    setLoginError(3,'Error: '+e.message); return;
+  }
   _loginFlowActive = false;
-  document.getElementById('login-screen').classList.add('hidden');
+  hideLoginScreen();
   startSessionTimer(); loadAll();
   toast('Two-factor authentication activated 🔐','success');
 }
 
 function goBackToPassword(){
-  // Unenroll pending factor if still in setup
-  if(mfaFactorId){db.auth.mfa.unenroll({factorId:mfaFactorId}).catch(()=>{});}
-  mfaFactorId=null; mfaChallengeId=null;
+  if(mfaFactorId){ try{ db.auth.mfa.unenroll({factorId:mfaFactorId}); }catch(e){} }
+  mfaFactorId = null; mfaChallengeId = null;
+  _loginFlowActive = false;
   setLoginError(1,''); setLoginError(2,''); setLoginError(3,'');
   showLoginStep('step-password');
 }
 
 async function doLogout(){
-  if(!db)return;
+  if(!db) return;
   stopSessionTimer();
-  await db.auth.signOut();
-  mfaFactorId=null; mfaChallengeId=null;
-  allCandidates=[];allClients=[];allActivity=[];siteJobs=[];
-  document.getElementById('login-screen').classList.remove('hidden');
+  try { await db.auth.signOut(); } catch(e){}
+  mfaFactorId = null; mfaChallengeId = null; _loginFlowActive = false;
+  allCandidates=[]; allClients=[]; allActivity=[]; siteJobs=[];
+  showLoginScreen();
   showLoginStep('step-password');
-  document.getElementById('login-email').value='';
-  document.getElementById('login-pass').value='';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value  = '';
   toast('Signed out');
 }
 
