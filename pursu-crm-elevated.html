@@ -506,7 +506,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
     <div class="nav-group-label">System</div>
     <div class="nav-item" data-page="settings" onclick="goTo('settings')"><span class="nav-icon">⚙</span><span class="nav-label">Settings</span></div>
   </div>
-  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;">Pursu Solutions LLC<button class="logout-btn" onclick="doLogout()">Sign out</button></div>
+  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;">Pursu Solutions LLC<button class="logout-btn" onclick="doLogout()" title="Lock">⏋ Lock</button></div>
 </aside>
 <nav class="bottom-tabs" id="bottom-tabs">
   <div class="bt-item active" data-page="dashboard" onclick="goTo('dashboard');closeMobileNav();"><span class="bt-icon">⊞</span><span class="bt-label">Home</span></div>
@@ -534,20 +534,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
   <div class="content-area" id="content-area">
 
     <div class="page active" id="page-dashboard">
-      <div class="record-hero" style="background:linear-gradient(135deg,var(--ink) 0%,#2a2420 100%);border-color:rgba(255,255,255,0.07);">
-        <div class="record-hero-top" style="margin-bottom:0;">
-          <div class="r-avatar coral" style="background:rgba(232,96,60,0.18);border:1.5px solid rgba(232,96,60,0.35);">PU</div>
-          <div class="r-meta">
-            <div class="r-name" style="color:#fff;font-size:1.2rem;">Pursu CRM</div>
-            <div class="r-sub" style="color:rgba(247,243,236,0.45);"><span>Pursu Solutions LLC</span><span class="dot">·</span><span>Command Center</span></div>
-          </div>
-          <div class="r-actions">
-            <button class="btn btn-primary btn-sm" onclick="openCandidateModal()">+ Candidate</button>
-            <button class="btn btn-teal btn-sm" onclick="openClientModal()">+ Client</button>
-            <button class="btn btn-ghost btn-sm" onclick="syncFromSite()" style="border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);">&#8635; Sync</button>
-          </div>
-        </div>
-      </div>
+      <div class="record-hero" style="background:linear-gradient(135deg,var(--ink) 0%,#2a2420 100%);border-color:rgba(255,255,255,0.07);"><div class="record-hero-top" style="margin-bottom:0;"><div class="r-avatar coral" style="background:rgba(232,96,60,0.18);border:1.5px solid rgba(232,96,60,0.35);">PU</div><div class="r-meta"><div class="r-name" style="color:#fff;font-size:1.2rem;">Pursu CRM</div><div class="r-sub" style="color:rgba(247,243,236,0.45);"><span>Pursu Solutions LLC</span><span class="dot">&middot;</span><span>Command Center</span></div></div><div class="r-actions"><button class="btn btn-primary btn-sm" onclick="openCandidateModal()">+ Candidate</button><button class="btn btn-teal btn-sm" onclick="openClientModal()">+ Client</button><button class="btn btn-ghost btn-sm" onclick="syncFromSite()" style="border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);">&#8635; Sync</button></div></div></div>
       <div class="det-panel" id="recently-viewed-panel" style="margin-bottom:0.9rem;display:none;">
         <div class="det-panel-header"><span class="det-panel-title">Recently Viewed</span></div>
         <div id="recently-viewed-list" style="display:flex;gap:0.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0.7rem 1rem;"></div>
@@ -675,12 +662,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
           </div>
         </div>
         <div class="record-side">
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Quick Actions</span></div>
-          <div class="record-side-actions">
-            <button class="btn btn-primary" onclick="switchRecordTab('candidate','activity');document.getElementById('cdet-note-in').focus()">Log Interaction</button>
-            <button class="btn btn-secondary" onclick="openCandidateModal(currentCandidateId)">Edit Record</button>
-            <button class="btn btn-secondary" onclick="openSendEmailModal('candidate')">&#9993; Send Email</button>
-          </div></div>
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Quick Actions</span></div><div class="record-side-actions"><button class="btn btn-primary" onclick="switchRecordTab('candidate','activity');document.getElementById('cdet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary" onclick="openCandidateModal(currentCandidateId)">Edit Record</button><button class="btn btn-secondary" onclick="openSendEmailModal('candidate')">&#9993; Send Email</button></div></div>
         </div>
       </div>
     </div>
@@ -753,15 +735,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
           </div>
         </div>
         <div class="record-side">
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Pipeline Stage</span></div>
-          <div class="record-side-actions">
-            <button class="btn btn-secondary" onclick="updateClStatus('prospect')">&#11041; Prospect</button>
-            <button class="btn btn-teal" onclick="updateClStatus('active')">&#10003; Active</button>
-            <button class="btn btn-ghost" onclick="updateClStatus('closed')">&#10005; Closed</button>
-            <div style="height:1px;background:var(--line);margin:0.2rem 0;"></div>
-            <button class="btn btn-secondary" onclick="openSendEmailModal('client')">&#9993; Send Email</button>
-            <button class="btn btn-secondary" onclick="openEnrollModal(currentClientId)">&#128232; Enroll</button>
-          </div></div>
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Pipeline Stage</span></div><div class="record-side-actions"><button class="btn btn-secondary" onclick="updateClStatus('prospect')">&#11041; Prospect</button><button class="btn btn-teal" onclick="updateClStatus('active')">&#10003; Active</button><button class="btn btn-ghost" onclick="updateClStatus('closed')">&#10005; Closed</button><div style="height:1px;background:var(--line);margin:0.2rem 0;"></div><button class="btn btn-secondary" onclick="openSendEmailModal('client')">&#9993; Send Email</button><button class="btn btn-secondary" onclick="openEnrollModal(currentClientId)">&#128232; Enroll</button></div></div>
         </div>
       </div>
     </div>
@@ -918,10 +892,9 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
             <span style="width:1px;height:18px;background:var(--line);display:inline-block;margin:0 3px;"></span>
             <button class="rte-btn-e" type="button" onclick="emailRteExec('insertUnorderedList')">&#8801;</button>
             <button class="rte-btn-e" type="button" onclick="emailRteExec('insertOrderedList')">1.</button>
-            <button class="rte-btn-e" type="button" onclick="emailRteExec('formatBlock','blockquote')" style="font-style:italic;">"</button>
             <span style="width:1px;height:18px;background:var(--line);display:inline-block;margin:0 3px;"></span>
             <button class="rte-btn-e" type="button" onclick="emailRteInsertLink()">&#128279;</button>
-            <button class="rte-btn-e" type="button" onclick="emailRteExec('removeFormat')" style="font-size:10px;width:auto;padding:0 6px;">&#10005;fmt</button>
+            <button class="rte-btn-e" type="button" onclick="emailRteExec('removeFormat')" style="font-size:10px;width:auto;padding:0 6px;">&#10005; fmt</button>
             <button class="rte-btn-e" type="button" onclick="toggleEmailPreview()" style="font-size:10px;width:auto;padding:0 6px;">&#128065; Preview</button>
           </div>
           <div id="email-body-rte" contenteditable="true" data-placeholder="Write your message here…" oninput="syncEmailBodyToTextarea()" onpaste="handleEmailPaste(event)"></div>
@@ -1003,50 +976,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 <div class="toast" id="toast"></div>
 
 <!-- LOGIN SCREEN -->
-    <!-- STEP 1: Email + Password -->
-    <div class="login-step active" id="step-password">
-      <div class="login-sub">CRM — Sign in to continue</div>
-      <div class="login-error" id="login-error-1"></div>
-      <label class="login-label">Email</label>
-      <input class="login-input" type="email" id="login-email" placeholder="you@wepursu.one" autocomplete="email">
-      <label class="login-label">Password</label>
-      <input class="login-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="login-btn" id="login-btn" onclick="doLogin()">Continue →</button>
-      <div id="login-status" style="font-size:0.72rem;color:rgba(247,243,236,0.35);text-align:center;margin-top:0.5rem;min-height:1em;"></div>
-      <div class="login-footer">Pursu Solutions LLC · Secure access only</div>
-    </div>
 
-    <!-- STEP 2: TOTP Code -->
-    <div class="login-step" id="step-totp">
-      <span class="mfa-shield">🔐</span>
-      <div class="login-sub" style="margin-bottom:0.5rem;">Two-factor authentication</div>
-      <p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1.5rem;">Open your authenticator app and enter the 6-digit code for Pursu CRM.</p>
-      <div class="login-error" id="login-error-2"></div>
-      <label class="login-label">Authentication Code</label>
-      <input class="totp-input" type="text" id="totp-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" onkeydown="if(event.key==='Enter')doVerifyTotp()" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      <button class="login-btn" id="totp-btn" onclick="doVerifyTotp()">Verify & Sign In</button>
-      <button class="login-back" onclick="goBackToPassword()">← Back</button>
-    </div>
-
-    <!-- STEP 3: First-time MFA Setup -->
-    <div class="login-step" id="step-setup">
-      <span class="mfa-shield">🔒</span>
-      <div class="login-sub" style="margin-bottom:0.5rem;">Set up two-factor authentication</div>
-      <p style="font-size:0.78rem;color:var(--ink-soft);margin-bottom:1rem;">Scan this QR code with <strong>Google Authenticator</strong>, <strong>Authy</strong>, or any TOTP app. You only do this once.</p>
-      <div class="login-error" id="login-error-3"></div>
-      <div class="qr-wrap">
-        <img id="setup-qr" src="" width="180" height="180" alt="QR Code">
-        <div class="qr-note">Can't scan? Enter this code manually:</div>
-        <div class="secret-code" id="setup-secret"></div>
-      </div>
-      <label class="login-label" style="margin-top:1rem;">Enter the 6-digit code to confirm</label>
-      <input class="totp-input" type="text" id="setup-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" onkeydown="if(event.key==='Enter')doConfirmSetup()" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      <button class="login-btn" id="setup-btn" onclick="doConfirmSetup()">Activate 2FA & Sign In</button>
-      <button class="login-back" onclick="skipMfaSetup()">Skip for now →</button>
-    </div>
-
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -2062,13 +1992,12 @@ function renderSeqStepsDraft(){
     return '<div style="border:1.5px solid var(--line);border-radius:var(--r-md);background:var(--cream);overflow:hidden;margin-bottom:0.4rem;">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:0.55rem 0.8rem;border-bottom:1px solid var(--line);background:#fff;">'
       +'<span style="font-size:0.75rem;font-weight:700;">Step '+(i+1)+'</span>'
-      +'<div style="display:flex;align-items:center;gap:0.45rem;">'
-      +'<label style="font-size:0.7rem;color:var(--ink-soft);">Delay</label>'
+      +'<div style="display:flex;align-items:center;gap:0.45rem;"><label style="font-size:0.7rem;color:var(--ink-soft);">Delay</label>'
       +'<input type="number" min="0" value="'+step.delayDays+'" style="width:48px;padding:0.28rem;border:1px solid var(--line);border-radius:5px;font-size:0.74rem;text-align:center;" onchange="seqStepsDraft['+i+'].delayDays=parseInt(this.value)||0">'
       +'<label style="font-size:0.7rem;color:var(--ink-soft);">days after '+(i===0?'enrollment':'prev')+'</label>'+rb+'</div></div>'
       +'<div style="padding:0.65rem 0.8rem;display:flex;flex-direction:column;gap:0.4rem;">'
       +'<input placeholder="Subject" value="'+esc(step.subject)+'" style="width:100%;padding:0.48rem 0.6rem;border:1.5px solid var(--line);border-radius:6px;font-size:0.78rem;" oninput="seqStepsDraft['+i+'].subject=this.value">'
-      +'<div class="seq-rte-mini-bar"><button class="rte-mini-btn" type="button" onclick="seqRteExec('+i+','bold')"><b>B</b></button><button class="rte-mini-btn" type="button" onclick="seqRteExec('+i+','italic')"><i>I</i></button><button class="rte-mini-btn" type="button" onclick="seqRteExec('+i+','underline')"><u>U</u></button></div>'
+      +'<div class="seq-rte-mini-bar"><button class="rte-mini-btn" type="button" onclick="seqRteExec('+i+',\'bold\')"><b>B</b></button><button class="rte-mini-btn" type="button" onclick="seqRteExec('+i+',\'italic\')"><i>I</i></button><button class="rte-mini-btn" type="button" onclick="seqRteExec('+i+',\'underline\')"><u>U</u></button></div>'
       +'<div id="seq-body-rte-'+i+'" class="seq-rte" contenteditable="true" data-placeholder="Email body" oninput="seqStepsDraft['+i+'].body=this.innerHTML" onpaste="handleSeqPaste(event,'+i+')">'+( step.body||'')+'</div>'
       +'</div>'
       +'<div style="padding:0.55rem 0.8rem;border-top:1px solid var(--line);">'
@@ -2217,11 +2146,69 @@ document.addEventListener('click',function(e){
 
 // ── AUTH ──
 // ── AUTH STATE ──
-let mfaFactorId=null;
-let mfaChallengeId=null;
-let _loginFlowActive=false;
+// PASSWORD GATE — no MFA, no login page
+let _authed = false;
 
-// ── SESSION TIMER (8-hour auto-logout) ──
+function _showPasswordGate(){
+  if(document.getElementById('_pw-gate'))return;
+  var g=document.createElement('div');
+  g.id='_pw-gate';
+  g.style.cssText='position:fixed;inset:0;background:#1E1A17;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;font-family:Inter,sans-serif;';
+  g.innerHTML='<div style="background:#fff;border-radius:18px;padding:2.5rem 2.2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">'
+    +'<div style="font-family:Fraunces,serif;font-size:2rem;color:#1E1A17;margin-bottom:0.15rem;">Pursu<span style="color:#E8603C;">.</span></div>'
+    +'<div style="font-size:0.78rem;color:#9c948e;margin-bottom:1.8rem;">CRM &mdash; Enter password to continue</div>'
+    +'<div id="_pw-err" style="display:none;background:#fff0f0;border:1px solid #fcc;color:#C44A29;font-size:0.78rem;padding:0.6rem 0.85rem;border-radius:6px;margin-bottom:1rem;"></div>'
+    +'<label style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9c948e;display:block;margin-bottom:0.35rem;">Password</label>'
+    +'<input id="_pw-input" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password" style="width:100%;padding:0.72rem 0.95rem;border:1.5px solid #E2D8CC;border-radius:10px;font-family:Inter,sans-serif;font-size:0.9rem;color:#1E1A17;outline:none;margin-bottom:0.5rem;box-sizing:border-box;" onkeydown="if(event.key==='Enter')_submitPw()">'
+    +'<div id="_pw-status" style="font-size:0.72rem;color:#9c948e;text-align:center;min-height:1.2em;margin-bottom:0.6rem;"></div>'
+    +'<button id="_pw-btn" onclick="_submitPw()" style="width:100%;padding:0.8rem;background:#E8603C;color:#fff;border:none;border-radius:10px;font-family:Inter,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">Enter CRM &rarr;</button>'
+    +'</div>';
+  document.body.appendChild(g);
+  setTimeout(function(){var el=document.getElementById('_pw-input');if(el)el.focus();},150);
+}
+
+async function _submitPw(){
+  var pw=(document.getElementById('_pw-input')||{}).value||'';
+  var err=document.getElementById('_pw-err');
+  var status=document.getElementById('_pw-status');
+  var btn=document.getElementById('_pw-btn');
+  if(!pw)return;
+  if(err)err.style.display='none';
+  if(btn){btn.disabled=true;btn.textContent='Checking…';}
+  if(status)status.textContent='Connecting…';
+  try{
+    var r=await db.auth.signInWithPassword({email:'tremy@wepursu.one',password:pw});
+    if(r.error){
+      if(err){err.textContent='Incorrect password.';err.style.display='block';}
+      if(btn){btn.disabled=false;btn.textContent='Enter CRM →';}
+      if(status)status.textContent='';
+      var inp=document.getElementById('_pw-input');if(inp){inp.value='';inp.focus();}
+      return;
+    }
+    var gate=document.getElementById('_pw-gate');if(gate)gate.remove();
+    _authed=true; startSessionTimer(); loadAll();
+  }catch(e){
+    if(err){err.textContent='Connection error — check your internet.';err.style.display='block';}
+    if(btn){btn.disabled=false;btn.textContent='Enter CRM →';}
+    if(status)status.textContent='';
+  }
+}
+
+async function checkSession(){
+  if(!db){_showPasswordGate();return;}
+  try{
+    var r=await db.auth.getSession();
+    if(r.data&&r.data.session){
+      _authed=true; startSessionTimer(); loadAll(); return;
+    }
+  }catch(e){}
+  _showPasswordGate();
+}
+
+function showLoginStep(){}
+function setLoginError(){}
+function _showLogin(){_showPasswordGate();}
+function _hideLogin(){var g=document.getElementById('_pw-gate');if(g)g.remove();}
 const SESSION_KEY = 'pursu_crm_session_start';
 const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours in ms
 let sessionTimer = null;
@@ -2255,23 +2242,30 @@ function showLoginStep(id){
 }
 function setLoginError(n, msg){ const el=document.getElementById('login-error-'+n); el.textContent=msg; el.classList.toggle('show',!!msg); }
 
-function _showLogin(){document.getElementById('login-screen').classList.remove('hidden');showLoginStep('step-password');}
-function _hideLogin(){document.getElementById('login-screen').classList.add('hidden');}
-
-async function checkSession(){ loadAll(); }
-  try{
-    var r = await db.auth.getSession();
-    var session = r.data && r.data.session ? r.data.session : null;
-    if(session){
-      // Valid session — go straight in, no MFA re-check
-      _hideLogin(); startSessionTimer(); loadAll(); return;
+async function checkSession(){
+  if(!db){
+    document.getElementById('login-screen').classList.remove('hidden');
+    return;
+  }
+  const {data:{session}}=await db.auth.getSession();
+  if(session){
+    await checkMfaAndProceed();
+  } else {
+    document.getElementById('login-screen').classList.remove('hidden');
+    showLoginStep('step-password');
+  }
+  db.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session){ await checkMfaAndProceed(); }
+    if(event==='SIGNED_OUT'){
+      document.getElementById('login-screen').classList.remove('hidden');
+      showLoginStep('step-password');
+      allCandidates=[];allClients=[];allActivity=[];siteJobs=[];
     }
-  }catch(e){}
-  // No session — show simple password-only login (MFA disabled in UI)
-  _showLogin();
+  });
 }
 
-=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+async function checkMfaAndProceed(){
+  const {data,error}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
   if(error){
     document.getElementById('login-screen').classList.add('hidden');
     startSessionTimer(); loadAll(); return;
@@ -2297,38 +2291,7 @@ async function checkSession(){ loadAll(); }
   }
 }
 
-function setLoginStatus(m){var el=document.getElementById('login-status');if(el)el.textContent=m;}
-
-async function doLogin(){
-  if(!db){setLoginError(1,'Service unavailable.');return;}
-  var email=(document.getElementById('login-email').value||'').trim();
-  var pass=document.getElementById('login-pass').value||'';
-  if(!email||!pass){setLoginError(1,'Please enter your email and password.');return;}
-  var btn=document.getElementById('login-btn');
-  btn.disabled=true; btn.textContent='Signing in…'; setLoginError(1,''); setLoginStatus('Connecting…');
-  try{
-    var r=await db.auth.signInWithPassword({email,password:pass});
-    btn.disabled=false; btn.textContent='Continue →'; setLoginStatus('');
-    if(r.error){setLoginError(1,'Incorrect email or password.');return;}
-    // Success — go straight in regardless of MFA level
-    _hideLogin(); startSessionTimer(); loadAll();
-  }catch(e){
-    btn.disabled=false; btn.textContent='Continue →'; setLoginStatus('');
-    setLoginError(1,'Network error — check your connection.');
-  }
-}
-
-
-async function tryStartMfaChallenge(){
-  try{var r=await db.auth.mfa.listFactors();var f=r.data;
-    var totp=f&&f.totp&&f.totp.length>0?f.totp:f&&f.all?f.all.filter(function(x){return x.factor_type==='totp';}):[];
-    if(!totp||totp.length===0)return false;
-    mfaFactorId=totp[0].id;var cr=await db.auth.mfa.challenge({factorId:mfaFactorId});
-    if(cr.error||!cr.data)return false;
-    mfaChallengeId=cr.data.id;document.getElementById('totp-code').value='';setLoginError(2,'');
-    showLoginStep('step-totp');setTimeout(function(){var el=document.getElementById('totp-code');if(el)el.focus();},100);return true;
-  }catch(e){return false;}
-}
+function doLogin(){ _submitPw(); }
 async function startMfaChallenge(){
   // List enrolled factors
   const {data:{totp},error}=await db.auth.mfa.listFactors();
@@ -2344,13 +2307,16 @@ async function startMfaChallenge(){
 }
 
 async function doVerifyTotp(){
-  var code=(document.getElementById('totp-code').value||'').trim();
+  const code=document.getElementById('totp-code').value.trim();
   if(code.length!==6){setLoginError(2,'Please enter the 6-digit code.');return;}
-  var btn=document.getElementById('totp-btn');btn.disabled=true;btn.textContent='Verifying…';setLoginError(2,'');
-  try{var r=await db.auth.mfa.verify({factorId:mfaFactorId,challengeId:mfaChallengeId,code});btn.disabled=false;btn.textContent='Verify & Sign In';
-    if(r.error){setLoginError(2,'Incorrect code.');document.getElementById('totp-code').value='';document.getElementById('totp-code').focus();return;}
-  }catch(e){btn.disabled=false;btn.textContent='Verify & Sign In';_loginFlowActive=false;setLoginError(2,'Error: '+e.message);return;}
-  _loginFlowActive=false;_hideLogin();startSessionTimer();loadAll();
+  const btn=document.getElementById('totp-btn');
+  btn.disabled=true; btn.textContent='Verifying…'; setLoginError(2,'');
+  const {error}=await db.auth.mfa.verify({factorId:mfaFactorId,challengeId:mfaChallengeId,code});
+  btn.disabled=false; btn.textContent='Verify & Sign In';
+  if(error){setLoginError(2,'Incorrect code. Please try again.');document.getElementById('totp-code').value='';document.getElementById('totp-code').focus();return;}
+  // Success
+  document.getElementById('login-screen').classList.add('hidden');
+  startSessionTimer(); loadAll();
 }
 
 async function startMfaSetup(){
@@ -2395,30 +2361,48 @@ async function doConfirmSetup(){
   toast('Two-factor authentication activated 🔐','success');
 }
 
-function goBackToPassword(){if(mfaFactorId){try{db.auth.mfa.unenroll({factorId:mfaFactorId});}catch(e){}}mfaFactorId=null;mfaChallengeId=null;_loginFlowActive=false;setLoginError(1,'');setLoginError(2,'');setLoginError(3,'');showLoginStep('step-password');}
+function goBackToPassword(){
+  // Unenroll pending factor if still in setup
+  if(mfaFactorId){db.auth.mfa.unenroll({factorId:mfaFactorId}).catch(()=>{});}
+  mfaFactorId=null; mfaChallengeId=null;
+  setLoginError(1,''); setLoginError(2,''); setLoginError(3,'');
+  showLoginStep('step-password');
+}
 
-async function doLogout(){if(!db)return;stopSessionTimer();try{await db.auth.signOut();}catch(e){}mfaFactorId=null;mfaChallengeId=null;_loginFlowActive=false;allCandidates=[];allClients=[];allActivity=[];siteJobs=[];_showLogin();document.getElementById('login-email').value='';document.getElementById('login-pass').value='';toast('Signed out');}
+async function doLogout(){
+  if(!db)return;stopSessionTimer();
+  try{await db.auth.signOut();}catch(e){}
+  _authed=false;allCandidates=[];allClients=[];allActivity=[];siteJobs=[];
+  _showPasswordGate();toast('Signed out');
+}
 
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',checkSession);}else{checkSession();}
+/* init handled above */
 
+// EMAIL RTE
 function emailRteExec(cmd,val){document.getElementById('email-body-rte').focus();document.execCommand(cmd,false,val||null);syncEmailBodyToTextarea();}
 function emailRteInsertLink(){var url=prompt('URL:','https://');if(url&&url!=='https://'){document.getElementById('email-body-rte').focus();document.execCommand('createLink',false,url);syncEmailBodyToTextarea();}}
 function syncEmailBodyToTextarea(){var rte=document.getElementById('email-body-rte'),ta=document.getElementById('email-body');if(rte&&ta)ta.value=rte.innerHTML;}
-function handleEmailPaste(e){e.preventDefault();var html=e.clipboardData.getData('text/html');if(html){document.execCommand('insertHTML',false,cleanPastedHtml(html));}else{var t=e.clipboardData.getData('text/plain');document.execCommand('insertHTML',false,t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'));}syncEmailBodyToTextarea();}
+function handleEmailPaste(e){e.preventDefault();var html=e.clipboardData.getData('text/html');if(html){document.execCommand('insertHTML',false,cleanPastedHtml(html));}else{var t=e.clipboardData.getData('text/plain');document.execCommand('insertHTML',false,t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
+/g,'<br>'));}syncEmailBodyToTextarea();}
 function cleanPastedHtml(h){var t=document.createElement('div');t.innerHTML=h;t.querySelectorAll('script,style,meta,link').forEach(function(el){el.remove();});t.querySelectorAll('*').forEach(function(el){['class','id','lang','xmlns','align','valign','bgcolor','width','height'].forEach(function(a){el.removeAttribute(a);});if(el.getAttribute('style')){var k=[];el.getAttribute('style').split(';').forEach(function(d){var p=(d.split(':')[0]||'').trim().toLowerCase();if(['font-weight','font-style','text-decoration','color','font-size','text-align'].indexOf(p)>-1)k.push(d.trim());});if(k.length)el.setAttribute('style',k.join(';'));else el.removeAttribute('style');}});return t.innerHTML;}
-function toggleEmailPreview(){var wrap=document.getElementById('email-preview-wrap'),iframe=document.getElementById('email-preview-iframe'),rte=document.getElementById('email-body-rte'),sub=document.getElementById('email-subject').value||'(no subject)';if(wrap.style.display==='block'){wrap.style.display='none';return;}var doc=iframe.contentDocument||iframe.contentWindow.document;doc.open();doc.write(buildEmailHtml(sub,rte?rte.innerHTML:''));doc.close();wrap.style.display='block';}
+function toggleEmailPreview(){var wrap=document.getElementById('email-preview-wrap'),iframe=document.getElementById('email-preview-iframe'),rte=document.getElementById('email-body-rte'),sub=(document.getElementById('email-subject')||{value:''}).value||'';if(!wrap||wrap.style.display==='block'){if(wrap)wrap.style.display='none';return;}var doc=iframe.contentDocument||iframe.contentWindow.document;doc.open();doc.write(buildEmailHtml(sub,rte?rte.innerHTML:''));doc.close();wrap.style.display='block';}
 function buildEmailHtml(sub,body){return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:0;background:#F7F3EC;font-family:Inter,Arial,sans-serif;}.w{max-width:600px;margin:0 auto;padding:24px 16px;}.card{background:#fff;border-radius:12px;border:1px solid #E2D8CC;overflow:hidden;}.h{background:#1E1A17;padding:20px 28px;}.logo{font-family:Georgia,serif;font-size:1.5rem;font-weight:700;color:#fff;}.logo span{color:#E8603C;}.b{padding:28px;font-size:14px;line-height:1.7;color:#1E1A17;}.b a{color:#E8603C;}.f{background:#F7F3EC;padding:14px 28px;border-top:1px solid #E2D8CC;font-size:11px;color:#9c948e;text-align:center;}</style></head><body><div class="w"><div class="card"><div class="h"><div class="logo">Pursu<span>.</span></div></div><div class="b">'+body+'</div><div class="f">Pursu Solutions LLC &middot; PursuSolutions@wepursu.one &middot; (301) 913-4975</div></div></div></body></html>';}
-function syncRteFromTextarea(){var ta=document.getElementById('email-body'),rte=document.getElementById('email-body-rte');if(!rte||!ta)return;var h=ta.value;if(!/<[a-z]/i.test(h))h=h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');rte.innerHTML=h;}
+function syncRteFromTextarea(){var ta=document.getElementById('email-body'),rte=document.getElementById('email-body-rte');if(!rte||!ta)return;var h=ta.value;if(!/<[a-z]/i.test(h))h=h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
+/g,'<br>');rte.innerHTML=h;}
+// SEQ RTE + ET TIME
 var SEQ_TIME_OPTIONS=['06:00','06:30','07:00','07:30','08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30'];
 function fmtTime12(t){var p=t.split(':'),h=parseInt(p[0]),m=p[1];return(h%12||12)+':'+m+' '+(h<12?'AM':'PM')+' ET';}
 function addSeqTimeSlot(i){var s=document.getElementById('seq-time-sel-'+i);if(!s)return;var step=seqStepsDraft[i];step.timeSlots=step.timeSlots||[];if(step.timeSlots.indexOf(s.value)===-1){step.timeSlots.push(s.value);step.timeSlots.sort();renderSeqTimeSlotsFor(i);}}
 function removeSeqTimeSlot(i,t){seqStepsDraft[i].timeSlots=(seqStepsDraft[i].timeSlots||[]).filter(function(x){return x!==t;});renderSeqTimeSlotsFor(i);}
-function renderSeqTimeSlotsFor(i){var w=document.getElementById('seq-slots-'+i);if(!w)return;w.innerHTML=(seqStepsDraft[i].timeSlots||[]).map(function(t){return '<span class="seq-slot-chip">'+fmtTime12(t)+'<button class="seq-slot-remove" type="button" onclick="removeSeqTimeSlot('+i+',\''+t+'\')">×</button></span>';}).join('');}
+function renderSeqTimeSlotsFor(i){var w=document.getElementById('seq-slots-'+i);if(!w)return;w.innerHTML=(seqStepsDraft[i].timeSlots||[]).map(function(t){return '<span class="seq-slot-chip">'+fmtTime12(t)+'<button class="seq-slot-remove" type="button" onclick="removeSeqTimeSlot('+i+',''+t+'')">&times;</button></span>';}).join('');}
 function seqRteExec(i,cmd,v){var el=document.getElementById('seq-body-rte-'+i);if(!el)return;el.focus();document.execCommand(cmd,false,v||null);seqStepsDraft[i].body=el.innerHTML;}
 function seqRteInsertLink(i){var url=prompt('URL:','https://');if(url&&url!=='https://')seqRteExec(i,'createLink',url);}
-function handleSeqPaste(e,i){e.preventDefault();var html=e.clipboardData.getData('text/html');if(html){document.execCommand('insertHTML',false,cleanPastedHtml(html));}else{var t=e.clipboardData.getData('text/plain');document.execCommand('insertHTML',false,t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'));}var el=document.getElementById('seq-body-rte-'+i);if(el)seqStepsDraft[i].body=el.innerHTML;}
+function handleSeqPaste(e,i){e.preventDefault();var html=e.clipboardData.getData('text/html');if(html){document.execCommand('insertHTML',false,cleanPastedHtml(html));}else{var t=e.clipboardData.getData('text/plain');document.execCommand('insertHTML',false,t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
+/g,'<br>'));}var el=document.getElementById('seq-body-rte-'+i);if(el)seqStepsDraft[i].body=el.innerHTML;}
 function getEtOffset(){try{var f=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',timeZoneName:'short'});var p=f.formatToParts(new Date());var tz=(p.find(function(x){return x.type==='timeZoneName';})||{}).value||'';return tz==='EDT'?-4:-5;}catch(e){return -5;}}
 function buildSendAtUtc(days,sendTime,slots){var t=(slots&&slots.length>0)?slots[0]:(sendTime||'09:00');var p=t.split(':'),hh=parseInt(p[0]),mm=parseInt(p[1]||0),off=getEtOffset();var d=new Date();d.setDate(d.getDate()+(days||0));d.setUTCHours(hh-off,mm,0,0);return d.toISOString();}
+// INIT
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',checkSession);}else{checkSession();}
 </script>
 
 </body>
