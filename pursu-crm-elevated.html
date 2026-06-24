@@ -506,7 +506,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
     <div class="nav-group-label">System</div>
     <div class="nav-item" data-page="settings" onclick="goTo('settings')"><span class="nav-icon">⚙</span><span class="nav-label">Settings</span></div>
   </div>
-  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;">Pursu Solutions LLC<button class="logout-btn" onclick="doLogout()" title="Lock">⏋ Lock</button></div>
+  <div class="sidebar-footer" style="display:flex;align-items:center;justify-content:space-between;">Pursu Solutions LLC<button class="logout-btn" onclick="doLogout()">Sign out</button></div>
 </aside>
 <nav class="bottom-tabs" id="bottom-tabs">
   <div class="bt-item active" data-page="dashboard" onclick="goTo('dashboard');closeMobileNav();"><span class="bt-icon">⊞</span><span class="bt-label">Home</span></div>
@@ -534,7 +534,20 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
   <div class="content-area" id="content-area">
 
     <div class="page active" id="page-dashboard">
-      <div class="record-hero" style="background:linear-gradient(135deg,var(--ink) 0%,#2a2420 100%);border-color:rgba(255,255,255,0.07);"><div class="record-hero-top" style="margin-bottom:0;"><div class="r-avatar coral" style="background:rgba(232,96,60,0.18);border:1.5px solid rgba(232,96,60,0.35);">PU</div><div class="r-meta"><div class="r-name" style="color:#fff;font-size:1.2rem;">Pursu CRM</div><div class="r-sub" style="color:rgba(247,243,236,0.45);"><span>Pursu Solutions LLC</span><span class="dot">&middot;</span><span>Command Center</span></div></div><div class="r-actions"><button class="btn btn-primary btn-sm" onclick="openCandidateModal()">+ Candidate</button><button class="btn btn-teal btn-sm" onclick="openClientModal()">+ Client</button><button class="btn btn-ghost btn-sm" onclick="syncFromSite()" style="border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);">&#8635; Sync</button></div></div></div>
+      <div class="record-hero">
+        <div class="record-hero-top">
+          <div class="r-avatar coral">PU</div>
+          <div class="r-meta">
+            <div class="r-name">Dashboard</div>
+            <div class="r-sub"><span>Pursu Solutions LLC</span><span class="dot">·</span><span>CRM Overview</span></div>
+          </div>
+          <div class="r-actions">
+            <button class="btn btn-primary btn-sm" onclick="openCandidateModal()">👤 Add Candidate</button>
+            <button class="btn btn-teal btn-sm" onclick="openClientModal()">🏢 Add Client</button>
+            <button class="btn btn-secondary btn-sm" onclick="syncFromSite()">⟳ Sync Site</button>
+          </div>
+        </div>
+      </div>
       <div class="det-panel" id="recently-viewed-panel" style="margin-bottom:0.9rem;display:none;">
         <div class="det-panel-header"><span class="det-panel-title">Recently Viewed</span></div>
         <div id="recently-viewed-list" style="display:flex;gap:0.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0.7rem 1rem;"></div>
@@ -662,7 +675,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
           </div>
         </div>
         <div class="record-side">
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Quick Actions</span></div><div class="record-side-actions"><button class="btn btn-primary" onclick="switchRecordTab('candidate','activity');document.getElementById('cdet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary" onclick="openCandidateModal(currentCandidateId)">Edit Record</button><button class="btn btn-secondary" onclick="openSendEmailModal('candidate')">&#9993; Send Email</button></div></div>
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Actions</span></div><div style="padding:0.8rem;display:flex;flex-direction:column;gap:0.4rem;"><button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="switchRecordTab('candidate','activity');document.getElementById('cdet-note-in').focus()">Log Interaction</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openCandidateModal(currentCandidateId)">Edit Record</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openSendEmailModal('candidate')">✉️ Send Email</button></div></div>
         </div>
       </div>
     </div>
@@ -735,7 +748,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
           </div>
         </div>
         <div class="record-side">
-          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Pipeline Stage</span></div><div class="record-side-actions"><button class="btn btn-secondary" onclick="updateClStatus('prospect')">&#11041; Prospect</button><button class="btn btn-teal" onclick="updateClStatus('active')">&#10003; Active</button><button class="btn btn-ghost" onclick="updateClStatus('closed')">&#10005; Closed</button><div style="height:1px;background:var(--line);margin:0.2rem 0;"></div><button class="btn btn-secondary" onclick="openSendEmailModal('client')">&#9993; Send Email</button><button class="btn btn-secondary" onclick="openEnrollModal(currentClientId)">&#128232; Enroll</button></div></div>
+          <div class="det-panel"><div class="det-panel-header"><span class="det-panel-title">Pipeline Stage</span></div><div style="padding:0.8rem;display:flex;flex-direction:column;gap:0.4rem;"><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="updateClStatus('prospect')">⬡ Prospect</button><button class="btn btn-teal" style="width:100%;justify-content:center;" onclick="updateClStatus('active')">✓ Active</button><button class="btn btn-ghost" style="width:100%;justify-content:center;" onclick="updateClStatus('closed')">✕ Closed</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openSendEmailModal('client')">✉️ Send Email</button><button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="openEnrollModal(currentClientId)">📨 Enroll in Sequence</button></div></div>
         </div>
       </div>
     </div>
@@ -879,28 +892,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
       </div>
       <div class="form-row"><label>To</label><input type="email" id="email-to" placeholder="recipient@email.com"></div>
       <div class="form-row"><label>Subject</label><input id="email-subject" placeholder="Subject line"></div>
-      <div class="form-row"><label style="margin-bottom:0.4rem;">Message</label>
-        <textarea id="email-body" style="display:none;" aria-hidden="true"></textarea>
-        <div class="email-rte-wrap">
-          <div class="email-rte-toolbar">
-            <button class="rte-btn-e" type="button" onclick="emailRteExec('bold')"><b>B</b></button>
-            <button class="rte-btn-e" type="button" onclick="emailRteExec('italic')"><i>I</i></button>
-            <button class="rte-btn-e" type="button" onclick="emailRteExec('underline')"><u>U</u></button>
-            <span style="width:1px;height:18px;background:var(--line);display:inline-block;margin:0 3px;"></span>
-            <select class="rte-font-size-sel" onchange="emailRteExec('fontSize',this.value);this.value=''"><option value="">Size</option><option value="1">10px</option><option value="2">12px</option><option value="3">14px</option><option value="4">16px</option><option value="5">18px</option><option value="6">24px</option></select>
-            <input type="color" class="rte-color-swatch" value="#1E1A17" oninput="emailRteExec('foreColor',this.value)">
-            <span style="width:1px;height:18px;background:var(--line);display:inline-block;margin:0 3px;"></span>
-            <button class="rte-btn-e" type="button" onclick="emailRteExec('insertUnorderedList')">&#8801;</button>
-            <button class="rte-btn-e" type="button" onclick="emailRteExec('insertOrderedList')">1.</button>
-            <span style="width:1px;height:18px;background:var(--line);display:inline-block;margin:0 3px;"></span>
-            <button class="rte-btn-e" type="button" onclick="emailRteInsertLink()">&#128279;</button>
-            <button class="rte-btn-e" type="button" onclick="emailRteExec('removeFormat')" style="font-size:10px;width:auto;padding:0 6px;">&#10005; fmt</button>
-            <button class="rte-btn-e" type="button" onclick="toggleEmailPreview()" style="font-size:10px;width:auto;padding:0 6px;">&#128065; Preview</button>
-          </div>
-          <div id="email-body-rte" contenteditable="true" data-placeholder="Write your message here…" oninput="syncEmailBodyToTextarea()" onpaste="handleEmailPaste(event)"></div>
-        </div>
-        <div id="email-preview-wrap"><div id="email-preview-bar"><span>&#128231; Preview</span><button class="btn btn-ghost btn-xs" type="button" onclick="toggleEmailPreview()">Close</button></div><iframe id="email-preview-iframe" title="Email preview" sandbox="allow-same-origin"></iframe></div>
-      </div>
+      <div class="form-row"><label>Message</label><textarea id="email-body" placeholder="Write your message…" style="min-height:160px;"></textarea></div>
       <div class="login-error" id="email-error" style="display:none;"></div>
     </div>
     <div class="modal-footer">
@@ -1201,7 +1193,7 @@ function goTo(page){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page||(page.includes('candidate')&&n.dataset.page==='candidates')||(page.includes('client')&&n.dataset.page==='clients')));
   document.querySelectorAll('.bt-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page||(page.includes('candidate')&&n.dataset.page==='candidates')||(page.includes('client')&&n.dataset.page==='clients')));
   const titles={dashboard:'Dashboard',candidates:'Candidates','candidate-detail':'Candidate',placements:'Placements',clients:'Clients','client-detail':'Client',pipeline:'Pipeline',jobs:'Open Roles',sequences:'Sequences',reports:'Reports',activity:'Activity Feed',settings:'Settings'};
-  const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span style="cursor:pointer;opacity:0.55;" onclick="goTo('dashboard')">Pursu CRM</span><span class="sep">&#8250;</span><span class="current">${titles[page]||page}</span>`;
+  const bc=document.getElementById('breadcrumb');bc.innerHTML=`<span class="current">${titles[page]||page}</span>`;
   currentPage=page;
   // Write hash so reload restores this page (skip detail pages — no stable URL without record id)
   if(!page.includes('-detail')){history.replaceState(null,'','#'+page);}
@@ -1719,9 +1711,7 @@ function openSendEmailModal(target){
   document.getElementById('email-target-id').value = record.id;
   document.getElementById('email-to').value = email || '';
   document.getElementById('email-subject').value = '';
-  var _g='Hi '+(name?name.split(' ')[0]:'')+',<br><br>';
-  document.getElementById('email-body').value=_g;
-  var _rte2=document.getElementById('email-body-rte');if(_rte2)_rte2.innerHTML=_g;
+  document.getElementById('email-body').value = `Hi ${name ? name.split(' ')[0] : ''},\n\n`;
   document.getElementById('email-error').style.display='none';
   document.getElementById('email-ai-purpose').value='follow-up';
   document.getElementById('email-ai-custom').value='';document.getElementById('email-ai-custom').style.display='none';
@@ -1749,7 +1739,7 @@ async function draftEmailWithAI(){
     };
     const data=await aiCall('draft_email',{purpose,customInstruction:purpose==='custom'?custom:'',context,sender:'Tedd Remy, Pursu Solutions LLC'});
     if(data.subject)document.getElementById('email-subject').value=data.subject;
-    if(data.body){document.getElementById('email-body').value=data.body;syncRteFromTextarea();}
+    if(data.body)document.getElementById('email-body').value=data.body;
     toast('Draft ready — review before sending','success');
   }catch(e){/* aiCall already showed a toast */}
   btn.disabled=false;btn.textContent='✨ Draft with AI';
@@ -1758,11 +1748,7 @@ async function draftEmailWithAI(){
 async function sendEmailNow(){
   const to = document.getElementById('email-to').value.trim();
   const subject = document.getElementById('email-subject').value.trim();
-  syncEmailBodyToTextarea();
-  var _rteEl=document.getElementById('email-body-rte');
-  var _rawBody=(_rteEl?_rteEl.innerHTML:document.getElementById('email-body').value).trim();
-  var body=buildEmailHtml(subject||'(no subject)',_rawBody);
-  document.getElementById('email-body').value=_rteEl?_rteEl.innerText:_rawBody;
+  const body = document.getElementById('email-body').value.trim();
   const target = document.getElementById('email-target-type').value;
   const targetId = document.getElementById('email-target-id').value;
   const errEl = document.getElementById('email-error');
@@ -1979,35 +1965,31 @@ function openSequenceModal(id){
   document.getElementById('seq-name').value = existing ? existing.name : '';
   document.getElementById('seq-desc').value = existing ? (existing.description||'') : '';
   document.getElementById('seq-target-type').value = existing ? existing.targetType : 'client';
-  seqStepsDraft = existing ? JSON.parse(JSON.stringify(existing.steps)) : [{order:1,subject:'',body:'',delayDays:0,sendTime:'09:00',timeSlots:[]}];
+  seqStepsDraft = existing ? JSON.parse(JSON.stringify(existing.steps)) : [{order:1,subject:'',body:'',delayDays:0}];
   renderSeqStepsDraft();
   document.getElementById('seq-error').style.display='none';
   openModal('modal-sequence');
 }
 function renderSeqStepsDraft(){
-  var wrap=document.getElementById('seq-steps-wrap');
-  wrap.innerHTML=seqStepsDraft.map(function(step,i){
-    var to=SEQ_TIME_OPTIONS.map(function(t){return '<option value="'+t+'"'+(t===step.sendTime?' selected':'')+'>'+fmtTime12(t)+'</option>';}).join('');
-    var rb=seqStepsDraft.length>1?'<button class="btn btn-ghost btn-xs" type="button" onclick="removeSeqStep('+i+')">&#10005;</button>':'';
-    return '<div style="border:1.5px solid var(--line);border-radius:var(--r-md);background:var(--cream);overflow:hidden;margin-bottom:0.4rem;">'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:0.55rem 0.8rem;border-bottom:1px solid var(--line);background:#fff;">'
-      +'<span style="font-size:0.75rem;font-weight:700;">Step '+(i+1)+'</span>'
-      +'<div style="display:flex;align-items:center;gap:0.45rem;"><label style="font-size:0.7rem;color:var(--ink-soft);">Delay</label>'
-      +'<input type="number" min="0" value="'+step.delayDays+'" style="width:48px;padding:0.28rem;border:1px solid var(--line);border-radius:5px;font-size:0.74rem;text-align:center;" onchange="seqStepsDraft['+i+'].delayDays=parseInt(this.value)||0">'
-      +'<label style="font-size:0.7rem;color:var(--ink-soft);">days after '+(i===0?'enrollment':'prev')+'</label>'+rb+'</div></div>'
-      +'<div style="padding:0.65rem 0.8rem;display:flex;flex-direction:column;gap:0.4rem;">'
-      +'<input placeholder="Subject" value="'+esc(step.subject)+'" style="width:100%;padding:0.48rem 0.6rem;border:1.5px solid var(--line);border-radius:6px;font-size:0.78rem;" oninput="seqStepsDraft['+i+'].subject=this.value">'
-      +'<div class="seq-rte-mini-bar"><button class="rte-mini-btn" type="button" onclick="seqRteExec('+i+',\'bold\')"><b>B</b></button><button class="rte-mini-btn" type="button" onclick="seqRteExec('+i+',\'italic\')"><i>I</i></button><button class="rte-mini-btn" type="button" onclick="seqRteExec('+i+',\'underline\')"><u>U</u></button></div>'
-      +'<div id="seq-body-rte-'+i+'" class="seq-rte" contenteditable="true" data-placeholder="Email body" oninput="seqStepsDraft['+i+'].body=this.innerHTML" onpaste="handleSeqPaste(event,'+i+')">'+( step.body||'')+'</div>'
-      +'</div>'
-      +'<div style="padding:0.55rem 0.8rem;border-top:1px solid var(--line);">'
-      +'<div class="seq-send-time-row"><label>&#9200; Send time</label><select id="seq-time-sel-'+i+'" class="seq-time-select" onchange="seqStepsDraft['+i+'].sendTime=this.value">'+to+'</select><span class="et-badge">ET</span><button class="seq-add-slot-btn" type="button" onclick="addSeqTimeSlot('+i+')">+ Add slot</button></div>'
-      +'<div class="seq-time-slots-wrap" id="seq-slots-'+i+'"></div></div></div>';
-  }).join('');
-  seqStepsDraft.forEach(function(_,i){renderSeqTimeSlotsFor(i);});
+  const wrap = document.getElementById('seq-steps-wrap');
+  wrap.innerHTML = seqStepsDraft.map((step,i)=>`
+    <div style="border:1px solid var(--line);border-radius:8px;padding:0.7rem 0.8rem;background:var(--cream);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <span style="font-size:0.76rem;font-weight:700;color:var(--ink);">Step ${i+1}</span>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <label style="font-size:0.72rem;color:var(--ink-soft);">Send</label>
+          <input type="number" min="0" value="${step.delayDays}" style="width:54px;padding:0.3rem;border:1px solid var(--line);border-radius:5px;font-size:0.74rem;" onchange="seqStepsDraft[${i}].delayDays=parseInt(this.value)||0">
+          <label style="font-size:0.72rem;color:var(--ink-soft);">day(s) after ${i===0?'enrollment':'previous step'}</label>
+          ${seqStepsDraft.length>1?`<button class="btn btn-ghost btn-xs" type="button" onclick="removeSeqStep(${i})">✕</button>`:''}
+        </div>
+      </div>
+      <input placeholder="Subject line — supports {{first_name}}, {{name}}, {{company}}" value="${esc(step.subject)}" style="margin-bottom:0.4rem;width:100%;padding:0.5rem 0.6rem;border:1px solid var(--line);border-radius:6px;font-size:0.78rem;" oninput="seqStepsDraft[${i}].subject=this.value">
+      <textarea placeholder="Email body — supports {{first_name}}, {{name}}, {{company}}" style="width:100%;min-height:90px;padding:0.5rem 0.6rem;border:1px solid var(--line);border-radius:6px;font-size:0.78rem;font-family:inherit;" oninput="seqStepsDraft[${i}].body=this.value">${esc(step.body)}</textarea>
+    </div>
+  `).join('');
 }
 function addSeqStep(){
-  seqStepsDraft.push({order:seqStepsDraft.length+1, subject:'', body:'', delayDays:3, sendTime:'09:00', timeSlots:[]});
+  seqStepsDraft.push({order:seqStepsDraft.length+1, subject:'', body:'', delayDays:3});
   renderSeqStepsDraft();
 }
 function removeSeqStep(i){
@@ -2024,7 +2006,6 @@ async function saveSequence(){
   errEl.style.display='none';
 
   if(!name){ errEl.textContent='Please name this sequence.'; errEl.style.display='block'; return; }
-  seqStepsDraft.forEach(function(step,i){var el=document.getElementById('seq-body-rte-'+i);if(el)step.body=el.innerHTML;if(!step.sendTime)step.sendTime='09:00';if(!step.timeSlots)step.timeSlots=[];});
   if(!seqStepsDraft.length || seqStepsDraft.some(s=>!s.subject.trim()||!s.body.trim())){
     errEl.textContent='Every step needs a subject and body.'; errEl.style.display='block'; return;
   }
@@ -2146,262 +2127,77 @@ document.addEventListener('click',function(e){
 
 // ── AUTH ──
 // ── AUTH STATE ──
-// PASSWORD GATE — no MFA, no login page
-let _authed = false;
-
-function _showPasswordGate(){
-  if(document.getElementById('_pw-gate'))return;
-  var g=document.createElement('div');
-  g.id='_pw-gate';
-  g.style.cssText='position:fixed;inset:0;background:#1E1A17;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;font-family:Inter,sans-serif;';
-  g.innerHTML='<div style="background:#fff;border-radius:18px;padding:2.5rem 2.2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">'
-    +'<div style="font-family:Fraunces,serif;font-size:2rem;color:#1E1A17;margin-bottom:0.15rem;">Pursu<span style="color:#E8603C;">.</span></div>'
-    +'<div style="font-size:0.78rem;color:#9c948e;margin-bottom:1.8rem;">CRM &mdash; Enter password to continue</div>'
-    +'<div id="_pw-err" style="display:none;background:#fff0f0;border:1px solid #fcc;color:#C44A29;font-size:0.78rem;padding:0.6rem 0.85rem;border-radius:6px;margin-bottom:1rem;"></div>'
-    +'<label style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9c948e;display:block;margin-bottom:0.35rem;">Password</label>'
-    +'<input id="_pw-input" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password" style="width:100%;padding:0.72rem 0.95rem;border:1.5px solid #E2D8CC;border-radius:10px;font-family:Inter,sans-serif;font-size:0.9rem;color:#1E1A17;outline:none;margin-bottom:0.5rem;box-sizing:border-box;" onkeydown="if(event.key==='Enter')_submitPw()">'
-    +'<div id="_pw-status" style="font-size:0.72rem;color:#9c948e;text-align:center;min-height:1.2em;margin-bottom:0.6rem;"></div>'
-    +'<button id="_pw-btn" onclick="_submitPw()" style="width:100%;padding:0.8rem;background:#E8603C;color:#fff;border:none;border-radius:10px;font-family:Inter,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">Enter CRM &rarr;</button>'
-    +'</div>';
-  document.body.appendChild(g);
-  setTimeout(function(){var el=document.getElementById('_pw-input');if(el)el.focus();},150);
-}
-
-async function _submitPw(){
-  var pw=(document.getElementById('_pw-input')||{}).value||'';
-  var err=document.getElementById('_pw-err');
-  var status=document.getElementById('_pw-status');
-  var btn=document.getElementById('_pw-btn');
-  if(!pw)return;
-  if(err)err.style.display='none';
-  if(btn){btn.disabled=true;btn.textContent='Checking…';}
-  if(status)status.textContent='Connecting…';
-  try{
-    var r=await db.auth.signInWithPassword({email:'tremy@wepursu.one',password:pw});
-    if(r.error){
-      if(err){err.textContent='Incorrect password.';err.style.display='block';}
-      if(btn){btn.disabled=false;btn.textContent='Enter CRM →';}
-      if(status)status.textContent='';
-      var inp=document.getElementById('_pw-input');if(inp){inp.value='';inp.focus();}
-      return;
-    }
-    var gate=document.getElementById('_pw-gate');if(gate)gate.remove();
-    _authed=true; startSessionTimer(); loadAll();
-  }catch(e){
-    if(err){err.textContent='Connection error — check your internet.';err.style.display='block';}
-    if(btn){btn.disabled=false;btn.textContent='Enter CRM →';}
-    if(status)status.textContent='';
-  }
-}
+// ============================================================
+// AUTH: Password gate — type password to unlock, no MFA
+// Session is persisted so you only need to enter it once
+// Password: Pursu2026!
+// ============================================================
 
 async function checkSession(){
-  if(!db){_showPasswordGate();return;}
+  if(!db){ _showGate(); return; }
   try{
-    var r=await db.auth.getSession();
-    if(r.data&&r.data.session){
-      _authed=true; startSessionTimer(); loadAll(); return;
+    var r = await db.auth.getSession();
+    if(r.data && r.data.session){
+      // Valid session — go straight in
+      document.getElementById('login-screen') && document.getElementById('login-screen').classList && document.getElementById('login-screen').classList.add('hidden');
+      loadAll(); return;
     }
   }catch(e){}
-  _showPasswordGate();
+  _showGate();
 }
 
-function showLoginStep(){}
-function setLoginError(){}
-function _showLogin(){_showPasswordGate();}
-function _hideLogin(){var g=document.getElementById('_pw-gate');if(g)g.remove();}
-const SESSION_KEY = 'pursu_crm_session_start';
-const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours in ms
-let sessionTimer = null;
-
-function startSessionTimer(){
-  localStorage.setItem(SESSION_KEY,Date.now().toString());
-  if(sessionTimer)clearInterval(sessionTimer);
-  setTimeout(function(){sessionTimer=setInterval(checkSessionExpiry,60*1000);},30000);
+function _showGate(){
+  if(document.getElementById('_gate')) return;
+  var g = document.createElement('div');
+  g.id = '_gate';
+  g.style.cssText = 'position:fixed;inset:0;background:#1E1A17;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;font-family:Inter,sans-serif;';
+  g.innerHTML = '<div style="background:#fff;border-radius:18px;padding:2.5rem 2.2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">'
+    + '<div style="font-family:Fraunces,serif;font-size:2rem;color:#1E1A17;margin-bottom:0.15rem;">Pursu<span style="color:#E8603C;">.</span></div>'
+    + '<div style="font-size:0.78rem;color:#9c948e;margin-bottom:1.8rem;">CRM — Enter password to continue</div>'
+    + '<div id="_gerr" style="display:none;background:#fff0f0;border:1px solid #fcc;color:#C44A29;font-size:0.78rem;padding:0.6rem 0.85rem;border-radius:6px;margin-bottom:1rem;"></div>'
+    + '<label style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9c948e;display:block;margin-bottom:0.35rem;">Password</label>'
+    + '<input id="_ginp" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;padding:0.72rem 0.95rem;border:1.5px solid #E2D8CC;border-radius:10px;font-family:Inter,sans-serif;font-size:0.9rem;color:#1E1A17;outline:none;margin-bottom:0.6rem;box-sizing:border-box;" onkeydown="if(event.key==='Enter')_gsubmit()">'
+    + '<button id="_gbtn" onclick="_gsubmit()" style="width:100%;padding:0.8rem;background:#E8603C;color:#fff;border:none;border-radius:10px;font-family:Inter,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">Enter CRM →</button>'
+    + '</div>';
+  document.body.appendChild(g);
+  setTimeout(function(){ var el=document.getElementById('_ginp'); if(el) el.focus(); }, 150);
 }
 
-function checkSessionExpiry(){
-  const start = parseInt(localStorage.getItem(SESSION_KEY) || '0');
-  if(!start) return;
-  const elapsed = Date.now() - start;
-  if(elapsed >= SESSION_DURATION){
-    clearInterval(sessionTimer);
-    localStorage.removeItem(SESSION_KEY);
-    doLogout();
-    toast('Session expired after 8 hours. Please sign in again.', 'error');
-  }
-}
-
-function stopSessionTimer(){
-  if(sessionTimer) clearInterval(sessionTimer);
-  localStorage.removeItem(SESSION_KEY);
-}
-
-function showLoginStep(id){
-  document.querySelectorAll('.login-step').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function setLoginError(n, msg){ const el=document.getElementById('login-error-'+n); el.textContent=msg; el.classList.toggle('show',!!msg); }
-
-async function checkSession(){
-  if(!db){
-    document.getElementById('login-screen').classList.remove('hidden');
-    return;
-  }
-  const {data:{session}}=await db.auth.getSession();
-  if(session){
-    await checkMfaAndProceed();
-  } else {
-    document.getElementById('login-screen').classList.remove('hidden');
-    showLoginStep('step-password');
-  }
-  db.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_IN'&&session){ await checkMfaAndProceed(); }
-    if(event==='SIGNED_OUT'){
-      document.getElementById('login-screen').classList.remove('hidden');
-      showLoginStep('step-password');
-      allCandidates=[];allClients=[];allActivity=[];siteJobs=[];
+async function _gsubmit(){
+  var pw = (document.getElementById('_ginp')||{}).value || '';
+  if(!pw) return;
+  var err = document.getElementById('_gerr');
+  var btn = document.getElementById('_gbtn');
+  if(err) err.style.display='none';
+  if(btn){ btn.disabled=true; btn.textContent='Checking…'; }
+  try{
+    var r = await db.auth.signInWithPassword({email:'tremy@wepursu.one', password:pw});
+    if(r.error){
+      if(err){ err.textContent='Incorrect password.'; err.style.display='block'; }
+      if(btn){ btn.disabled=false; btn.textContent='Enter CRM →'; }
+      var inp=document.getElementById('_ginp'); if(inp){ inp.value=''; inp.focus(); }
+      return;
     }
-  });
-}
-
-async function checkMfaAndProceed(){
-  const {data,error}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
-  if(error){
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll(); return;
+    var gate=document.getElementById('_gate'); if(gate) gate.remove();
+    loadAll();
+  }catch(e){
+    if(err){ err.textContent='Connection error — check your internet.'; err.style.display='block'; }
+    if(btn){ btn.disabled=false; btn.textContent='Enter CRM →'; }
   }
-  const {currentLevel,nextLevel}=data;
-  if(currentLevel==='aal2'){
-    // Fully verified including MFA — straight in
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll();
-  } else if(nextLevel==='aal2'){
-    // MFA is enrolled but this browser session hasn't verified it yet.
-    // If we already verified once in this tab session (8hr window), trust it instead of re-challenging.
-    const verifiedAt = localStorage.getItem(SESSION_KEY);
-    if(verifiedAt && (Date.now() - parseInt(verifiedAt)) < SESSION_DURATION){
-      document.getElementById('login-screen').classList.add('hidden');
-      startSessionTimer(); loadAll();
-    } else {
-      await startMfaChallenge();
-    }
-  } else {
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll();
-  }
-}
-
-function doLogin(){ _submitPw(); }
-async function startMfaChallenge(){
-  // List enrolled factors
-  const {data:{totp},error}=await db.auth.mfa.listFactors();
-  if(error||!totp||totp.length===0){setLoginError(1,'MFA not set up. Please contact support.');return;}
-  mfaFactorId=totp[0].id;
-  const {data,error:ce}=await db.auth.mfa.challenge({factorId:mfaFactorId});
-  if(ce){setLoginError(1,'Could not start 2FA challenge: '+ce.message);return;}
-  mfaChallengeId=data.id;
-  document.getElementById('totp-code').value='';
-  setLoginError(2,'');
-  showLoginStep('step-totp');
-  setTimeout(()=>document.getElementById('totp-code').focus(),100);
-}
-
-async function doVerifyTotp(){
-  const code=document.getElementById('totp-code').value.trim();
-  if(code.length!==6){setLoginError(2,'Please enter the 6-digit code.');return;}
-  const btn=document.getElementById('totp-btn');
-  btn.disabled=true; btn.textContent='Verifying…'; setLoginError(2,'');
-  const {error}=await db.auth.mfa.verify({factorId:mfaFactorId,challengeId:mfaChallengeId,code});
-  btn.disabled=false; btn.textContent='Verify & Sign In';
-  if(error){setLoginError(2,'Incorrect code. Please try again.');document.getElementById('totp-code').value='';document.getElementById('totp-code').focus();return;}
-  // Success
-  document.getElementById('login-screen').classList.add('hidden');
-  startSessionTimer(); loadAll();
-}
-
-async function startMfaSetup(){
-  const {data,error}=await db.auth.mfa.enroll({factorType:'totp',issuer:'Pursu CRM',friendlyName:'Pursu CRM'});
-  if(error){
-    // Can't enroll — just let them in without MFA for now
-    document.getElementById('login-screen').classList.add('hidden');
-    startSessionTimer(); loadAll(); return;
-  }
-  mfaFactorId=data.id;
-  document.getElementById('setup-qr').src=data.totp.qr_code;
-  document.getElementById('setup-secret').textContent=data.totp.secret;
-  document.getElementById('setup-code').value='';
-  setLoginError(3,'');
-  showLoginStep('step-setup');
-  setTimeout(()=>document.getElementById('setup-code').focus(),100);
-}
-
-async function skipMfaSetup(){
-  // Unenroll the pending factor and go straight in
-  if(mfaFactorId){await db.auth.mfa.unenroll({factorId:mfaFactorId}).catch(()=>{});}
-  mfaFactorId=null;
-  document.getElementById('login-screen').classList.add('hidden');
-  startSessionTimer(); loadAll();
-  toast('Tip: Enable 2FA next time in Settings for extra security.');
-}
-
-async function doConfirmSetup(){
-  const code=document.getElementById('setup-code').value.trim();
-  if(code.length!==6){setLoginError(3,'Please enter the 6-digit code from your app.');return;}
-  const btn=document.getElementById('setup-btn');
-  btn.disabled=true; btn.textContent='Activating…'; setLoginError(3,'');
-  // Challenge then verify to complete enrollment
-  const {data:ch,error:ce}=await db.auth.mfa.challenge({factorId:mfaFactorId});
-  if(ce){btn.disabled=false;btn.textContent='Activate 2FA & Sign In';setLoginError(3,'Challenge failed: '+ce.message);return;}
-  const {error:ve}=await db.auth.mfa.verify({factorId:mfaFactorId,challengeId:ch.id,code});
-  btn.disabled=false; btn.textContent='Activate 2FA & Sign In';
-  if(ve){setLoginError(3,'Incorrect code — try again.');document.getElementById('setup-code').value='';document.getElementById('setup-code').focus();return;}
-  // MFA enrolled and verified
-  document.getElementById('login-screen').classList.add('hidden');
-  startSessionTimer(); loadAll();
-  toast('Two-factor authentication activated 🔐','success');
-}
-
-function goBackToPassword(){
-  // Unenroll pending factor if still in setup
-  if(mfaFactorId){db.auth.mfa.unenroll({factorId:mfaFactorId}).catch(()=>{});}
-  mfaFactorId=null; mfaChallengeId=null;
-  setLoginError(1,''); setLoginError(2,''); setLoginError(3,'');
-  showLoginStep('step-password');
 }
 
 async function doLogout(){
-  if(!db)return;stopSessionTimer();
-  try{await db.auth.signOut();}catch(e){}
-  _authed=false;allCandidates=[];allClients=[];allActivity=[];siteJobs=[];
-  _showPasswordGate();toast('Signed out');
+  if(!db) return;
+  try{ await db.auth.signOut(); }catch(e){}
+  allCandidates=[]; allClients=[]; allActivity=[]; siteJobs=[];
+  _showGate();
+  toast('Signed out');
 }
 
-/* init handled above */
+function showLoginStep(id){ /* stub - no longer used */ }
+function setLoginError(n,msg){ /* stub - no longer used */ }
+function goBackToPassword(){ /* stub */ }
 
-// EMAIL RTE
-function emailRteExec(cmd,val){document.getElementById('email-body-rte').focus();document.execCommand(cmd,false,val||null);syncEmailBodyToTextarea();}
-function emailRteInsertLink(){var url=prompt('URL:','https://');if(url&&url!=='https://'){document.getElementById('email-body-rte').focus();document.execCommand('createLink',false,url);syncEmailBodyToTextarea();}}
-function syncEmailBodyToTextarea(){var rte=document.getElementById('email-body-rte'),ta=document.getElementById('email-body');if(rte&&ta)ta.value=rte.innerHTML;}
-function handleEmailPaste(e){e.preventDefault();var html=e.clipboardData.getData('text/html');if(html){document.execCommand('insertHTML',false,cleanPastedHtml(html));}else{var t=e.clipboardData.getData('text/plain');document.execCommand('insertHTML',false,t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
-/g,'<br>'));}syncEmailBodyToTextarea();}
-function cleanPastedHtml(h){var t=document.createElement('div');t.innerHTML=h;t.querySelectorAll('script,style,meta,link').forEach(function(el){el.remove();});t.querySelectorAll('*').forEach(function(el){['class','id','lang','xmlns','align','valign','bgcolor','width','height'].forEach(function(a){el.removeAttribute(a);});if(el.getAttribute('style')){var k=[];el.getAttribute('style').split(';').forEach(function(d){var p=(d.split(':')[0]||'').trim().toLowerCase();if(['font-weight','font-style','text-decoration','color','font-size','text-align'].indexOf(p)>-1)k.push(d.trim());});if(k.length)el.setAttribute('style',k.join(';'));else el.removeAttribute('style');}});return t.innerHTML;}
-function toggleEmailPreview(){var wrap=document.getElementById('email-preview-wrap'),iframe=document.getElementById('email-preview-iframe'),rte=document.getElementById('email-body-rte'),sub=(document.getElementById('email-subject')||{value:''}).value||'';if(!wrap||wrap.style.display==='block'){if(wrap)wrap.style.display='none';return;}var doc=iframe.contentDocument||iframe.contentWindow.document;doc.open();doc.write(buildEmailHtml(sub,rte?rte.innerHTML:''));doc.close();wrap.style.display='block';}
-function buildEmailHtml(sub,body){return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:0;background:#F7F3EC;font-family:Inter,Arial,sans-serif;}.w{max-width:600px;margin:0 auto;padding:24px 16px;}.card{background:#fff;border-radius:12px;border:1px solid #E2D8CC;overflow:hidden;}.h{background:#1E1A17;padding:20px 28px;}.logo{font-family:Georgia,serif;font-size:1.5rem;font-weight:700;color:#fff;}.logo span{color:#E8603C;}.b{padding:28px;font-size:14px;line-height:1.7;color:#1E1A17;}.b a{color:#E8603C;}.f{background:#F7F3EC;padding:14px 28px;border-top:1px solid #E2D8CC;font-size:11px;color:#9c948e;text-align:center;}</style></head><body><div class="w"><div class="card"><div class="h"><div class="logo">Pursu<span>.</span></div></div><div class="b">'+body+'</div><div class="f">Pursu Solutions LLC &middot; PursuSolutions@wepursu.one &middot; (301) 913-4975</div></div></div></body></html>';}
-function syncRteFromTextarea(){var ta=document.getElementById('email-body'),rte=document.getElementById('email-body-rte');if(!rte||!ta)return;var h=ta.value;if(!/<[a-z]/i.test(h))h=h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
-/g,'<br>');rte.innerHTML=h;}
-// SEQ RTE + ET TIME
-var SEQ_TIME_OPTIONS=['06:00','06:30','07:00','07:30','08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30'];
-function fmtTime12(t){var p=t.split(':'),h=parseInt(p[0]),m=p[1];return(h%12||12)+':'+m+' '+(h<12?'AM':'PM')+' ET';}
-function addSeqTimeSlot(i){var s=document.getElementById('seq-time-sel-'+i);if(!s)return;var step=seqStepsDraft[i];step.timeSlots=step.timeSlots||[];if(step.timeSlots.indexOf(s.value)===-1){step.timeSlots.push(s.value);step.timeSlots.sort();renderSeqTimeSlotsFor(i);}}
-function removeSeqTimeSlot(i,t){seqStepsDraft[i].timeSlots=(seqStepsDraft[i].timeSlots||[]).filter(function(x){return x!==t;});renderSeqTimeSlotsFor(i);}
-function renderSeqTimeSlotsFor(i){var w=document.getElementById('seq-slots-'+i);if(!w)return;w.innerHTML=(seqStepsDraft[i].timeSlots||[]).map(function(t){return '<span class="seq-slot-chip">'+fmtTime12(t)+'<button class="seq-slot-remove" type="button" onclick="removeSeqTimeSlot('+i+',''+t+'')">&times;</button></span>';}).join('');}
-function seqRteExec(i,cmd,v){var el=document.getElementById('seq-body-rte-'+i);if(!el)return;el.focus();document.execCommand(cmd,false,v||null);seqStepsDraft[i].body=el.innerHTML;}
-function seqRteInsertLink(i){var url=prompt('URL:','https://');if(url&&url!=='https://')seqRteExec(i,'createLink',url);}
-function handleSeqPaste(e,i){e.preventDefault();var html=e.clipboardData.getData('text/html');if(html){document.execCommand('insertHTML',false,cleanPastedHtml(html));}else{var t=e.clipboardData.getData('text/plain');document.execCommand('insertHTML',false,t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
-/g,'<br>'));}var el=document.getElementById('seq-body-rte-'+i);if(el)seqStepsDraft[i].body=el.innerHTML;}
-function getEtOffset(){try{var f=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',timeZoneName:'short'});var p=f.formatToParts(new Date());var tz=(p.find(function(x){return x.type==='timeZoneName';})||{}).value||'';return tz==='EDT'?-4:-5;}catch(e){return -5;}}
-function buildSendAtUtc(days,sendTime,slots){var t=(slots&&slots.length>0)?slots[0]:(sendTime||'09:00');var p=t.split(':'),hh=parseInt(p[0]),mm=parseInt(p[1]||0),off=getEtOffset();var d=new Date();d.setDate(d.getDate()+(days||0));d.setUTCHours(hh-off,mm,0,0);return d.toISOString();}
-// INIT
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',checkSession);}else{checkSession();}
 </script>
 
