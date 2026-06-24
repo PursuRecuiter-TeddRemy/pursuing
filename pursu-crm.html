@@ -2344,15 +2344,8 @@ async function checkMfaAndProceed(){
     document.getElementById('login-screen').classList.add('hidden');
     startSessionTimer(); loadAll();
   } else if(nextLevel==='aal2'){
-    // MFA is enrolled but this browser session hasn't verified it yet.
-    // If we already verified once in this tab session (8hr window), trust it instead of re-challenging.
-    const verifiedAt = localStorage.getItem(SESSION_KEY);
-    if(verifiedAt && (Date.now() - parseInt(verifiedAt)) < SESSION_DURATION){
-      document.getElementById('login-screen').classList.add('hidden');
-      startSessionTimer(); loadAll();
-    } else {
-      await startMfaChallenge();
-    }
+    // MFA enrolled but not yet verified in this session — must challenge
+    await startMfaChallenge();
   } else {
     document.getElementById('login-screen').classList.add('hidden');
     startSessionTimer(); loadAll();
@@ -2371,35 +2364,61 @@ async function doLogin(){
   // Check MFA status after successful password
   const {data:aalData,error:aalErr}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
   if(aalErr||!aalData){
-    // Can't check MFA — let in
+    // Can't check MFA — let in without MFA check
     document.getElementById('login-screen').classList.add('hidden');
-    loadAll(); return;
+    startSessionTimer(); loadAll(); return;
   }
   if(aalData.nextLevel==='aal2'){
     // MFA already enrolled — go to verify step
     await startMfaChallenge();
-  } else if(aalData.currentLevel==='aal1'&&aalData.nextLevel==='aal1'){
-    // No MFA enrolled yet — offer setup
-    await startMfaSetup();
+  } else if(aalData.nextLevel==='aal1'){
+    // No MFA enrolled — go straight in (setup is optional via Settings)
+    document.getElementById('login-screen').classList.add('hidden');
+    startSessionTimer(); loadAll();
   } else {
     // Already fully authenticated
     document.getElementById('login-screen').classList.add('hidden');
-    loadAll();
+    startSessionTimer(); loadAll();
   }
 }
 
 async function startMfaChallenge(){
-  // List enrolled factors
-  const {data:{totp},error}=await db.auth.mfa.listFactors();
-  if(error||!totp||totp.length===0){setLoginError(1,'MFA not set up. Please contact support.');return;}
-  mfaFactorId=totp[0].id;
-  const {data,error:ce}=await db.auth.mfa.challenge({factorId:mfaFactorId});
-  if(ce){setLoginError(1,'Could not start 2FA challenge: '+ce.message);return;}
-  mfaChallengeId=data.id;
-  document.getElementById('totp-code').value='';
-  setLoginError(2,'');
+  // List enrolled factors — safely handle any response shape
+  let factorsData, factorsErr;
+  try {
+    const r = await db.auth.mfa.listFactors();
+    factorsData = r.data;
+    factorsErr  = r.error;
+  } catch(e) {
+    setLoginError(1, 'Could not load 2FA factors: ' + e.message);
+    return;
+  }
+  if(factorsErr){ setLoginError(1, 'Could not load 2FA: ' + factorsErr.message); return; }
+  // Supabase v2 returns {all:[], totp:[], phone:[]} — handle both shapes
+  const totpFactors = (factorsData && factorsData.totp) ? factorsData.totp
+                    : (factorsData && factorsData.all)  ? factorsData.all.filter(f=>f.factor_type==='totp')
+                    : [];
+  if(!totpFactors || totpFactors.length === 0){
+    // No TOTP enrolled — skip MFA and go straight in
+    document.getElementById('login-screen').classList.add('hidden');
+    startSessionTimer(); loadAll(); return;
+  }
+  mfaFactorId = totpFactors[0].id;
+  let challengeData, challengeErr;
+  try {
+    const r = await db.auth.mfa.challenge({factorId: mfaFactorId});
+    challengeData = r.data;
+    challengeErr  = r.error;
+  } catch(e) {
+    setLoginError(1, 'Could not start 2FA challenge: ' + e.message);
+    return;
+  }
+  if(challengeErr){ setLoginError(1, 'Could not start 2FA challenge: ' + challengeErr.message); return; }
+  mfaChallengeId = challengeData.id;
+  document.getElementById('totp-code').value = '';
+  setLoginError(2, '');
   showLoginStep('step-totp');
-  setTimeout(()=>document.getElementById('totp-code').focus(),100);
+  setTimeout(()=>document.getElementById('totp-code').focus(), 100);
 }
 
 async function doVerifyTotp(){
