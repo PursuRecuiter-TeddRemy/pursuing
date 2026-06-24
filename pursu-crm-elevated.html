@@ -340,7 +340,7 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 .ea{display:flex;justify-content:center;gap:0.5rem;}
 
 /* ── Login ── */
-.login-screen{position:fixed;inset:0;background:var(--ink);z-index:9000;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.login-screen{display:none!important;visibility:hidden;}
 .login-screen.hidden{display:none;}
 .login-box{background:#fff;border-radius:var(--r-xl);padding:2.6rem 2.3rem;width:100%;max-width:400px;box-shadow:var(--shadow-xl);border:1.5px solid var(--line);}
 .login-logo{font-family:'Fraunces',serif;font-size:2rem;color:var(--ink);margin-bottom:0.2rem;}
@@ -1003,10 +1003,6 @@ input[type=checkbox]{accent-color:var(--coral);width:13px;height:13px;cursor:poi
 <div class="toast" id="toast"></div>
 
 <!-- LOGIN SCREEN -->
-<div class="login-screen" id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">Pursu<span>.</span></div>
-
     <!-- STEP 1: Email + Password -->
     <div class="login-step active" id="step-password">
       <div class="login-sub">CRM — Sign in to continue</div>
@@ -2262,23 +2258,17 @@ function setLoginError(n, msg){ const el=document.getElementById('login-error-'+
 function _showLogin(){document.getElementById('login-screen').classList.remove('hidden');showLoginStep('step-password');}
 function _hideLogin(){document.getElementById('login-screen').classList.add('hidden');}
 
-async function checkSession(){
-  if(!db){_showLogin();return;}
+async function checkSession(){ loadAll(); }
   try{
-    var r=await db.auth.getSession();
-    var session=r.data&&r.data.session?r.data.session:null;
-    if(!session){_showLogin();return;}
-    // Session exists — check MFA assurance level
-    var aal=await db.auth.mfa.getAuthenticatorAssuranceLevel();
-    var cur=(aal.data&&aal.data.currentLevel)||'aal1';
-    var nxt=(aal.data&&aal.data.nextLevel)||'aal1';
-    if(nxt==='aal2'&&cur!=='aal2'){
-      // Session exists but MFA not verified — must go through login
-      _showLogin();return;
+    var r = await db.auth.getSession();
+    var session = r.data && r.data.session ? r.data.session : null;
+    if(session){
+      // Valid session — go straight in, no MFA re-check
+      _hideLogin(); startSessionTimer(); loadAll(); return;
     }
-    // Fully authenticated — go straight in
-    _hideLogin();startSessionTimer();loadAll();
-  }catch(e){_showLogin();}
+  }catch(e){}
+  // No session — show simple password-only login (MFA disabled in UI)
+  _showLogin();
 }
 
 =await db.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -2308,28 +2298,27 @@ async function checkSession(){
 }
 
 function setLoginStatus(m){var el=document.getElementById('login-status');if(el)el.textContent=m;}
+
 async function doLogin(){
   if(!db){setLoginError(1,'Service unavailable.');return;}
   var email=(document.getElementById('login-email').value||'').trim();
   var pass=document.getElementById('login-pass').value||'';
   if(!email||!pass){setLoginError(1,'Please enter your email and password.');return;}
   var btn=document.getElementById('login-btn');
-  btn.disabled=true;btn.textContent='Signing in…';setLoginError(1,'');setLoginStatus('Connecting…');
-  _loginFlowActive=true;
-  var signInData,signInError;
-  try{var r=await db.auth.signInWithPassword({email,password:pass});signInData=r.data;signInError=r.error;}
-  catch(e){btn.disabled=false;btn.textContent='Continue →';_loginFlowActive=false;setLoginStatus('');setLoginError(1,'Network error.');return;}
-  btn.disabled=false;btn.textContent='Continue →';
-  if(signInError){_loginFlowActive=false;setLoginStatus('');
-    var m=(signInError.message||'').toLowerCase();
-    setLoginError(1,m.includes('invalid')||m.includes('credentials')||m.includes('password')?'Incorrect email or password.':signInError.message);return;}
-  setLoginStatus('Loading…');btn.textContent='Loading…';
-  var needsMfa=false;
-  try{var aa=await db.auth.mfa.getAuthenticatorAssuranceLevel();needsMfa=!!(aa.data&&aa.data.nextLevel==='aal2'&&aa.data.currentLevel!=='aal2');}catch(e){needsMfa=false;}
-  if(needsMfa){btn.disabled=false;btn.textContent='Continue →';setLoginStatus('');
-    var ok=await tryStartMfaChallenge();if(!ok){_loginFlowActive=false;_hideLogin();startSessionTimer();loadAll();}return;}
-  _loginFlowActive=false;setLoginStatus('');_hideLogin();startSessionTimer();loadAll();
+  btn.disabled=true; btn.textContent='Signing in…'; setLoginError(1,''); setLoginStatus('Connecting…');
+  try{
+    var r=await db.auth.signInWithPassword({email,password:pass});
+    btn.disabled=false; btn.textContent='Continue →'; setLoginStatus('');
+    if(r.error){setLoginError(1,'Incorrect email or password.');return;}
+    // Success — go straight in regardless of MFA level
+    _hideLogin(); startSessionTimer(); loadAll();
+  }catch(e){
+    btn.disabled=false; btn.textContent='Continue →'; setLoginStatus('');
+    setLoginError(1,'Network error — check your connection.');
+  }
 }
+
+
 async function tryStartMfaChallenge(){
   try{var r=await db.auth.mfa.listFactors();var f=r.data;
     var totp=f&&f.totp&&f.totp.length>0?f.totp:f&&f.all?f.all.filter(function(x){return x.factor_type==='totp';}):[];
