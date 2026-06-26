@@ -1156,7 +1156,7 @@ async function autoSendAllDue(manual=false){
   _autoSending=true;
   const statusEl=document.getElementById('auto-send-status');
   const today=todayStr();
-  const due=allEnrollments.filter(e=>e.status==='active'&&e.nextSendDate.slice(0,10)<=today);
+  const due=allEnrollments.filter(e=>e.status==='active'&&e.nextSendDate&&e.nextSendDate.slice(0,10)<=today);
   if(!due.length){
     if(manual)toast('No emails due right now','');
     if(statusEl)statusEl.textContent='';
@@ -1283,24 +1283,29 @@ function handleAdd(){if(currentPage==='clients'||currentPage==='pipeline')openCl
 function updateBadges(){
   const n=allCandidates.filter(c=>c.status==='applied').length;const el=document.getElementById('badge-cands');el.textContent=n||'';el.style.display=n?'':'none';
   const today=new Date().toISOString().slice(0,10);
-  const due=allEnrollments.filter(e=>e.status==='active'&&e.nextSendDate<=today).length;
+  const due=allEnrollments.filter(e=>e.status==='active'&&e.nextSendDate&&e.nextSendDate.slice(0,10)<=today).length;
   const dueEl=document.getElementById('badge-due');if(dueEl){dueEl.textContent=due||'';dueEl.style.display=due?'':'none';}
 }
 
 function renderDashboard(){
-  document.getElementById('st-cands').textContent=allCandidates.length;
-  document.getElementById('st-placed').textContent=allCandidates.filter(c=>c.status==='placed').length;
-  document.getElementById('st-clients').textContent=allClients.length;
-  document.getElementById('st-jobs').textContent=siteJobs.filter(j=>j.active!==false).length;
+  const el=id=>document.getElementById(id);
+  if(!el('st-cands'))return; // not mounted yet
+  el('st-cands').textContent=allCandidates.length;
+  el('st-placed').textContent=allCandidates.filter(c=>c.status==='placed').length;
+  el('st-clients').textContent=allClients.length;
+  el('st-jobs').textContent=siteJobs.filter(j=>j.active!==false).length;
   const wk=allCandidates.filter(c=>new Date(c.createdAt)>new Date(Date.now()-7*864e5));
-  document.getElementById('st-cands-new').textContent=wk.length?`+${wk.length} this week`:'';
-  document.getElementById('st-cands-new').className='stat-delta '+(wk.length?'up':'neutral');
-  const tbody=document.getElementById('dash-cands-table');
-  tbody.innerHTML=allCandidates.slice(0,6).map(c=>`<tr onclick="openCandDet('${c.id}')"><td class="cell-link">${esc(c.name)}</td><td>${esc(c.role||'—')}</td><td>${pill(c.status)}</td><td>${esc(c.source||'—')}</td><td>${fmt(c.createdAt)}</td></tr>`).join('')||`<tr><td colspan="5"><div class="empty-state" style="padding:1rem;"><p>No candidates. <a onclick="openCandidateModal()">Add one</a> or sync.</p></div></td></tr>`;
+  el('st-cands-new').textContent=wk.length?`+${wk.length} this week`:'';
+  el('st-cands-new').className='stat-delta '+(wk.length?'up':'neutral');
+  const tbody=el('dash-cands-table');
+  if(tbody)tbody.innerHTML=allCandidates.slice(0,6).map(c=>`<tr onclick="openCandDet('${c.id}')"><td class="cell-link">${esc(c.name)}</td><td>${esc(c.role||'—')}</td><td>${pill(c.status)}</td><td>${esc(c.source||'—')}</td><td>${fmt(c.createdAt)}</td></tr>`).join('')||`<tr><td colspan="5"><div class="empty-state" style="padding:1rem;"><p>No candidates. <a onclick="openCandidateModal()">Add one</a> or sync.</p></div></td></tr>`;
   const total=Math.max(allClients.length,1);
-  document.getElementById('dash-pipeline-summary').innerHTML='<div class="funnel-bar">'+[{k:'prospect',l:'Prospect',c:'#1a56c4'},{k:'active',l:'Active',c:'var(--success)'},{k:'closed',l:'Closed',c:'var(--ink-faint)'}].map(s=>{const n=allClients.filter(c=>c.status===s.k).length;return`<div class="funnel-item"><div class="funnel-label">${s.l}</div><div class="funnel-track"><div class="funnel-fill" style="width:${Math.round(n/total*100)}%;background:${s.c}44;border:1px solid ${s.c};"></div></div><div class="funnel-count">${n}</div></div>`;}).join('')+'</div>';
-  document.getElementById('dash-new-week').innerHTML=wk.length?wk.map(c=>`<div class="mini-list-item" onclick="openCandDet('${c.id}')"><span class="cell-link">${esc(c.name)}</span>${pill(c.status)}</div>`).join(''):`<div style="padding:0.8rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No new candidates this week</div>`;
-  renderActList(document.getElementById('dash-activity'),allActivity.slice(0,10));
+  const pipeEl=el('dash-pipeline-summary');
+  if(pipeEl)pipeEl.innerHTML='<div class="funnel-bar">'+[{k:'prospect',l:'Prospect',c:'#1a56c4'},{k:'active',l:'Active',c:'var(--success)'},{k:'closed',l:'Closed',c:'var(--ink-faint)'}].map(s=>{const n=allClients.filter(c=>c.status===s.k).length;return`<div class="funnel-item"><div class="funnel-label">${s.l}</div><div class="funnel-track"><div class="funnel-fill" style="width:${Math.round(n/total*100)}%;background:${s.c}44;border:1px solid ${s.c};"></div></div><div class="funnel-count">${n}</div></div>`;}).join('')+'</div>';
+  const wkEl=el('dash-new-week');
+  if(wkEl)wkEl.innerHTML=wk.length?wk.map(c=>`<div class="mini-list-item" onclick="openCandDet('${c.id}')"><span class="cell-link">${esc(c.name)}</span>${pill(c.status)}</div>`).join(''):`<div style="padding:0.8rem 1rem;font-size:0.78rem;color:var(--ink-faint);">No new candidates this week</div>`;
+  const actEl=el('dash-activity');
+  if(actEl)renderActList(actEl,allActivity.slice(0,10));
   renderPlacementDonut();
   renderRecentlyViewed();
   renderDashFollowups();
@@ -1772,7 +1777,8 @@ function openSendEmailModal(target){
   document.getElementById('email-target-id').value = record.id;
   document.getElementById('email-to').value = email || '';
   document.getElementById('email-subject').value = '';
-  document.getElementById('email-body').value = `Hi ${name ? name.split(' ')[0] : ''},\n\n`;
+  const firstName = (name||'').trim().split(' ')[0];
+  document.getElementById('email-body').value = firstName ? `Hi ${firstName},\n\n` : '';
   document.getElementById('email-error').style.display='none';
   document.getElementById('email-ai-purpose').value='follow-up';
   document.getElementById('email-ai-custom').value='';document.getElementById('email-ai-custom').style.display='none';
@@ -2008,13 +2014,17 @@ function mergeTrigger(e, stepIdx){
   const el = e.target;
   const val = el.value;
   const pos = el.selectionStart;
-  const twoBack = val.slice(Math.max(pos-2,0), pos);
-  if(twoBack==='{{'){
-    mtTriggerPos = pos-2;
-    mtCurrentField = {stepIdx, field:'body', el};
+  // Scan backward from cursor to find the most recent {{ that hasn't been closed
+  const textBefore = val.slice(0, pos);
+  const lastOpen = textBefore.lastIndexOf('{{');
+  const lastClose = textBefore.lastIndexOf('}}');
+  if(lastOpen !== -1 && lastOpen > lastClose){
+    mtTriggerPos = lastOpen;
+    mtCurrentField = {stepIdx, field:'body', el, insertPos: pos};
     showMTDropdown(el);
-  } else if(mtTriggerPos!==-1){
-    filterMTDropdown(val.slice(mtTriggerPos+2, pos).toLowerCase());
+    filterMTDropdown(textBefore.slice(lastOpen+2).toLowerCase());
+  } else {
+    hideMTDropdown();
   }
 }
 
@@ -2059,10 +2069,14 @@ function pickMergeTag(tag){
   if(!mtCurrentField){hideMTDropdown();return;}
   const el=mtCurrentField.el;
   const val=el.value;
-  const before=val.slice(0,mtTriggerPos);
-  const after=val.slice(el.selectionStart);
+  // Use stored trigger position; replace from {{ up to current cursor
+  const replaceFrom = mtTriggerPos;
+  const replaceTo = el.selectionStart;
+  const before=val.slice(0, replaceFrom);
+  const after=val.slice(replaceTo);
   el.value=before+tag+after;
-  el.selectionStart=el.selectionEnd=before.length+tag.length;
+  const newCursor=before.length+tag.length;
+  el.selectionStart=el.selectionEnd=newCursor;
   el.dispatchEvent(new Event('input'));
   hideMTDropdown();
   el.focus();
@@ -2170,7 +2184,7 @@ function renderDueToday(){
   const wrap = document.getElementById('due-today-wrap');
   if(!wrap) return;
   const today = todayStr();
-  const due = allEnrollments.filter(e=>e.status==='active' && e.nextSendDate<=today);
+  const due = allEnrollments.filter(e=>e.status==='active' && e.nextSendDate && e.nextSendDate.slice(0,10)<=today);
   if(!due.length){
     wrap.innerHTML = `<div style="color:var(--ink-faint);font-size:0.82rem;padding:0.4rem 0;">Nothing due today. 🎉</div>`;
     return;
@@ -2431,7 +2445,18 @@ async function syncFromSite(){
     const {data,error}=await db.from('applicants').select('*').order('submitted_at',{ascending:false});
     if(error)throw error;
     let added=0;const saves=[];
-    (data||[]).forEach(row=>{if(!allCandidates.find(c=>c.siteId===row.id)){const rec={id:uid(),siteId:row.id,name:row.name||'Unknown',email:row.email||'',phone:row.phone||'',status:'applied',role:row.job_title||'',source:'website',notes:row.note||'',resumeFileName:row.resume_file_name||'',resumePath:row.resume_path||'',reqNumber:row.req_number||'',createdAt:row.submitted_at||now(),activity:[{text:'Synced from wepursu.one',at:now()}]};allCandidates.unshift(rec);saves.push(upsertC(rec));added++;}});
+    (data||[]).forEach(row=>{
+      const alreadyBySiteId=allCandidates.find(c=>c.siteId===row.id);
+      const alreadyByEmail=row.email&&allCandidates.find(c=>(c.email||'').toLowerCase()===(row.email||'').toLowerCase());
+      if(!alreadyBySiteId&&!alreadyByEmail){
+        const rec={id:uid(),siteId:row.id,name:row.name||'Unknown',email:row.email||'',phone:row.phone||'',status:'applied',role:row.job_title||'',source:'website',notes:row.note||'',resumeFileName:row.resume_file_name||'',resumePath:row.resume_path||'',reqNumber:row.req_number||'',createdAt:row.submitted_at||now(),activity:[{text:'Synced from wepursu.one',at:now()}]};
+        allCandidates.unshift(rec);saves.push(upsertC(rec));added++;
+      } else if(alreadyByEmail&&!alreadyBySiteId){
+        // Backfill siteId on existing manually-added record so future syncs match correctly
+        const i=allCandidates.findIndex(c=>(c.email||'').toLowerCase()===(row.email||'').toLowerCase());
+        if(i>-1&&!allCandidates[i].siteId){allCandidates[i].siteId=row.id;saves.push(upsertC(allCandidates[i]));}
+      }
+    });
     await Promise.all(saves);
     const rj=await dbQ(()=>db.from('jobs').select('*').order('created_at',{ascending:false}));if(rj&&!rj.error)siteJobs=rj.data||[];
     if(added>0){await addAct({type:'candidate',refId:'sync',refName:'Site Sync',action:'sync',detail:`${added} new applicant${added!==1?'s':''} from wepursu.one`});toast(`${added} synced`,'success');}else toast('Already up to date');
@@ -2443,8 +2468,8 @@ async function syncFromSite(){
 function handleSearch(q){
   document.getElementById('ai-search-results').style.display='none';
   if(!q.trim())return;const qL=q.toLowerCase();
-  const c=allCandidates.find(x=>x.name.toLowerCase().includes(qL)||x.email.toLowerCase().includes(qL));if(c){openCandDet(c.id);return;}
-  const cl=allClients.find(x=>x.company.toLowerCase().includes(qL));if(cl){openClDet(cl.id);return;}
+  const c=allCandidates.find(x=>(x.name||'').toLowerCase().includes(qL)||(x.email||'').toLowerCase().includes(qL));if(c){openCandDet(c.id);return;}
+  const cl=allClients.find(x=>(x.company||'').toLowerCase().includes(qL)||(x.contact||'').toLowerCase().includes(qL)||(x.email||'').toLowerCase().includes(qL));if(cl){openClDet(cl.id);return;}
 }
 
 // ── AI SMART SEARCH ──
@@ -2515,7 +2540,7 @@ function _showGate(){
     + '<div style="font-size:0.78rem;color:#9c948e;margin-bottom:1.8rem;">CRM — Enter password to continue</div>'
     + '<div id="_gerr" style="display:none;background:#fff0f0;border:1px solid #fcc;color:#C44A29;font-size:0.78rem;padding:0.6rem 0.85rem;border-radius:6px;margin-bottom:1rem;"></div>'
     + '<label style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9c948e;display:block;margin-bottom:0.35rem;">Password</label>'
-    + '<input id="_ginp" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;padding:0.72rem 0.95rem;border:1.5px solid #E2D8CC;border-radius:10px;font-family:Inter,sans-serif;font-size:0.9rem;color:#1E1A17;outline:none;margin-bottom:0.6rem;box-sizing:border-box;" onkeydown="if(event.key==='Enter')_gsubmit()">'
+    + '<input id="_ginp" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;padding:0.72rem 0.95rem;border:1.5px solid #E2D8CC;border-radius:10px;font-family:Inter,sans-serif;font-size:0.9rem;color:#1E1A17;outline:none;margin-bottom:0.6rem;box-sizing:border-box;" onkeydown="if(event.key===\x27Enter\x27)_gsubmit()">'
     + '<button id="_gbtn" onclick="_gsubmit()" style="width:100%;padding:0.8rem;background:#E8603C;color:#fff;border:none;border-radius:10px;font-family:Inter,sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;">Enter CRM →</button>'
     + '</div>';
   document.body.appendChild(g);
@@ -2549,6 +2574,9 @@ async function doLogout(){
   if(!db) return;
   try{ await db.auth.signOut(); }catch(e){}
   allCandidates=[]; allClients=[]; allActivity=[]; siteJobs=[];
+  allSequences=[]; allEnrollments=[]; allEmailLog=[];
+  recentlyViewed=[];
+  try{localStorage.removeItem('pursu_recently_viewed');}catch(e){}
   _showGate();
   toast('Signed out');
 }
